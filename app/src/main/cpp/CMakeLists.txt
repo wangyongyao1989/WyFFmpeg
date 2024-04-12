@@ -25,6 +25,10 @@ message(${jnilibs}/${ANDROID_ABI}===ssss==)
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         ${distribution_DIR}/include)
 
+file(GLOB src-files
+        ${CMAKE_SOURCE_DIR}/*.cpp
+        )
+
 set(third-party-libs
         #        ${jnilibs}/${ANDROID_ABI}/libgperf.so
         ${jnilibs}/${ANDROID_ABI}/libavcodec.so

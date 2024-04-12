@@ -2,7 +2,7 @@
 // Created by yangw on 2018-3-6.
 //
 
-#include "MNQueue.h"
+#include "include/MNQueue.h"
 
 MNQueue::MNQueue() {
     pthread_mutex_init(&mutexPacket, NULL);
