@@ -14,7 +14,6 @@ set(jnilibs ${CMAKE_SOURCE_DIR}/jniLibs)
 
 add_library(${CMAKE_PROJECT_NAME}
         SHARED
-        #        ${src-files}
         native-lib.cpp
         )
 
@@ -22,16 +21,11 @@ link_directories(
         ${CMAKE_CURRENT_LIST_DIR}/libs/${ANDROID_ABI})
 
 message(${CMAKE_CURRENT_LIST_DIR}/libs/${ANDROID_ABI}===ssss==)
-message(${jnilibs}/${ANDROID_ABI}===ssss==)
+message(${CMAKE_SOURCE_DIR}===ssss==)
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         ${distribution_DIR}/include)
 
-file(GLOB src-files
-        ${CMAKE_SOURCE_DIR}/native-lib.cpp
-        #        ${CMAKE_SOURCE_DIR}/MNQueue.cpp
-
-        )
 
 set(third-party-libs
         ${jnilibs}/${ANDROID_ABI}/libgperf.so

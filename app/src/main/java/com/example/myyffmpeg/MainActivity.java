@@ -8,12 +8,6 @@ import android.widget.TextView;
 import com.example.myyffmpeg.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
-
-    // Used to load the 'myyffmpeg' library on application startup.
-    static {
-        System.loadLibrary("myyffmpeg");
-    }
-
     private ActivityMainBinding binding;
 
     @Override
@@ -23,14 +17,9 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Example of a call to a native method
+        CallJni callJni = new CallJni();
         TextView tv = binding.sampleText;
-        tv.setText(stringFromJNI());
+        tv.setText(callJni.callStringForJNI() + callJni.callIntForJNI());
     }
 
-    /**
-     * A native method that is implemented by the 'myyffmpeg' native library,
-     * which is packaged with this application.
-     */
-    public native String stringFromJNI();
 }
