@@ -4,6 +4,7 @@
 
 #ifndef MYYFFMPEG_FFMPEGMANGER_H
 #define MYYFFMPEG_FFMPEGMANGER_H
+#include <android/log.h>
 
 extern "C" {
 #include "libavformat/avformat.h"
@@ -22,6 +23,7 @@ public:
     const char *getInputUrl() const;
     void setInputUrl(const char *inputUrl);
     int initFFmpeg();
+    int mp4ConversionAvi(const char *inputUrl,const char *outputUrl);
 
 };
 
