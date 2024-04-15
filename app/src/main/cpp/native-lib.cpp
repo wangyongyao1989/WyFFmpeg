@@ -3,6 +3,7 @@
 #include "getopt.h"
 #include "gperf.h"
 #include <android/log.h>
+#include "FFmpegManger.h"
 
 #define LOG_TAG "wy"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -31,10 +32,54 @@ cpp_intFromJNI(JNIEnv *env, jobject thiz, jint age) {
 }
 
 
+JNIEXPORT jlong JNICALL
+cpp_initFFmpeg(JNIEnv *env, jobject thiz) {
+    LOGD("cpp_initFFmpeg");
+    FFmpegManger *fmpegManger = new FFmpegManger();
+    fmpegManger->initFFmpeg();
+    return 10;
+}
+
+JNIEXPORT jstring JNICALL
+cpp_getFFmpegVersion(JNIEnv *env, jobject thiz) {
+    char strBuffer[1024 * 4] = {0};
+    strcat(strBuffer, "libavcodec : ");
+    strcat(strBuffer, AV_STRINGIFY(LIBAVCODEC_VERSION));
+    strcat(strBuffer, "\nlibavformat : ");
+    strcat(strBuffer, AV_STRINGIFY(LIBAVFORMAT_VERSION));
+    strcat(strBuffer, "\nlibavutil : ");
+    strcat(strBuffer, AV_STRINGIFY(LIBAVUTIL_VERSION));
+    strcat(strBuffer, "\nlibavfilter : ");
+    strcat(strBuffer, AV_STRINGIFY(LIBAVFILTER_VERSION));
+    strcat(strBuffer, "\nlibswresample : ");
+    strcat(strBuffer, AV_STRINGIFY(LIBSWRESAMPLE_VERSION));
+    strcat(strBuffer, "\nlibswscale : ");
+    strcat(strBuffer, AV_STRINGIFY(LIBSWSCALE_VERSION));
+    strcat(strBuffer, "\navcodec_configure : \n");
+    strcat(strBuffer, avcodec_configuration());
+    strcat(strBuffer, "\navcodec_license : ");
+    strcat(strBuffer, avcodec_license());
+    LOGD("GetFFmpegVersion\n%s", strBuffer);
+    return env->NewStringUTF(strBuffer);
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_set_input_url(JNIEnv *env, jobject thiz, jstring intputUrl) {
+    const char *url = env->GetStringUTFChars(intputUrl, 0);
+
+    env->ReleaseStringUTFChars(intputUrl, url);
+}
+
 // 重点：定义类名和函数签名，如果有多个方法要动态注册，在数组里面定义即可
 static const JNINativeMethod methods[] = {
-        {"stringFromJNI", "()Ljava/lang/String;", (void *) cpp_stringFromJNI},
-        {"intFromJNI",    "(I)I",                 (void *) cpp_intFromJNI},
+        {"native_getFFmpegVersion", "()Ljava/lang/String;",  (std::string *) cpp_getFFmpegVersion},
+        {"native_initFFmpeg",       "()J",                   (long *) cpp_initFFmpeg},
+        {"stringFromJNI",           "()Ljava/lang/String;",  (void *) cpp_stringFromJNI},
+        {"intFromJNI",              "(I)I",                  (void *) cpp_intFromJNI},
+        {"setInputUrl",             "(Ljava/lang/String;)V", (void *) cpp_set_input_url},
+
 };
 
 // 定义注册方法

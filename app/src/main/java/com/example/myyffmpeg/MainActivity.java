@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
         CallJni callJni = new CallJni();
         TextView tv = binding.sampleText;
         tv.setText(callJni.callStringForJNI() + callJni.callIntForJNI());
+        callJni.getFFmpegVersion();
     }
 
 }

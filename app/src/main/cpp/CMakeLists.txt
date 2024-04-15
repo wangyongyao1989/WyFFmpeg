@@ -15,6 +15,7 @@ set(jnilibs ${CMAKE_SOURCE_DIR}/jniLibs)
 add_library(${CMAKE_PROJECT_NAME}
         SHARED
         native-lib.cpp
+        FFmpegManger.cpp
         )
 
 link_directories(
