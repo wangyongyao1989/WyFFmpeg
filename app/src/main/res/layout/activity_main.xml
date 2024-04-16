@@ -25,6 +25,16 @@
         android:layout_height="wrap_content"
         tools:ignore="HardcodedText" />
 
+    <Button
+        android:id="@+id/btn3"
+        android:text="MP4添加水印"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="10dp"
+        app:layout_constraintStart_toEndOf="@+id/btn2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:ignore="HardcodedText" />
+
     <TextView
         android:id="@+id/sample_text"
         android:layout_width="wrap_content"

@@ -16,6 +16,8 @@ add_library(${CMAKE_PROJECT_NAME}
         SHARED
         native-lib.cpp
         FFmpegManger.cpp
+        FFmpegVideoTrans.cpp
+        FFmpegWaterMark.cpp
         )
 
 link_directories(

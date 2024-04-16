@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private CallJni mCallJni;
     private Button mBtn1;
     private Button mBtn2;
+    private Button mBtn3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,15 +50,23 @@ public class MainActivity extends AppCompatActivity {
                     + mCallJni.getFFmpegVersion());
         });
         mBtn2.setOnClickListener(v -> {
-            String modelFilePath = FileUtils.getModelFilePath(getApplication(), "woman.mp4");
+            String inputFilePath = FileUtils.getModelFilePath(getApplication(), "woman.mp4");
             @SuppressLint("SimpleDateFormat") SimpleDateFormat formatter
                     = new SimpleDateFormat("yy_MM_dd_HH_mm_ss");
             Date curDate = new Date(System.currentTimeMillis());//获取当前时间
             String str = formatter.format(curDate);
-            String aviDir = DirectoryPath.createSDCardDataDir(getApplication());
+            String aviDir = DirectoryPath.createVideoDir(getApplication());
             String aviName = aviDir + File.pathSeparator + str + ".avi";
-            mCallJni.mp4CAvi(modelFilePath,aviName);
+            mCallJni.mp4CAvi(inputFilePath, aviName);
             SaveMediaUtils.saveImgFileToAlbum(getApplication(), aviName);
+        });
+
+        mBtn3.setOnClickListener(v -> {
+            String inputFilePath = FileUtils.getModelFilePath(getApplication(), "woman.mp4");
+            String pngFilePath = FileUtils.getModelFilePath(getApplication(), "water.png");
+            String waterMakerDir = DirectoryPath.createVideoDir(getApplication());
+            String waterMakerFilePath = waterMakerDir + File.pathSeparator + "watermark.mp4";
+            mCallJni.waterMark(inputFilePath, pngFilePath, waterMakerFilePath);
         });
 
 
@@ -72,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
         mSampleText = mBinding.sampleText;
         mBtn1 = mBinding.btn1;
         mBtn2 = mBinding.btn2;
+        mBtn3 = mBinding.btn3;
     }
 
     public boolean checkPermission() {
