@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mBtn1;
     private Button mBtn2;
     private Button mBtn3;
+    private Button mBtn4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +69,18 @@ public class MainActivity extends AppCompatActivity {
             String waterMakerFilePath = waterMakerDir + File.pathSeparator + "watermark.mp4";
             mCallJni.waterMark(inputFilePath, pngFilePath, waterMakerFilePath);
         });
+        mBtn4.setOnClickListener(v -> {
+            if (mBtn4.isSelected()) {
+                mCallJni.stopAudio();
+                mBtn4.setSelected(false);
+                mBtn4.setText("音频播放");
+            } else {
+                String audioUrl = "http://ra01.sycdn.kuwo.cn/resource/n3/32/56/3260586875.mp3";
+                mCallJni.playAudio(audioUrl);
+                mBtn4.setSelected(true);
+                mBtn4.setText("停止音频播放");
+            }
+        });
 
 
     }
@@ -82,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
         mBtn1 = mBinding.btn1;
         mBtn2 = mBinding.btn2;
         mBtn3 = mBinding.btn3;
+        mBtn4 = mBinding.btn4;
     }
 
     public boolean checkPermission() {

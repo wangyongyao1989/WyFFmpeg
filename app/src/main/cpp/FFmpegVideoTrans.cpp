@@ -19,7 +19,7 @@ int FFmpegVideoTrans::mp4ConversionAvi(const char *in_filename, const char *out_
     LOGD("in_filename:%s", in_filename);
     LOGD("out_filename:%s", out_filename);
 
-    av_register_all();
+//    av_register_all();
     //输入
     if ((ret = avformat_open_input(&ifmt_ctx, in_filename, 0, 0)) < 0) {//打开媒体文件
         LOGD("Could not open input file.");

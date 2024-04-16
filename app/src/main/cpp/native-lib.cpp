@@ -73,7 +73,7 @@ cpp_set_input_url(JNIEnv *env, jobject thiz, jstring intputUrl) {
 }
 
 extern "C"
-JNIEXPORT jlong JNICALL
+JNIEXPORT void JNICALL
 cpp_mp4_input_avi_output(JNIEnv *env, jobject thiz, jstring intputUrl, jstring outputUrl) {
     const char *intput_url = env->GetStringUTFChars(intputUrl, 0);
     const char *output_url = env->GetStringUTFChars(outputUrl, 0);
@@ -85,28 +85,50 @@ cpp_mp4_input_avi_output(JNIEnv *env, jobject thiz, jstring intputUrl, jstring o
 }
 
 extern "C"
-JNIEXPORT jlong JNICALL
+JNIEXPORT void JNICALL
 cpp_mp4_water_mark(JNIEnv *env, jobject thiz, jstring intputUrl, jstring pngUlr,
                    jstring outputUrl) {
     const char *intput_url = env->GetStringUTFChars(intputUrl, 0);
     const char *png_url = env->GetStringUTFChars(pngUlr, 0);
     const char *output_url = env->GetStringUTFChars(outputUrl, 0);
     FFmpegManger *fmpegManger = new FFmpegManger();
-    fmpegManger->mp4WaterMark(intput_url, png_url,output_url);
+    fmpegManger->mp4WaterMark(intput_url, png_url, output_url);
     env->ReleaseStringUTFChars(intputUrl, intput_url);
     env->ReleaseStringUTFChars(pngUlr, png_url);
     env->ReleaseStringUTFChars(outputUrl, output_url);
 }
 
+extern "C"
+JNIEXPORT void JNICALL
+cpp_play_audio(JNIEnv *env, jobject thiz, jstring intputUrl) {
+    const char *url = env->GetStringUTFChars(intputUrl, 0);
+    FFmpegManger *fmpegManger = new FFmpegManger();
+    fmpegManger->playAudio(url);
+
+    env->ReleaseStringUTFChars(intputUrl, url);
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_stop_audio(JNIEnv *env, jobject thiz) {
+    FFmpegManger *fmpegManger = new FFmpegManger();
+
+    fmpegManger->stopAudio();
+
+}
+
 // 重点：定义类名和函数签名，如果有多个方法要动态注册，在数组里面定义即可
 static const JNINativeMethod methods[] = {
-        {"native_getFFmpegVersion", "()Ljava/lang/String;",                                      (std::string *) cpp_getFFmpegVersion},
+        {"native_getFFmpegVersion", "()Ljava/lang/String;",                                      (void *) cpp_getFFmpegVersion},
         {"native_initFFmpeg",       "()J",                                                       (long *) cpp_initFFmpeg},
-        {"stringFromJNI",           "()Ljava/lang/String;",                                      (void *) cpp_stringFromJNI},
+        {"stringFromJNI",           "()Ljava/lang/String;",                                      (std::string *) cpp_stringFromJNI},
         {"intFromJNI",              "(I)I",                                                      (void *) cpp_intFromJNI},
         {"setInputUrl",             "(Ljava/lang/String;)V",                                     (void *) cpp_set_input_url},
-        {"native_MP4_AVI",          "(Ljava/lang/String;Ljava/lang/String;)J",                   (void *) cpp_mp4_input_avi_output},
-        {"native_Water_mark",       "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J", (void *) cpp_mp4_water_mark},
+        {"native_MP4_AVI",          "(Ljava/lang/String;Ljava/lang/String;)V",                   (void *) cpp_mp4_input_avi_output},
+        {"native_Water_mark",       "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", (void *) cpp_mp4_water_mark},
+        {"native_Play_Audio",       "(Ljava/lang/String;)V",                                     (void *) cpp_play_audio},
+        {"native_Stop_Audio",       "()V",                                                       (void *) cpp_stop_audio},
 
 };
 

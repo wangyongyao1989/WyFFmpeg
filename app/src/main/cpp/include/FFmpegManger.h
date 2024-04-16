@@ -23,6 +23,8 @@ public:
     int initFFmpeg();
     int mp4ConversionAvi(const char *inputUrl,const char *outputUrl);
     int mp4WaterMark(const char *inputUrl,const char *pngUrl,const char *outputUrl);
+    int playAudio(const char *inputUrl);
+    int stopAudio();
 
 };
 

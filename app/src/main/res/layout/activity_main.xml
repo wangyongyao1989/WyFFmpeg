@@ -8,31 +8,41 @@
 
     <Button
         android:id="@+id/btn1"
-        android:text="获取ffmpeg版本"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="获取ffmpeg版本"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         tools:ignore="HardcodedText" />
 
     <Button
         android:id="@+id/btn2"
-        android:text="MP4转avi"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginStart="10dp"
-        app:layout_constraintStart_toEndOf="@+id/btn1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="MP4转avi"
+        app:layout_constraintStart_toEndOf="@+id/btn1"
+        app:layout_constraintTop_toTopOf="parent"
         tools:ignore="HardcodedText" />
 
     <Button
         android:id="@+id/btn3"
-        android:text="MP4添加水印"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginStart="10dp"
-        app:layout_constraintStart_toEndOf="@+id/btn2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="MP4添加水印"
+        app:layout_constraintStart_toEndOf="@+id/btn2"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="HardcodedText" />
+
+    <Button
+        android:id="@+id/btn4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="播放音频"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn1"
         tools:ignore="HardcodedText" />
 
     <TextView

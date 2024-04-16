@@ -22,6 +22,16 @@ public class CallJni {
         native_Water_mark(inputUrl, intputPng, outputUrl);
     }
 
+    public void playAudio(String audioUrl) {
+//        callIntForJNI();
+        native_Play_Audio(audioUrl);
+//        setInputUrl(audioUrl);
+    }
+
+    public void stopAudio() {
+        native_Stop_Audio();
+    }
+
     public String callStringForJNI() {
         return stringFromJNI();
     }
@@ -42,10 +52,12 @@ public class CallJni {
 
     private native long native_initFFmpeg();
 
-    private native long native_MP4_AVI(String inputUrl, String outputUrl);
+    private native void native_MP4_AVI(String inputUrl, String outputUrl);
 
-    private native long native_Water_mark(String inputUrl, String inputPng, String outputUrl);
+    private native void native_Water_mark(String inputUrl, String inputPng, String outputUrl);
 
+    private native void native_Play_Audio(String audio);
+    private native void native_Stop_Audio();
 
     private native String native_getFFmpegVersion();
 
