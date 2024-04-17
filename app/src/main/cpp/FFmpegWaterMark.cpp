@@ -22,8 +22,18 @@ int FFmpegWaterMark::mp4WaterMark(const char *inputUrl, const char *pngUrl, cons
     }
     LOGD("InitDecodeCodec start========");
 
+
     for (int i = 0; i < 2; i++) {
-        int ret = InitDecodeCodec(context[i]->streams[0]->codec->codec_id, i);
+        int ret = -1;
+        if (i == 0) {
+            video_index = av_find_best_stream(context[i], AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
+            AVStream *st = context[i]->streams[video_index];
+            AVCodecID id = st->codecpar->codec_id;
+            ret = InitDecodeCodec(id, i);
+        } else {
+             ret = InitDecodeCodec(context[i]->streams[0]->codec->codec_id, i);
+        }
+
         if (ret < 0) {
             LOGD("InitDecodeCodec failed!");
             this_thread::sleep_for(chrono::seconds(10));
@@ -49,14 +59,28 @@ int FFmpegWaterMark::mp4WaterMark(const char *inputUrl, const char *pngUrl, cons
 //        goto End;
     }
 
-    avfilter_graph_parse2(filter_graph, filter_descr, &inputs, &outputs);
+    int parse2 = avfilter_graph_parse2(filter_graph, filter_descr, &inputs, &outputs);
+    if (parse2 < 0) {
+        LOGD("avfilter_graph_parse2 error %d", ret);
+        ErrorFree();
+    }
     InitInputFilter(inputs, "MainFrame", 0);
     InitInputFilter(inputs->next, "OverlayFrame", 1);
-    InitOutputFilter(outputs, "output");
+    InitOutputFilter(outputs,
+                     "output");
     FreeInout();
+    LOGD("InitOutputFilter end");
+    ret = avfilter_graph_parse_ptr(filter_graph, filter_descr,
+                                   &inputs, &outputs, NULL);
+    if (ret < 0) {
+        LOGD("avfilter_graph_parse_ptr error %d", ret);
+        ErrorFree();
+    }
 
+    //????为什么会连接失败？？？？？？？？
     ret = avfilter_graph_config(filter_graph, NULL);
     if (ret < 0) {
+        LOGD("avfilter_graph_config error %d", ret);
         ErrorFree();
 //        goto End;
     }
@@ -257,19 +281,17 @@ void FFmpegWaterMark::CloseOutput() {
 
 
 int FFmpegWaterMark::InitEncoderCodec(int iWidth, int iHeight, int inputIndex) {
-    LOGD("InitEncoderCodec==============iWidth:%d===iHeight:%d",iWidth,iHeight);
-//    LOGD("InitEncoderCodec==============");
-    AVCodecID videoCodecId = context[0]->video_codec_id;
-    LOGD("InitEncoderCodec==============videoCodecId:%d===",videoCodecId);
-    AVCodec *pH264Codec = avcodec_find_encoder(AV_CODEC_ID_H264);
+    LOGD("InitEncoderCodec==============iWidth:%d===iHeight:%d", iWidth, iHeight);
+    AVCodec *pH264Codec = avcodec_find_encoder(context[0]->streams[video_index]->codecpar->codec_id);
+    LOGD("InitEncoderCodec==============AV_CODEC_ID_H264:%d", AV_CODEC_ID_H264);
 //    AVCodec *pH264Codec = avcodec_find_encoder(videoCodecId);
 
     if (NULL == pH264Codec) {
         LOGD("avcodec_find_encoder failed");
         return (-1);
     }
-
     outPutEncContext = avcodec_alloc_context3(pH264Codec);
+    outPutEncContext = context[0]->streams[0]->codec;
     LOGD("InitEncoderCodec:%p", outPutEncContext);
     outPutEncContext->gop_size = 30;
     outPutEncContext->has_b_frames = 0;
@@ -277,7 +299,10 @@ int FFmpegWaterMark::InitEncoderCodec(int iWidth, int iHeight, int inputIndex) {
     outPutEncContext->codec_id = pH264Codec->id;
     outPutEncContext->time_base.num = context[inputIndex]->streams[0]->codec->time_base.num;
     outPutEncContext->time_base.den = context[inputIndex]->streams[0]->codec->time_base.den;
-    outPutEncContext->pix_fmt = *pH264Codec->pix_fmts;
+    LOGD("InitEncoderCodec:%p", outPutEncContext);
+    outPutEncContext->pix_fmt = AV_PIX_FMT_YUV420P;
+//    outPutEncContext->pix_fmt = *pH264Codec->pix_fmts;
+//    LOGD("InitEncoderCodec pix_fmt:%p", outPutEncContext->pix_fmt);
     outPutEncContext->width = iWidth;
     outPutEncContext->height = iHeight;
 
@@ -352,8 +377,6 @@ int FFmpegWaterMark::InitInputFilter(AVFilterInOut *input, const char *filterNam
 int FFmpegWaterMark::InitOutputFilter(AVFilterInOut *output, const char *filterName) {
     AVFilterContext *padFilterContext = output->filter_ctx;
     auto filter = avfilter_get_by_name("buffersink");
-
-
     int ret = avfilter_graph_create_filter(&outputFilterContext, filter, filterName, NULL,
                                            NULL, filter_graph);
     if (ret < 0)

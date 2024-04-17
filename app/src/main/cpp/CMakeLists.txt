@@ -19,6 +19,7 @@ add_library(${CMAKE_PROJECT_NAME}
         FFmpegVideoTrans.cpp
         FFmpegWaterMark.cpp
         FFmpegPlayAudio.cpp
+        FFmpegWaterMarkTest.cpp
         )
 
 link_directories(

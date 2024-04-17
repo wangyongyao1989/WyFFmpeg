@@ -19,6 +19,7 @@ using namespace std;
 
 class FFmpegWaterMark {
 private:
+    int video_index = -1;
     AVFormatContext *context[2];
     AVFormatContext *outputContext;
     int64_t lastPts = 0;
@@ -36,8 +37,8 @@ private:
     AVFrame *pSrcFrame[2];
     AVFrame *inputFrame[2];
 
-    AVFilterInOut *inputs;
-    AVFilterInOut *outputs;
+    AVFilterInOut *inputs = avfilter_inout_alloc();
+    AVFilterInOut *outputs = avfilter_inout_alloc();
     AVFilterGraph *filter_graph = nullptr;
 
     AVFilterContext *inputFilterContext[2];
