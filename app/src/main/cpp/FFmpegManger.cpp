@@ -28,10 +28,14 @@ int FFmpegManger::mp4ConversionAvi(const char *in_filename, const char *out_file
 }
 
 int FFmpegManger::mp4WaterMark(const char *inputUrl, const char *pngUrl, const char *outputUrl) {
-    FFmpegWaterMark *waterMark = new FFmpegWaterMark();
-    int ret = waterMark->mp4WaterMark(inputUrl, pngUrl, outputUrl);
+//    FFmpegWaterMark *waterMark = new FFmpegWaterMark();
+//    int ret = waterMark->mp4WaterMark(inputUrl, pngUrl, outputUrl);
+
 //        FFmpegWaterMarkTest *waterMark = new FFmpegWaterMarkTest();
 //        waterMark->mp4WaterMark(inputUrl, pngUrl, outputUrl);
+
+    FFmpegWaterMarkTest *waterMark = new FFmpegWaterMarkTest();
+    waterMark->mp4WaterMark_leixiaohua(inputUrl, pngUrl, outputUrl);
     return 0;
 }
 
