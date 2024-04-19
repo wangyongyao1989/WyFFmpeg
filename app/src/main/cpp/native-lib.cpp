@@ -118,6 +118,27 @@ cpp_stop_audio(JNIEnv *env, jobject thiz) {
 
 }
 
+extern "C"
+JNIEXPORT void JNICALL
+cpp_play_video(JNIEnv *env, jobject thiz, jstring intputUrl, jobject surface) {
+    const char *url = env->GetStringUTFChars(intputUrl, 0);
+    LOGD("cpp_play_video url:%s", url);
+    FFmpegManger *fmpegManger = new FFmpegManger();
+    fmpegManger->playVideo(env, surface, url);
+
+    env->ReleaseStringUTFChars(intputUrl, url);
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_stop_video(JNIEnv *env, jobject thiz) {
+    FFmpegManger *fmpegManger = new FFmpegManger();
+
+    fmpegManger->stopAudio();
+
+}
+
 // 重点：定义类名和函数签名，如果有多个方法要动态注册，在数组里面定义即可
 static const JNINativeMethod methods[] = {
         {"native_getFFmpegVersion", "()Ljava/lang/String;",                                      (void *) cpp_getFFmpegVersion},
@@ -129,6 +150,8 @@ static const JNINativeMethod methods[] = {
         {"native_Water_mark",       "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", (void *) cpp_mp4_water_mark},
         {"native_Play_Audio",       "(Ljava/lang/String;)V",                                     (void *) cpp_play_audio},
         {"native_Stop_Audio",       "()V",                                                       (void *) cpp_stop_audio},
+        {"native_Play_Video",       "(Ljava/lang/String;Landroid/view/Surface;)V",               (void *) cpp_play_video},
+        {"native_Stop_Video",       "()V",                                                       (void *) cpp_stop_video},
 
 };
 

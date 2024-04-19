@@ -10,7 +10,10 @@
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 #include <android/log.h>
+#include <jni.h>
+#include <android/native_window_jni.h>
 #include "ffmpegpch.h"
+
 
 class FFmpegManger {
 private:
@@ -25,6 +28,7 @@ public:
     int mp4WaterMark(const char *inputUrl,const char *pngUrl,const char *outputUrl);
     int playAudio(const char *inputUrl);
     int stopAudio();
+    int playVideo(JNIEnv *env, jobject surface, const char *inputUrl);
 
 };
 

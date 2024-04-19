@@ -33,6 +33,7 @@ public:
 
     int open_input_file(const char *filename);
     int init_filters(const char *filters_descr);
+    int init_filters_1(const char *filters_descr);
 
     int mp4WaterMark_leixiaohua(const char *inputUrl, const char *pngUrl, const char *outputUrl);
     int open_input_file_leixiaohua(const char *filename);

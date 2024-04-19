@@ -1,5 +1,7 @@
 package com.example.myyffmpeg;
 
+import android.view.Surface;
+
 public class CallJni {
 
     static {
@@ -32,6 +34,14 @@ public class CallJni {
         native_Stop_Audio();
     }
 
+    public void playVideo(String videoUrl, Surface surface) {
+        native_Play_Video(videoUrl, surface);
+    }
+
+    public void stopVideo() {
+        stopVideo();
+    }
+
     public String callStringForJNI() {
         return stringFromJNI();
     }
@@ -57,7 +67,12 @@ public class CallJni {
     private native void native_Water_mark(String inputUrl, String inputPng, String outputUrl);
 
     private native void native_Play_Audio(String audio);
+
     private native void native_Stop_Audio();
+
+    private native void native_Play_Video(String audio, Surface surface);
+
+    private native void native_Stop_Video();
 
     private native String native_getFFmpegVersion();
 

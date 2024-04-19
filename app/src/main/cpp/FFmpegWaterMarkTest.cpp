@@ -155,77 +155,66 @@ int FFmpegWaterMarkTest::open_input_file(const char *filename) {
 
 int FFmpegWaterMarkTest::init_filters(const char *filters_descr) {
     char args[512];
-    memset(args, 0, sizeof(args));
-    int ret = 0;
+    int ret;
+    AVFilterContext *buffersrc_ctx;
+    AVFilterContext *buffersink_ctx;
     const AVFilter *buffersrc = avfilter_get_by_name("buffer");
     const AVFilter *buffersink = avfilter_get_by_name("buffersink");
     AVFilterInOut *outputs = avfilter_inout_alloc();
     AVFilterInOut *inputs = avfilter_inout_alloc();
-    AVRational time_base = fmt_ctx->streams[video_index]->time_base;
     enum AVPixelFormat pix_fmts[] = {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE};
 
-    filter_graph = avfilter_graph_alloc();
+    AVFilterGraph *filter_graph = avfilter_graph_alloc();
     if (!outputs || !inputs || !filter_graph) {
         ret = AVERROR(ENOMEM);
-        return ret;
+        goto end;
     }
-
     /* buffer video source: the decoded frames from the decoder will be inserted here. */
-    LOGD("video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d",
+    LOGI("video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d",
          dec_ctx->width, dec_ctx->height, dec_ctx->pix_fmt,
-         time_base.num, time_base.den,
+         dec_ctx->time_base.num, dec_ctx->time_base.den,
          dec_ctx->sample_aspect_ratio.num, dec_ctx->sample_aspect_ratio.den);
-    int parse2 = avfilter_graph_parse2(filter_graph, filter_descr, &inputs, &outputs);
-    if (parse2 < 0) {
-        LOGD("avfilter_graph_parse2 error %d", ret);
-        return ret;
-    }
     ret = avfilter_graph_create_filter(&buffersrc_ctx, buffersrc, "in",
                                        args, NULL, filter_graph);
     if (ret < 0) {
-        LOGD("Cannot create buffer source  ret:%d", ret);
-        return ret;
+        LOGE("Cannot create buffer source ret:%d",ret);
+        goto end;
     }
-
     /* buffer video sink: to terminate the filter chain. */
     ret = avfilter_graph_create_filter(&buffersink_ctx, buffersink, "out",
                                        NULL, NULL, filter_graph);
     if (ret < 0) {
-        LOGD("Cannot create buffer sink  ret:%d", ret);
-        return ret;
+        LOGE( "Cannot create buffer sink\n");
+        goto end;
     }
-
     ret = av_opt_set_int_list(buffersink_ctx, "pix_fmts", pix_fmts,
                               AV_PIX_FMT_NONE, AV_OPT_SEARCH_CHILDREN);
     if (ret < 0) {
-        LOGD("Cannot set output pixel format  ret:%d", ret);
-        return ret;
+        LOGE("Cannot set output pixel format\n");
+        goto end;
     }
 
     outputs->name = av_strdup("in");
     outputs->filter_ctx = buffersrc_ctx;
     outputs->pad_idx = 0;
     outputs->next = NULL;
-
     inputs->name = av_strdup("out");
     inputs->filter_ctx = buffersink_ctx;
     inputs->pad_idx = 0;
     inputs->next = NULL;
 
     if ((ret = avfilter_graph_parse_ptr(filter_graph, filters_descr,
-                                        &inputs, &outputs, NULL)) < 0) {
-        LOGD("avfilter_graph_parse_ptr fail  ret:%d", AVERROR_FILTER_NOT_FOUND);
-        return ret;
-    }
+                                        &inputs, &outputs, NULL)) < 0)
+        goto end;
+    if ((ret = avfilter_graph_config(filter_graph, NULL)) < 0)
+        goto end;
 
-    if ((ret = avfilter_graph_config(filter_graph, NULL)) < 0) {
-        LOGD("avfilter_graph_config fail ret:%d", ret);
-        return ret;
-    }
-
+//    *graph = filter_graph;
+//    *src   = buffersrc_ctx;
+//    *sink  = buffersink_ctx;
+    end:
     avfilter_inout_free(&inputs);
     avfilter_inout_free(&outputs);
-
     return ret;
 }
 
@@ -264,8 +253,10 @@ int FFmpegWaterMarkTest::open_input_file_leixiaohua(const char *filename) {
 int FFmpegWaterMarkTest::init_filters_leixiaohua(const char *filters_descr) {
     char args[512];
     int ret;
+    AVFilterContext *buffersrc_ctx;
+    AVFilterContext *buffersink_ctx;
     AVFilter *buffersrc = const_cast<AVFilter *>(avfilter_get_by_name("buffer"));
-    AVFilter *buffersink = const_cast<AVFilter *>(avfilter_get_by_name("ffbuffersink"));
+    AVFilter *buffersink = const_cast<AVFilter *>(avfilter_get_by_name("buffersink"));
     AVFilterInOut *outputs = avfilter_inout_alloc();
     AVFilterInOut *inputs = avfilter_inout_alloc();
     enum AVPixelFormat pix_fmts[] = {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE};
@@ -297,6 +288,12 @@ int FFmpegWaterMarkTest::init_filters_leixiaohua(const char *filters_descr) {
         LOGD("Cannot create buffer sink\n");
         return ret;
     }
+    ret = av_opt_set_int_list(buffersink_ctx, "pix_fmts", pix_fmts,
+                              AV_PIX_FMT_NONE, AV_OPT_SEARCH_CHILDREN);
+    if (ret < 0) {
+        LOGE("Cannot av_opt_set_int_list\n");
+        return ret;
+    }
 
     /* Endpoints for the filter graph. */
     outputs->name = av_strdup("in");
@@ -316,6 +313,73 @@ int FFmpegWaterMarkTest::init_filters_leixiaohua(const char *filters_descr) {
     if ((ret = avfilter_graph_config(filter_graph, NULL)) < 0)
         return ret;
     return 0;
+}
+
+int init_filters_1(const char *filters_descr, AVRational time_base, AVCodecContext *codecCtx,
+                 AVFilterGraph **graph, AVFilterContext **src, AVFilterContext **sink) {
+    char args[512];
+    int ret;
+    AVFilterContext *buffersrc_ctx;
+    AVFilterContext *buffersink_ctx;
+    const AVFilter *buffersrc = avfilter_get_by_name("buffer");
+    const AVFilter *buffersink = avfilter_get_by_name("buffersink");
+    AVFilterInOut *outputs = avfilter_inout_alloc();
+    AVFilterInOut *inputs = avfilter_inout_alloc();
+    enum AVPixelFormat pix_fmts[] = {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE};
+
+    AVFilterGraph *filter_graph = avfilter_graph_alloc();
+    if (!outputs || !inputs || !filter_graph) {
+        ret = AVERROR(ENOMEM);
+        goto end;
+    }
+    /* buffer video source: the decoded frames from the decoder will be inserted here. */
+
+    LOGI("video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d",
+         codecCtx->width, codecCtx->height, codecCtx->pix_fmt,
+         time_base.num, time_base.den,
+         codecCtx->sample_aspect_ratio.num, codecCtx->sample_aspect_ratio.den);
+    ret = avfilter_graph_create_filter(&buffersrc_ctx, buffersrc, "in",
+                                       args, NULL, filter_graph);
+    if (ret < 0) {
+        LOGE("Cannot create buffer source ret:%d",ret);
+        goto end;
+    }
+    /* buffer video sink: to terminate the filter chain. */
+    ret = avfilter_graph_create_filter(&buffersink_ctx, buffersink, "out",
+                                       NULL, NULL, filter_graph);
+    if (ret < 0) {
+        LOGE("Cannot create buffer sink\n");
+        goto end;
+    }
+    ret = av_opt_set_int_list(buffersink_ctx, "pix_fmts", pix_fmts,
+                              AV_PIX_FMT_NONE, AV_OPT_SEARCH_CHILDREN);
+    if (ret < 0) {
+        LOGE("Cannot set output pixel format\n");
+        goto end;
+    }
+
+    outputs->name = av_strdup("in");
+    outputs->filter_ctx = buffersrc_ctx;
+    outputs->pad_idx = 0;
+    outputs->next = NULL;
+    inputs->name = av_strdup("out");
+    inputs->filter_ctx = buffersink_ctx;
+    inputs->pad_idx = 0;
+    inputs->next = NULL;
+
+    if ((ret = avfilter_graph_parse_ptr(filter_graph, filters_descr,
+                                        &inputs, &outputs, NULL)) < 0)
+        goto end;
+    if ((ret = avfilter_graph_config(filter_graph, NULL)) < 0)
+        goto end;
+
+    *graph = filter_graph;
+    *src   = buffersrc_ctx;
+    *sink  = buffersink_ctx;
+    end:
+    avfilter_inout_free(&inputs);
+    avfilter_inout_free(&outputs);
+    return ret;
 }
 
 /**

@@ -20,6 +20,7 @@ add_library(${CMAKE_PROJECT_NAME}
         FFmpegWaterMark.cpp
         FFmpegPlayAudio.cpp
         FFmpegWaterMarkTest.cpp
+        FFmpegVideoPlay.cpp
         )
 
 link_directories(
@@ -49,6 +50,9 @@ target_link_libraries(
         ${CMAKE_PROJECT_NAME}
         # List libraries link to the target library
         android
+        EGL
+        GLESv3
+        OpenSLES
         log
         ${third-party-libs}
 
