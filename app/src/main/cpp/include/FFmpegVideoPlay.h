@@ -12,12 +12,24 @@
 class FFmpegVideoPlay {
 private:
     int ret = -1;
+    JNIEnv *mEnv = nullptr;
+    jobject androidSurface = NULL;
+    const char *mInputUrl = nullptr;
+    AVFormatContext *mAvFormatContext = nullptr;
+    AVCodecContext *mAvCodecContext = nullptr;
 
 
 public:
-    int playVideo(JNIEnv *env, jobject surface, const char *inputUrl);
+    int initFFmeg(JNIEnv *env, jobject surface, const char *inputUrl);
+
+    int initFormatContext();
+
+    int initFFmpegCodec();
+
+    int playVideo();
 
 
+    ~FFmpegVideoPlay();
 };
 
 

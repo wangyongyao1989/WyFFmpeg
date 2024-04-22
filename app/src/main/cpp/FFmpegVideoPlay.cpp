@@ -5,26 +5,26 @@
 #include <android/native_window_jni.h>
 #include "include/FFmpegVideoPlay.h"
 
-int FFmpegVideoPlay::playVideo(JNIEnv *env, jobject surface, const char *inputUrl) {
-    AVFormatContext *avFormatContext = avformat_alloc_context();
-    //1.打开文件
-    ret = avformat_open_input(&avFormatContext, inputUrl, NULL, NULL);
-    if (ret < 0) {
-        LOGD("Couldn't open input stream. ret:%d", ret);
-        return ret;
-    }
-    LOGD("open inputFile:%s", inputUrl);
-    //2.查找文件流信息
-    ret = avformat_find_stream_info(avFormatContext, NULL);
-    if (ret < 0) {
-        LOGD("Couldn't find stream info. ret:%d", ret);
-        return ret;
-    }
+int FFmpegVideoPlay::playVideo() {
+//    mAvFormatContext = avformat_alloc_context();
+//    //1.打开文件
+//    ret = avformat_open_input(&mAvFormatContext, mInputUrl, NULL, NULL);
+//    if (ret < 0) {
+//        LOGD("Couldn't open input stream. ret:%d", ret);
+//        return ret;
+//    }
+//    LOGD("open inputFile:%s", mInputUrl);
+//    //2.查找文件流信息
+//    ret = avformat_find_stream_info(mAvFormatContext, NULL);
+//    if (ret < 0) {
+//        LOGD("Couldn't find stream info. ret:%d", ret);
+//        return ret;
+//    }
 
     //3.寻找流的索引
     int videoIndex = -1;
-    for (int i = 0; i < avFormatContext->nb_streams; ++i) {
-        AVMediaType mediaType = avFormatContext->streams[i]->codecpar->codec_type;
+    for (int i = 0; i < mAvFormatContext->nb_streams; ++i) {
+        AVMediaType mediaType = mAvFormatContext->streams[i]->codecpar->codec_type;
         LOGD("find % d stream mediaType. i:%d", i, mediaType);
         if (mediaType == AVMEDIA_TYPE_VIDEO) {
             videoIndex = i;
@@ -38,7 +38,7 @@ int FFmpegVideoPlay::playVideo(JNIEnv *env, jobject surface, const char *inputUr
     }
 
     //4.找到解码器上下文
-    AVCodecParameters *pParameters = avFormatContext->streams[videoIndex]->codecpar;
+    AVCodecParameters *pParameters = mAvFormatContext->streams[videoIndex]->codecpar;
     AVCodecID avCodecId = pParameters->codec_id;
     AVCodec *findDecoder = avcodec_find_decoder(avCodecId);
     AVCodecContext *avCodecContext = avcodec_alloc_context3(findDecoder);
@@ -53,7 +53,7 @@ int FFmpegVideoPlay::playVideo(JNIEnv *env, jobject surface, const char *inputUr
     LOGD("打开了解码成功\n");
 
     //6.初始化ANativeWindow
-    ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
+    ANativeWindow *nativeWindow = ANativeWindow_fromSurface(mEnv, androidSurface);
     if (0 == nativeWindow) {
         LOGD("Couldn't get native window from surface.\n");
         return -1;
@@ -89,7 +89,7 @@ int FFmpegVideoPlay::playVideo(JNIEnv *env, jobject surface, const char *inputUr
     LOGD("ANativeWindow_setBuffersGeometry成功\n");
     ANativeWindow_Buffer windowBuffer;
 
-    while (av_read_frame(avFormatContext, avPacket) >= 0) {
+    while (av_read_frame(mAvFormatContext, avPacket) >= 0) {
 
 //        读出来的数据是什么数据 视频   音频数据不管
         if (avPacket->stream_index == videoIndex) {
@@ -106,8 +106,10 @@ int FFmpegVideoPlay::playVideo(JNIEnv *env, jobject surface, const char *inputUr
                 break;
             }
 //            未压缩的数据
-            sws_scale(swsContext, avFrame->data, avFrame->linesize, 0, avCodecContext->height,
-                      rgbFrame->data, rgbFrame->linesize);
+            sws_scale(swsContext, avFrame->data,
+                      avFrame->linesize, 0,
+                      avCodecContext->height, rgbFrame->data,
+                      rgbFrame->linesize);
             if (ANativeWindow_lock(nativeWindow, &windowBuffer, NULL) < 0) {
                 LOGD("cannot lock window");
             } else {
@@ -134,28 +136,44 @@ int FFmpegVideoPlay::playVideo(JNIEnv *env, jobject surface, const char *inputUr
                         break;
                 }
             }
-//            音频解码     健壮    opengl
-//window
             av_usleep(1000 * 33);
             ANativeWindow_unlockAndPost(nativeWindow);
-
-//                解码
-//avcodec_send_packet()
-// avcodec_receive_frame();
-
-
-//编码
-//            avcodec_send_frame();
-//            avcodec_receive_packet();
-
-
 
         }
 
     }
 
+    avformat_free_context(mAvFormatContext);
 
-    avformat_free_context(avFormatContext);
+    return 0;
+}
 
+int FFmpegVideoPlay::initFormatContext() {
+    mAvFormatContext = avformat_alloc_context();
+    //1.打开文件
+    ret = avformat_open_input(&mAvFormatContext, mInputUrl, NULL, NULL);
+    if (ret < 0) {
+        LOGD("Couldn't open input stream. ret:%d", ret);
+        return ret;
+    }
+    LOGD("open inputFile:%s", mInputUrl);
+    //2.查找文件流信息
+    ret = avformat_find_stream_info(mAvFormatContext, NULL);
+    if (ret < 0) {
+        LOGD("Couldn't find stream info. ret:%d", ret);
+        return ret;
+    }
+    return ret;
+}
+
+int FFmpegVideoPlay::initFFmpegCodec() {
+    return 0;
+}
+
+int FFmpegVideoPlay::initFFmeg(JNIEnv *env, jobject surface, const char *inputUrl) {
+    mEnv = env;
+    androidSurface = surface;
+    mInputUrl = inputUrl;
+    initFormatContext();
     return 0;
 }

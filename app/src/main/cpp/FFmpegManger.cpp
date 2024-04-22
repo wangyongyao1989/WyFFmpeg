@@ -59,6 +59,7 @@ int FFmpegManger::playVideo(JNIEnv *env, jobject surface, const char *inputUrl) 
     if (videoPlay == nullptr) {
         videoPlay = new FFmpegVideoPlay();
     }
-    videoPlay->playVideo(env, surface, inputUrl);
+    videoPlay->initFFmeg(env, surface, inputUrl);
+    videoPlay->playVideo();
     return 0;
 }
