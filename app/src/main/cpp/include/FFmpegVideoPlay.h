@@ -10,6 +10,9 @@
 
 
 class FFmpegVideoPlay {
+private:
+    int ret = -1;
+
 
 public:
     int playVideo(JNIEnv *env, jobject surface, const char *inputUrl);

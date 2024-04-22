@@ -13,10 +13,20 @@
 #include <jni.h>
 #include <android/native_window_jni.h>
 #include "ffmpegpch.h"
+#include "FFmpegVideoTrans.h"
+#include "FFmpegWaterMark.h"
+#include "FFmpegPlayAudio.h"
+#include "FFmpegWaterMarkTest.h"
+#include "FFmpegVideoPlay.h"
 
 
 class FFmpegManger {
 private:
+    FFmpegVideoTrans *fFmpegVideoTrans = nullptr;
+    FFmpegWaterMarkTest *waterMark = nullptr;
+    FFmpegPlayAudio *fmpegPlayAudio = nullptr;
+    FFmpegVideoPlay *videoPlay = nullptr;
+
     const char *inputUrl;
 
 

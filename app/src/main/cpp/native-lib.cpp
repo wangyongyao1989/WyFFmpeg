@@ -13,6 +13,8 @@
 
 //包名+类名字符串定义：
 const char *mainactivity_class_name = "com/example/myyffmpeg/CallJni";
+FFmpegManger *fmpegManger = nullptr;
+
 
 extern "C" JNIEXPORT jstring JNICALL
 cpp_stringFromJNI(
@@ -35,7 +37,8 @@ cpp_intFromJNI(JNIEnv *env, jobject thiz, jint age) {
 JNIEXPORT jlong JNICALL
 cpp_initFFmpeg(JNIEnv *env, jobject thiz) {
     LOGD("cpp_initFFmpeg");
-    FFmpegManger *fmpegManger = new FFmpegManger();
+    if (fmpegManger == nullptr)
+        fmpegManger = new FFmpegManger();
     fmpegManger->initFFmpeg();
     return 10;
 }
@@ -77,7 +80,8 @@ JNIEXPORT void JNICALL
 cpp_mp4_input_avi_output(JNIEnv *env, jobject thiz, jstring intputUrl, jstring outputUrl) {
     const char *intput_url = env->GetStringUTFChars(intputUrl, 0);
     const char *output_url = env->GetStringUTFChars(outputUrl, 0);
-    FFmpegManger *fmpegManger = new FFmpegManger();
+    if (fmpegManger == nullptr)
+        fmpegManger = new FFmpegManger();
     fmpegManger->mp4ConversionAvi(intput_url, output_url);
 
     env->ReleaseStringUTFChars(intputUrl, intput_url);
@@ -91,7 +95,8 @@ cpp_mp4_water_mark(JNIEnv *env, jobject thiz, jstring intputUrl, jstring pngUlr,
     const char *intput_url = env->GetStringUTFChars(intputUrl, 0);
     const char *png_url = env->GetStringUTFChars(pngUlr, 0);
     const char *output_url = env->GetStringUTFChars(outputUrl, 0);
-    FFmpegManger *fmpegManger = new FFmpegManger();
+    if (fmpegManger == nullptr)
+        fmpegManger = new FFmpegManger();
     fmpegManger->mp4WaterMark(intput_url, png_url, output_url);
     env->ReleaseStringUTFChars(intputUrl, intput_url);
     env->ReleaseStringUTFChars(pngUlr, png_url);
@@ -102,7 +107,8 @@ extern "C"
 JNIEXPORT void JNICALL
 cpp_play_audio(JNIEnv *env, jobject thiz, jstring intputUrl) {
     const char *url = env->GetStringUTFChars(intputUrl, 0);
-    FFmpegManger *fmpegManger = new FFmpegManger();
+    if (fmpegManger == nullptr)
+        fmpegManger = new FFmpegManger();
     fmpegManger->playAudio(url);
 
     env->ReleaseStringUTFChars(intputUrl, url);
@@ -112,7 +118,8 @@ cpp_play_audio(JNIEnv *env, jobject thiz, jstring intputUrl) {
 extern "C"
 JNIEXPORT void JNICALL
 cpp_stop_audio(JNIEnv *env, jobject thiz) {
-    FFmpegManger *fmpegManger = new FFmpegManger();
+    if (fmpegManger == nullptr)
+        fmpegManger = new FFmpegManger();
 
     fmpegManger->stopAudio();
 
@@ -123,7 +130,8 @@ JNIEXPORT void JNICALL
 cpp_play_video(JNIEnv *env, jobject thiz, jstring intputUrl, jobject surface) {
     const char *url = env->GetStringUTFChars(intputUrl, 0);
     LOGD("cpp_play_video url:%s", url);
-    FFmpegManger *fmpegManger = new FFmpegManger();
+    if (fmpegManger == nullptr)
+        fmpegManger = new FFmpegManger();
     fmpegManger->playVideo(env, surface, url);
 
     env->ReleaseStringUTFChars(intputUrl, url);
@@ -133,8 +141,8 @@ cpp_play_video(JNIEnv *env, jobject thiz, jstring intputUrl, jobject surface) {
 extern "C"
 JNIEXPORT void JNICALL
 cpp_stop_video(JNIEnv *env, jobject thiz) {
-    FFmpegManger *fmpegManger = new FFmpegManger();
-
+    if (fmpegManger == nullptr)
+        fmpegManger = new FFmpegManger();
     fmpegManger->stopAudio();
 
 }

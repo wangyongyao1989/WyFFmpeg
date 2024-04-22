@@ -7,7 +7,6 @@
 
 int FFmpegVideoPlay::playVideo(JNIEnv *env, jobject surface, const char *inputUrl) {
     AVFormatContext *avFormatContext = avformat_alloc_context();
-    int ret = -1;
     //1.打开文件
     ret = avformat_open_input(&avFormatContext, inputUrl, NULL, NULL);
     if (ret < 0) {
@@ -39,13 +38,12 @@ int FFmpegVideoPlay::playVideo(JNIEnv *env, jobject surface, const char *inputUr
     }
 
     //4.找到解码器上下文
-//    AVCodecParameters *pParameters = avFormatContext->streams[videoIndex]->codecpar;
-//    AVCodecID avCodecId = pParameters->codec_id;
-//    AVCodec *findDecoder = avcodec_find_decoder(avCodecId);
-//    AVCodecContext *avCodecContext = avcodec_alloc_context3(findDecoder);
+    AVCodecParameters *pParameters = avFormatContext->streams[videoIndex]->codecpar;
+    AVCodecID avCodecId = pParameters->codec_id;
+    AVCodec *findDecoder = avcodec_find_decoder(avCodecId);
+    AVCodecContext *avCodecContext = avcodec_alloc_context3(findDecoder);
+    avcodec_parameters_to_context(avCodecContext, pParameters);
 
-    AVCodecContext *avCodecContext = avFormatContext->streams[videoIndex]->codec;
-    AVCodec *findDecoder = avcodec_find_decoder(avCodecContext->codec_id);
     //5.打开解码器
     ret = avcodec_open2(avCodecContext, findDecoder, NULL);
     if (ret < 0) {

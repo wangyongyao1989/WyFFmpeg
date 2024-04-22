@@ -96,8 +96,7 @@ public class MainActivity extends AppCompatActivity {
                 mBtn4.setSelected(false);
                 mBtn4.setText("ffmpeg播放视频");
             } else {
-                String videoUrl = new File(Environment.getExternalStorageDirectory()
-                        , "woman.mp4").getAbsolutePath();
+                String videoUrl = FileUtils.getModelFilePath(getApplication(), "woman.mp4");
                 mCallJni.playVideo(videoUrl, mSurface);
                 mBtn4.setSelected(true);
                 mBtn4.setText("ffmpeg播放停止");
