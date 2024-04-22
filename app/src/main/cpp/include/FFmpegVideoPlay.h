@@ -12,6 +12,7 @@
 class FFmpegVideoPlay {
 private:
     int ret = -1;
+    int mVideoIndex = -1;
     JNIEnv *mEnv = nullptr;
     jobject androidSurface = NULL;
     const char *mInputUrl = nullptr;
@@ -20,7 +21,7 @@ private:
 
 
 public:
-    int initFFmeg(JNIEnv *env, jobject surface, const char *inputUrl);
+    void initFFmeg(JNIEnv *env, jobject surface, const char *inputUrl);
 
     int initFormatContext();
 

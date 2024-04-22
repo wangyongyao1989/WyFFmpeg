@@ -26,6 +26,7 @@ private:
     FFmpegWaterMarkTest *waterMark = nullptr;
     FFmpegPlayAudio *fmpegPlayAudio = nullptr;
     FFmpegVideoPlay *videoPlay = nullptr;
+    AVCodecContext *mAvCodecContext = nullptr;
 
     const char *inputUrl;
 
