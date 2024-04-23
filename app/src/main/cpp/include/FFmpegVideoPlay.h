@@ -4,10 +4,18 @@
 
 #ifndef MYYFFMPEG_FFMPEGVIDEOPLAY_H
 #define MYYFFMPEG_FFMPEGVIDEOPLAY_H
+
 #include "ffmpegpch.h"
 #include "jni.h"
 #include "android/native_window.h"
+#include <thread>
 
+enum PlayerState {
+    PLAYER_STATE_UNKNOWN,
+    PLAYER_STATE_PLAYING,
+    PLAYER_STATE_PAUSE,
+    PLAYER_STATE_STOP
+};
 
 class FFmpegVideoPlay {
 private:
@@ -28,6 +36,9 @@ private:
     AVPacket *mAvPacket = nullptr;
     AVFrame *mRgbFrame = nullptr;
 
+    std::thread *decodecThread = nullptr;
+    PlayerState mPlayerState = PLAYER_STATE_UNKNOWN;
+
 public:
     void initFFmeg(JNIEnv *env, jobject surface, const char *inputUrl);
 
@@ -37,8 +48,13 @@ public:
 
     int playVideo();
 
+    void stopVideo();
+
     int initANativeWindow();
 
+    int decodecFrameAndShowWindow();
+
+    static void DoAVdecoding(FFmpegVideoPlay *fmpegVideoPlay);
 
     ~FFmpegVideoPlay();
 };

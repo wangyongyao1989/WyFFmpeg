@@ -39,7 +39,7 @@ public class CallJni {
     }
 
     public void stopVideo() {
-        stopVideo();
+       native_Stop_Video();
     }
 
     public String callStringForJNI() {

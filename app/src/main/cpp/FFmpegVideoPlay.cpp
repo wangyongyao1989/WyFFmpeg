@@ -5,64 +5,21 @@
 #include <android/native_window_jni.h>
 #include "include/FFmpegVideoPlay.h"
 
+using namespace std;
+
 int FFmpegVideoPlay::playVideo() {
-    av_image_fill_arrays(mRgbFrame->data, mRgbFrame->linesize,
-                         mOutbuffer, AV_PIX_FMT_RGBA,
-                         mWidth, mHeight, 1);
-    while (av_read_frame(mAvFormatContext, mAvPacket) >= 0) {
-//        读出来的数据是什么数据 视频   音频数据不管
-        if (mAvPacket->stream_index == mVideoIndex) {
-            ret = avcodec_send_packet(mAvCodecContext, mAvPacket);
-            if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) {
-                LOGD("解码出错");
-                return -1;
-            }
-
-            ret = avcodec_receive_frame(mAvCodecContext, mAvFrame);
-            if (ret == AVERROR(EAGAIN)) { //我还要
-                continue;
-            } else if (ret < 0) {
-                break;
-            }
-//            未压缩的数据
-            sws_scale(mSwsContext, mAvFrame->data,
-                      mAvFrame->linesize, 0,
-                      mAvCodecContext->height, mRgbFrame->data,
-                      mRgbFrame->linesize);
-            if (ANativeWindow_lock(mNativeWindow, &windowBuffer, nullptr) < 0) {
-                LOGD("cannot lock window");
-            } else {
-                //将图像绘制到界面上，注意这里pFrameRGBA一行的像素和windowBuffer一行的像素长度可能不一致
-                //需要转换好，否则可能花屏
-                auto *dst = (uint8_t *) windowBuffer.bits;
-                for (int h = 0; h < mHeight; h++) {
-                    memcpy(dst + h * windowBuffer.stride * 4,
-                           mOutbuffer + h * mRgbFrame->linesize[0],
-                           mRgbFrame->linesize[0]);
-                }
-                switch (mAvFrame->pict_type) {
-                    case AV_PICTURE_TYPE_I:
-                        LOGD("I");
-                        break;
-                    case AV_PICTURE_TYPE_P:
-                        LOGD("P");
-                        break;
-                    case AV_PICTURE_TYPE_B:
-                        LOGD("B");
-                        break;
-                    default:;
-                        break;
-                }
-            }
-            av_usleep(1000 * 33);
-            ANativeWindow_unlockAndPost(mNativeWindow);
-        }
-
+    mPlayerState = PLAYER_STATE_PLAYING;
+    if (decodecThread != nullptr) {
+        decodecThread->detach();
+    } else {
+        decodecThread = new thread(DoAVdecoding, this);
+        decodecThread->detach();
     }
-
-    avformat_free_context(mAvFormatContext);
-
     return 0;
+}
+
+void FFmpegVideoPlay::stopVideo() {
+
 }
 
 int FFmpegVideoPlay::initFormatContext() {
@@ -122,15 +79,9 @@ void FFmpegVideoPlay::initFFmeg(JNIEnv *env, jobject surface, const char *inputU
     initFormatContext();
     initFFmpegCodec();
     initANativeWindow();
-}
-
-FFmpegVideoPlay::~FFmpegVideoPlay() {
-    mEnv = nullptr;
-    androidSurface = NULL;
-    mInputUrl = nullptr;
-    mAvFormatContext = nullptr;
-    mAvCodecContext = nullptr;
-
+    if (decodecThread == nullptr) {
+        decodecThread = new thread(DoAVdecoding, this);
+    }
 }
 
 int FFmpegVideoPlay::initANativeWindow() {
@@ -168,3 +119,81 @@ int FFmpegVideoPlay::initANativeWindow() {
     LOGD("ANativeWindow_setBuffersGeometry成功\n");
     return 0;
 }
+
+FFmpegVideoPlay::~FFmpegVideoPlay() {
+    mEnv = nullptr;
+    androidSurface = nullptr;
+    mInputUrl = nullptr;
+    sws_freeContext(mSwsContext);
+    avcodec_free_context(&mAvCodecContext);
+    avformat_free_context(mAvFormatContext);
+    av_frame_free(&mRgbFrame);
+    av_frame_free(&mAvFrame);
+    av_packet_free(&mAvPacket);
+}
+
+int FFmpegVideoPlay::decodecFrameAndShowWindow() {
+    LOGD("decodecFrameAndShowWindow,");
+    av_image_fill_arrays(mRgbFrame->data, mRgbFrame->linesize,
+                         mOutbuffer, AV_PIX_FMT_RGBA,
+                         mWidth, mHeight, 1);
+    while (av_read_frame(mAvFormatContext, mAvPacket) >= 0) {
+//        读出来的数据是什么数据 视频   音频数据不管
+        if (mAvPacket->stream_index == mVideoIndex) {
+            ret = avcodec_send_packet(mAvCodecContext, mAvPacket);
+            if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) {
+                LOGD("解码出错");
+                return -1;
+            }
+
+            ret = avcodec_receive_frame(mAvCodecContext, mAvFrame);
+            if (ret == AVERROR(EAGAIN)) {
+                continue;
+            } else if (ret < 0) {
+                break;
+            }
+//            未压缩的数据
+            sws_scale(mSwsContext, mAvFrame->data,
+                      mAvFrame->linesize, 0,
+                      mAvCodecContext->height, mRgbFrame->data,
+                      mRgbFrame->linesize);
+            if (ANativeWindow_lock(mNativeWindow, &windowBuffer, nullptr) < 0) {
+                LOGD("cannot lock window");
+            } else {
+                //将图像绘制到界面上，注意这里pFrameRGBA一行的像素和windowBuffer一行的像素长度可能不一致
+                //需要转换好，否则可能花屏
+                auto *dst = (uint8_t *) windowBuffer.bits;
+                for (int h = 0; h < mHeight; h++) {
+                    memcpy(dst + h * windowBuffer.stride * 4,
+                           mOutbuffer + h * mRgbFrame->linesize[0],
+                           mRgbFrame->linesize[0]);
+                }
+                switch (mAvFrame->pict_type) {
+                    case AV_PICTURE_TYPE_I:
+                        LOGD("I");
+                        break;
+                    case AV_PICTURE_TYPE_P:
+                        LOGD("P");
+                        break;
+                    case AV_PICTURE_TYPE_B:
+                        LOGD("B");
+                        break;
+                    default:;
+                        break;
+                }
+            }
+            av_usleep(1000 * 33);
+            ANativeWindow_unlockAndPost(mNativeWindow);
+        }
+
+    }
+
+    avformat_free_context(mAvFormatContext);
+    return ret;
+}
+
+void FFmpegVideoPlay::DoAVdecoding(FFmpegVideoPlay *fmpegVideoPlay) {
+    fmpegVideoPlay->decodecFrameAndShowWindow();
+}
+
+

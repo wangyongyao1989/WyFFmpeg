@@ -143,7 +143,7 @@ JNIEXPORT void JNICALL
 cpp_stop_video(JNIEnv *env, jobject thiz) {
     if (fmpegManger == nullptr)
         fmpegManger = new FFmpegManger();
-    fmpegManger->stopAudio();
+    fmpegManger->stopVideo();
 
 }
 

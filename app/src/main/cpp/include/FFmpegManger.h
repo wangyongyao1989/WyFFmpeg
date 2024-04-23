@@ -40,7 +40,7 @@ public:
     int playAudio(const char *inputUrl);
     int stopAudio();
     int playVideo(JNIEnv *env, jobject surface, const char *inputUrl);
-
+    int stopVideo();
 };
 
 

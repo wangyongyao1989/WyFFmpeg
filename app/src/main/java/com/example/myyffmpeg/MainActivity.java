@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -91,15 +92,16 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mBtn5.setOnClickListener(v -> {
-            if (mBtn4.isSelected()) {
+            Log.e(TAG,"mBtn5=======");
+            if (mBtn5.isSelected()) {
+                mBtn5.setSelected(false);
+                mBtn5.setText("ffmpeg播放视频");
                 mCallJni.stopVideo();
-                mBtn4.setSelected(false);
-                mBtn4.setText("ffmpeg播放视频");
             } else {
                 String videoUrl = FileUtils.getModelFilePath(getApplication(), "woman.mp4");
+                mBtn5.setSelected(true);
+                mBtn5.setText("ffmpeg播放停止");
                 mCallJni.playVideo(videoUrl, mSurface);
-                mBtn4.setSelected(true);
-                mBtn4.setText("ffmpeg播放停止");
             }
         });
 
