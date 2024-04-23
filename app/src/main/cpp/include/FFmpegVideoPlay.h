@@ -38,6 +38,10 @@ private:
 
     std::thread *decodecThread = nullptr;
     PlayerState mPlayerState = PLAYER_STATE_UNKNOWN;
+    std::mutex               m_Mutex;
+    std::condition_variable  m_Cond;
+
+
 
 public:
     void initFFmeg(JNIEnv *env, jobject surface, const char *inputUrl);
@@ -48,11 +52,17 @@ public:
 
     int playVideo();
 
+    void pauseVideo();
+
     void stopVideo();
+
+    int codecAvFrame();
 
     int initANativeWindow();
 
-    int decodecFrameAndShowWindow();
+    int sendFrameDataToANativeWindow();
+
+    int loopDecodec();
 
     static void DoAVdecoding(FFmpegVideoPlay *fmpegVideoPlay);
 

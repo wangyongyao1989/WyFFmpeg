@@ -65,6 +65,9 @@ int FFmpegManger::playVideo(JNIEnv *env, jobject surface, const char *inputUrl) 
 }
 
 int FFmpegManger::stopVideo() {
-
+    if (videoPlay == nullptr) {
+        return -1;
+    }
+    videoPlay->stopVideo();
     return 0;
 }
