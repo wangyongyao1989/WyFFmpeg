@@ -9,7 +9,7 @@ using namespace std;
 
 int FFmpegVideoPlay::playVideo() {
     if (decodecThread == nullptr) {
-        LOGD("playVideo=========%p",decodecThread);
+        LOGD("playVideo=========%p", decodecThread);
         decodecThread = new thread(DoAVdecoding, this);
         decodecThread->detach();
     }/* else {
@@ -32,7 +32,7 @@ void FFmpegVideoPlay::stopVideo() {
         pauseFlag = false;
         stopFlag = true;
         m_Cond.notify_all();
-        LOGD("stopVideo=========%p",decodecThread);
+        LOGD("stopVideo=========%p", decodecThread);
     }
     mPlayerState = PLAYER_STATE_STOP;
 }
@@ -228,12 +228,21 @@ int FFmpegVideoPlay::sendFrameDataToANativeWindow() {
         switch (mAvFrame->pict_type) {
             case AV_PICTURE_TYPE_I:
                 LOGD("I");
+                if (mMsgContext && mMsgCallback) {
+                    mMsgCallback(mMsgContext, 1, 0.1);
+                }
                 break;
             case AV_PICTURE_TYPE_P:
                 LOGD("P");
+                if (mMsgContext && mMsgCallback) {
+                    mMsgCallback(mMsgContext, 2, 0.2);
+                }
                 break;
             case AV_PICTURE_TYPE_B:
                 LOGD("B");
+                if (mMsgContext && mMsgCallback) {
+                    mMsgCallback(mMsgContext, 3, 0.3);
+                }
                 break;
             default:;
                 break;
@@ -244,9 +253,9 @@ int FFmpegVideoPlay::sendFrameDataToANativeWindow() {
     return lock;
 }
 
-void FFmpegVideoPlay::init(JNIEnv *env,jobject thiz, const char *inputUrl,  jobject surface) {
+void FFmpegVideoPlay::init(JNIEnv *env, jobject thiz, const char *inputUrl, jobject surface) {
     mEnv = env;
-    jniClazz  = thiz;
+    jniClazz = thiz;
     androidSurface = surface;
     mInputUrl = inputUrl;
     initFFmeg();
@@ -267,6 +276,16 @@ void FFmpegVideoPlay::unInit() {
         delete decodecThread;
         decodecThread = nullptr;
     }
+}
+
+void FFmpegVideoPlay::initCallback(JNIEnv *env, jobject thiz) {
+    mEnv = env;
+    jniClazz = thiz;
+}
+
+void FFmpegVideoPlay::SetMessageCallback(void *context, MessageCallback callback) {
+    mMsgContext = context;
+    mMsgCallback = callback;
 }
 
 

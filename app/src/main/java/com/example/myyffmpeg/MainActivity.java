@@ -125,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
             public void surfaceCreated(@NonNull SurfaceHolder holder) {
                 mSurface = surfaceViewHolder.getSurface();
                 mCallJni.initPlay(mVideoUrl, mSurface);
+                mCallJni.initCallBackListener();
             }
 
             @Override

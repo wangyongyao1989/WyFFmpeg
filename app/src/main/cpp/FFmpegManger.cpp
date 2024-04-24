@@ -14,7 +14,6 @@ void FFmpegManger::setInputUrl(const char *inputUrl) {
 }
 
 
-
 int FFmpegManger::mp4ConversionAvi(const char *in_filename, const char *out_filename) {
     if (fFmpegVideoTrans == nullptr) {
         fFmpegVideoTrans = new FFmpegVideoTrans();
@@ -75,15 +74,14 @@ int FFmpegManger::pauseVideo() {
     return 0;
 }
 
-void FFmpegManger::SetMessageCallback(void *context, MessageCallback callback) {
-    mMsgContext = context;
-    mMsgCallback = callback;
-}
-
-int FFmpegManger::initFFmpeg(JNIEnv *env,jobject thiz, const char *inputUrl, jobject surface) {
+int FFmpegManger::initFFmpeg(JNIEnv *env, jobject thiz, const char *inputUrl, jobject surface) {
+    mEnv = env;
+//    mJvm = env->NewGlobalRef(thiz);
+    env->GetJavaVM(&mJavaVm);
+    mJavaObj = env->NewGlobalRef(thiz);
     if (videoPlay == nullptr) {
         videoPlay = new FFmpegVideoPlay();
-        videoPlay->init(env, thiz, inputUrl,surface);
+        videoPlay->init(env, thiz, inputUrl, surface);
     }
     return 0;
 }
@@ -91,5 +89,58 @@ int FFmpegManger::initFFmpeg(JNIEnv *env,jobject thiz, const char *inputUrl, job
 void FFmpegManger::unInit() {
     if (videoPlay != nullptr) {
         videoPlay->unInit();
+    }
+    mEnv->DeleteGlobalRef(mJavaObj);
+}
+
+int FFmpegManger::initCallBack(JNIEnv *env, jobject thiz) {
+    if (videoPlay == nullptr) {
+        videoPlay = new FFmpegVideoPlay();
+    }
+    mEnv = env;
+    mJavaObj = env->NewGlobalRef(thiz);
+    videoPlay->initCallback(env, thiz);
+    videoPlay->SetMessageCallback(this, PostMessage);
+
+    return 0;
+}
+
+JNIEnv* FFmpegManger::GetJNIEnv(bool *isAttach) {
+    JNIEnv *env;
+    int status;
+    if (nullptr == mJavaVm) {
+        LOGD("FFmpegManger::GetJNIEnv mJavaVm == nullptr");
+        return nullptr;
+    }
+    *isAttach = false;
+    status = mJavaVm->GetEnv((void **)&env, JNI_VERSION_1_4);
+    if (status != JNI_OK) {
+        status = mJavaVm->AttachCurrentThread(&env, nullptr);
+        if (status != JNI_OK) {
+            LOGD("FFmpegManger::GetJNIEnv failed to attach current thread");
+            return nullptr;
+        }
+        *isAttach = true;
+    }
+    return env;
+}
+
+void FFmpegManger::PostMessage(void *context, int msgType, float msgCode) {
+    if (context != nullptr) {
+        FFmpegManger *pFmpegManger = static_cast<FFmpegManger *>(context);
+        bool isAttach = false;
+        //C++子线程回到回Java主线程，两线程之间的调用切换
+        JNIEnv *pEnv = pFmpegManger->GetJNIEnv(&isAttach);
+        if (pEnv == nullptr) {
+            return;
+        }
+        jobject javaObj = pFmpegManger->mJavaObj;
+        jmethodID mid = pEnv->GetMethodID(pEnv->GetObjectClass(javaObj)
+                , "CppEventCallback", "(IF)V");
+        pEnv->CallVoidMethod(javaObj, mid, msgType, msgCode);
+        if(isAttach) {
+            JavaVM *pJavaVm = pFmpegManger->mJavaVm;
+            pJavaVm->DetachCurrentThread();
+        }
     }
 }

@@ -162,8 +162,19 @@ cpp_pause_video(JNIEnv *env, jobject thiz) {
 
 }
 
+extern "C"
+JNIEXPORT void JNICALL
+cpp_init_callback(JNIEnv *env, jobject thiz) {
+    if (fmpegManger == nullptr)
+        fmpegManger = new FFmpegManger();
+    fmpegManger->initCallBack(env,thiz);
+
+}
+
 // 重点：定义类名和函数签名，如果有多个方法要动态注册，在数组里面定义即可
 static const JNINativeMethod methods[] = {
+        {"native_callback",         "()V",                                                       (void *) cpp_init_callback},
+
         {"native_getFFmpegVersion", "()Ljava/lang/String;",                                      (void *) cpp_getFFmpegVersion},
         {"stringFromJNI",           "()Ljava/lang/String;",                                      (std::string *) cpp_stringFromJNI},
         {"intFromJNI",              "(I)I",                                                      (void *) cpp_intFromJNI},

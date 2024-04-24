@@ -1,11 +1,18 @@
 package com.example.myyffmpeg;
 
+import android.util.Log;
 import android.view.Surface;
 
 public class CallJni {
 
+    private static final String TAG = CallJni.class.getSimpleName();
+
     static {
         System.loadLibrary("myyffmpeg");
+    }
+
+    public void initCallBackListener() {
+        native_callback();
     }
 
     public String getFFmpegVersion() {
@@ -89,7 +96,14 @@ public class CallJni {
 
     private native void native_Pause_Video();
 
+    private native void native_callback();
+
 
     private native String native_getFFmpegVersion();
+
+    private void CppEventCallback(int msgType, float msgValue) {
+        Log.e(TAG,"msgType:"+msgType+"====msgValue:"+msgValue);
+
+    }
 
 }

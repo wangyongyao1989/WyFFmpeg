@@ -17,6 +17,8 @@ enum PlayerState {
     PLAYER_STATE_STOP
 };
 
+typedef void (*MessageCallback)(void *, int, float);
+
 class FFmpegVideoPlay {
 private:
     int ret = -1;
@@ -25,9 +27,9 @@ private:
     int mHeight;
     uint8_t *mOutbuffer;
     JNIEnv *mEnv = nullptr;
-    SwsContext *mSwsContext = nullptr;
     jobject jniClazz = NULL;
     jobject androidSurface = NULL;
+    SwsContext *mSwsContext = nullptr;
     const char *mInputUrl = nullptr;
     AVFormatContext *mAvFormatContext = nullptr;
     AVCodecContext *mAvCodecContext = nullptr;
@@ -44,6 +46,8 @@ private:
     std::atomic_bool pauseFlag;   ///<暂停标识
     std::atomic_bool stopFlag;   ///<停止标识
 
+    void *mMsgContext = nullptr;
+    MessageCallback mMsgCallback = nullptr;
 
 private:
     void initFFmeg();
@@ -73,6 +77,9 @@ public:
 
     void stopVideo();
 
+    void initCallback(JNIEnv *env, jobject thiz);
+
+    void SetMessageCallback(void *context, MessageCallback callback);
 
     ~FFmpegVideoPlay();
 };

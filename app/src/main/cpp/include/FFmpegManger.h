@@ -20,7 +20,6 @@
 #include "FFmpegWaterMarkTest.h"
 #include "FFmpegVideoPlay.h"
 
-typedef void (*MessageCallback)(void *, int, float);
 
 class FFmpegManger {
 private:
@@ -29,9 +28,12 @@ private:
     FFmpegPlayAudio *fmpegPlayAudio = nullptr;
     FFmpegVideoPlay *videoPlay = nullptr;
     AVCodecContext *mAvCodecContext = nullptr;
-    void *mMsgContext = nullptr;
-    MessageCallback mMsgCallback = nullptr;
     const char *inputUrl;
+    JNIEnv *mEnv = nullptr;
+
+    static void PostMessage(void *context, int msgType, float msgCode);
+    JavaVM *mJavaVm = nullptr;
+    jobject mJavaObj = nullptr;
 
 
 public:
@@ -57,8 +59,9 @@ public:
 
     int pauseVideo();
 
-    void SetMessageCallback(void *context, MessageCallback callback);
+    int initCallBack(JNIEnv *env,jobject thiz);
 
+    JNIEnv *GetJNIEnv(bool *isAttach);
 };
 
 
