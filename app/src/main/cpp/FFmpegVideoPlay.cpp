@@ -8,21 +8,39 @@
 using namespace std;
 
 int FFmpegVideoPlay::playVideo() {
-    mPlayerState = PLAYER_STATE_PLAYING;
-    if (decodecThread != nullptr) {
-        decodecThread->detach();
-    } else {
+    if (decodecThread == nullptr) {
+        LOGD("playVideo=========%p",decodecThread);
         decodecThread = new thread(DoAVdecoding, this);
         decodecThread->detach();
+    }/* else {
+        decodecThread->swap(*decodecThread);
+    }*/
+    if (pauseFlag) {
+        pauseFlag = false;
+        m_Cond.notify_all();
     }
+    if (stopFlag) {
+        stopFlag = false;
+        m_Cond.notify_all();
+    }
+    mPlayerState = PLAYER_STATE_PLAYING;
     return 0;
 }
 
 void FFmpegVideoPlay::stopVideo() {
+    if (decodecThread != nullptr) {
+        pauseFlag = false;
+        stopFlag = true;
+        m_Cond.notify_all();
+        LOGD("stopVideo=========%p",decodecThread);
+    }
     mPlayerState = PLAYER_STATE_STOP;
 }
 
 void FFmpegVideoPlay::pauseVideo() {
+    if (decodecThread != nullptr) {
+        pauseFlag = true;
+    }
     mPlayerState = PLAYER_STATE_PAUSE;
 }
 
@@ -34,7 +52,7 @@ int FFmpegVideoPlay::initFormatContext() {
         LOGD("Couldn't open input stream. ret:%d", ret);
     }
     LOGD("open inputFile:%s", mInputUrl);
-    //2.查找文件流信息
+    //2.获取音视频流
     ret = avformat_find_stream_info(mAvFormatContext, nullptr);
     if (ret < 0) {
         LOGD("Couldn't find stream info. ret:%d", ret);
@@ -76,16 +94,10 @@ int FFmpegVideoPlay::initFFmpegCodec() {
     return ret;
 }
 
-void FFmpegVideoPlay::initFFmeg(JNIEnv *env, jobject surface, const char *inputUrl) {
-    mEnv = env;
-    androidSurface = surface;
-    mInputUrl = inputUrl;
+void FFmpegVideoPlay::initFFmeg() {
     initFormatContext();
     initFFmpegCodec();
     initANativeWindow();
-    if (decodecThread == nullptr) {
-        decodecThread = new thread(DoAVdecoding, this);
-    }
 }
 
 int FFmpegVideoPlay::initANativeWindow() {
@@ -134,6 +146,14 @@ FFmpegVideoPlay::~FFmpegVideoPlay() {
     av_frame_free(&mRgbFrame);
     av_frame_free(&mAvFrame);
     av_packet_free(&mAvPacket);
+    if (decodecThread != nullptr) {
+        pauseFlag = false;
+        stopFlag = true;
+        m_Cond.notify_all();
+        decodecThread->detach();
+        delete decodecThread;
+        decodecThread = nullptr;
+    }
 }
 
 void FFmpegVideoPlay::DoAVdecoding(FFmpegVideoPlay *fmpegVideoPlay) {
@@ -146,9 +166,16 @@ int FFmpegVideoPlay::loopDecodec() {
                          mOutbuffer, AV_PIX_FMT_RGBA,
                          mWidth, mHeight, 1);
 
-    while (mPlayerState == PLAYER_STATE_PLAYING || mPlayerState == PLAYER_STATE_PAUSE) {
-        if (mPlayerState == PLAYER_STATE_PAUSE) {
-            continue;
+    while (true) {
+        if (pauseFlag) {
+            unique_lock<mutex> uniqueLock(m_Mutex);
+            while (pauseFlag) {
+                m_Cond.wait(uniqueLock); // Unlock _mutex and wait to be notified
+            }
+            uniqueLock.unlock();
+        }
+        if (stopFlag) {
+            break;
         }
         int result = av_read_frame(mAvFormatContext, mAvPacket);
         if (result < 0) {
@@ -164,6 +191,8 @@ int FFmpegVideoPlay::loopDecodec() {
             sendFrameDataToANativeWindow();
         }
     }
+    pauseFlag = false;
+    stopFlag = false;
     avformat_free_context(mAvFormatContext);
     return ret;
 }
@@ -213,6 +242,31 @@ int FFmpegVideoPlay::sendFrameDataToANativeWindow() {
     av_usleep(1000 * 33);
     ANativeWindow_unlockAndPost(mNativeWindow);
     return lock;
+}
+
+void FFmpegVideoPlay::init(JNIEnv *env,jobject thiz, const char *inputUrl,  jobject surface) {
+    mEnv = env;
+    jniClazz  = thiz;
+    androidSurface = surface;
+    mInputUrl = inputUrl;
+    initFFmeg();
+}
+
+void FFmpegVideoPlay::unInit() {
+    sws_freeContext(mSwsContext);
+    avcodec_free_context(&mAvCodecContext);
+    avformat_free_context(mAvFormatContext);
+    av_frame_free(&mRgbFrame);
+    av_frame_free(&mAvFrame);
+    av_packet_free(&mAvPacket);
+    if (decodecThread != nullptr) {
+        pauseFlag = false;
+        stopFlag = true;
+        m_Cond.notify_all();
+        decodecThread->detach();
+        delete decodecThread;
+        decodecThread = nullptr;
+    }
 }
 
 

@@ -26,6 +26,7 @@ private:
     uint8_t *mOutbuffer;
     JNIEnv *mEnv = nullptr;
     SwsContext *mSwsContext = nullptr;
+    jobject jniClazz = NULL;
     jobject androidSurface = NULL;
     const char *mInputUrl = nullptr;
     AVFormatContext *mAvFormatContext = nullptr;
@@ -38,23 +39,18 @@ private:
 
     std::thread *decodecThread = nullptr;
     PlayerState mPlayerState = PLAYER_STATE_UNKNOWN;
-    std::mutex               m_Mutex;
-    std::condition_variable  m_Cond;
+    std::mutex m_Mutex;
+    std::condition_variable m_Cond;
+    std::atomic_bool pauseFlag;   ///<暂停标识
+    std::atomic_bool stopFlag;   ///<停止标识
 
 
-
-public:
-    void initFFmeg(JNIEnv *env, jobject surface, const char *inputUrl);
+private:
+    void initFFmeg();
 
     int initFormatContext();
 
     int initFFmpegCodec();
-
-    int playVideo();
-
-    void pauseVideo();
-
-    void stopVideo();
 
     int codecAvFrame();
 
@@ -65,6 +61,18 @@ public:
     int loopDecodec();
 
     static void DoAVdecoding(FFmpegVideoPlay *fmpegVideoPlay);
+
+public:
+    void init(JNIEnv *env, jobject thiz, const char *inputUrl, jobject surface);
+
+    void unInit();
+
+    int playVideo();
+
+    void pauseVideo();
+
+    void stopVideo();
+
 
     ~FFmpegVideoPlay();
 };

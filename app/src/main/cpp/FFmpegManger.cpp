@@ -13,10 +13,7 @@ void FFmpegManger::setInputUrl(const char *inputUrl) {
     FFmpegManger::inputUrl = inputUrl;
 }
 
-int FFmpegManger::initFFmpeg() {
 
-
-}
 
 int FFmpegManger::mp4ConversionAvi(const char *in_filename, const char *out_filename) {
     if (fFmpegVideoTrans == nullptr) {
@@ -55,12 +52,10 @@ int FFmpegManger::stopAudio() {
     return 0;
 }
 
-int FFmpegManger::playVideo(JNIEnv *env, jobject surface, const char *inputUrl) {
-    if (videoPlay == nullptr) {
-        videoPlay = new FFmpegVideoPlay();
+int FFmpegManger::playVideo() {
+    if (videoPlay != nullptr) {
+        videoPlay->playVideo();
     }
-    videoPlay->initFFmeg(env, surface, inputUrl);
-    videoPlay->playVideo();
     return 0;
 }
 
@@ -70,4 +65,31 @@ int FFmpegManger::stopVideo() {
     }
     videoPlay->stopVideo();
     return 0;
+}
+
+int FFmpegManger::pauseVideo() {
+    if (videoPlay == nullptr) {
+        return -1;
+    }
+    videoPlay->pauseVideo();
+    return 0;
+}
+
+void FFmpegManger::SetMessageCallback(void *context, MessageCallback callback) {
+    mMsgContext = context;
+    mMsgCallback = callback;
+}
+
+int FFmpegManger::initFFmpeg(JNIEnv *env,jobject thiz, const char *inputUrl, jobject surface) {
+    if (videoPlay == nullptr) {
+        videoPlay = new FFmpegVideoPlay();
+        videoPlay->init(env, thiz, inputUrl,surface);
+    }
+    return 0;
+}
+
+void FFmpegManger::unInit() {
+    if (videoPlay != nullptr) {
+        videoPlay->unInit();
+    }
 }

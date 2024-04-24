@@ -34,15 +34,6 @@ cpp_intFromJNI(JNIEnv *env, jobject thiz, jint age) {
 }
 
 
-JNIEXPORT jlong JNICALL
-cpp_initFFmpeg(JNIEnv *env, jobject thiz) {
-    LOGD("cpp_initFFmpeg");
-    if (fmpegManger == nullptr)
-        fmpegManger = new FFmpegManger();
-    fmpegManger->initFFmpeg();
-    return 10;
-}
-
 JNIEXPORT jstring JNICALL
 cpp_getFFmpegVersion(JNIEnv *env, jobject thiz) {
     char strBuffer[1024 * 4] = {0};
@@ -127,14 +118,30 @@ cpp_stop_audio(JNIEnv *env, jobject thiz) {
 
 extern "C"
 JNIEXPORT void JNICALL
-cpp_play_video(JNIEnv *env, jobject thiz, jstring intputUrl, jobject surface) {
-    const char *url = env->GetStringUTFChars(intputUrl, 0);
-    LOGD("cpp_play_video url:%s", url);
+cpp_play_video(JNIEnv *env, jobject thiz) {
     if (fmpegManger == nullptr)
         fmpegManger = new FFmpegManger();
-    fmpegManger->playVideo(env, surface, url);
+    fmpegManger->playVideo();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_play_init(JNIEnv *env, jobject thiz, jstring intputUrl, jobject surface) {
+    const char *url = env->GetStringUTFChars(intputUrl, 0);
+    if (fmpegManger == nullptr)
+        fmpegManger = new FFmpegManger();
+    fmpegManger->initFFmpeg(env, thiz, url, surface);
 
     env->ReleaseStringUTFChars(intputUrl, url);
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_play_uninit(JNIEnv *env, jobject thiz) {
+    if (fmpegManger == nullptr)
+        return;
+    fmpegManger->unInit();
 }
 
 
@@ -142,24 +149,37 @@ extern "C"
 JNIEXPORT void JNICALL
 cpp_stop_video(JNIEnv *env, jobject thiz) {
     if (fmpegManger == nullptr)
-        fmpegManger = new FFmpegManger();
+        return;
     fmpegManger->stopVideo();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_pause_video(JNIEnv *env, jobject thiz) {
+    if (fmpegManger == nullptr)
+        return;
+    fmpegManger->pauseVideo();
 
 }
 
 // 重点：定义类名和函数签名，如果有多个方法要动态注册，在数组里面定义即可
 static const JNINativeMethod methods[] = {
         {"native_getFFmpegVersion", "()Ljava/lang/String;",                                      (void *) cpp_getFFmpegVersion},
-        {"native_initFFmpeg",       "()J",                                                       (long *) cpp_initFFmpeg},
         {"stringFromJNI",           "()Ljava/lang/String;",                                      (std::string *) cpp_stringFromJNI},
         {"intFromJNI",              "(I)I",                                                      (void *) cpp_intFromJNI},
         {"setInputUrl",             "(Ljava/lang/String;)V",                                     (void *) cpp_set_input_url},
+
         {"native_MP4_AVI",          "(Ljava/lang/String;Ljava/lang/String;)V",                   (void *) cpp_mp4_input_avi_output},
         {"native_Water_mark",       "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", (void *) cpp_mp4_water_mark},
+
         {"native_Play_Audio",       "(Ljava/lang/String;)V",                                     (void *) cpp_play_audio},
         {"native_Stop_Audio",       "()V",                                                       (void *) cpp_stop_audio},
-        {"native_Play_Video",       "(Ljava/lang/String;Landroid/view/Surface;)V",               (void *) cpp_play_video},
+
+        {"native_Play_init",        "(Ljava/lang/String;Landroid/view/Surface;)V",               (void *) cpp_play_init},
+        {"native_Play_Uninit",      "()V",                                                       (void *) cpp_play_uninit},
+        {"native_Play_Video",       "()V",                                                       (void *) cpp_play_video},
         {"native_Stop_Video",       "()V",                                                       (void *) cpp_stop_video},
+        {"native_Pause_Video",      "()V",                                                       (void *) cpp_pause_video},
 
 };
 

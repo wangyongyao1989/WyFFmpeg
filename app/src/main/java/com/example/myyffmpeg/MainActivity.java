@@ -8,7 +8,6 @@ import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -35,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
     private Button mBtn3;
     private Button mBtn4;
     private Button mBtn5;
+    private Button mBtn6;
+
+    String mVideoUrl;
     private SurfaceView mSurfaceView = null;
     private Surface mSurface = null;
 
@@ -92,16 +94,28 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mBtn5.setOnClickListener(v -> {
-            Log.e(TAG,"mBtn5=======");
             if (mBtn5.isSelected()) {
                 mBtn5.setSelected(false);
                 mBtn5.setText("ffmpeg播放视频");
+                mCallJni.pauseVideo();
+            } else {
+                mBtn5.setSelected(true);
+                mBtn5.setText("ffmpeg播放暂停");
+                mCallJni.playVideo();
+            }
+        });
+
+        mBtn6.setOnClickListener(v -> {
+            Log.e(TAG, "mBtn6=======");
+            if (mBtn6.isSelected()) {
+                mBtn6.setSelected(false);
+                mBtn6.setText("播放视频");
                 mCallJni.stopVideo();
             } else {
                 String videoUrl = FileUtils.getModelFilePath(getApplication(), "woman.mp4");
-                mBtn5.setSelected(true);
-                mBtn5.setText("ffmpeg播放停止");
-                mCallJni.playVideo(videoUrl, mSurface);
+                mBtn6.setSelected(true);
+                mBtn6.setText("播放停止");
+                mCallJni.playVideo();
             }
         });
 
@@ -110,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void surfaceCreated(@NonNull SurfaceHolder holder) {
                 mSurface = surfaceViewHolder.getSurface();
+                mCallJni.initPlay(mVideoUrl, mSurface);
             }
 
             @Override
@@ -119,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-
+                mCallJni.unInitPlay();
             }
         });
 
@@ -128,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initData() {
         mCallJni = new CallJni();
-
+        mVideoUrl = FileUtils.getModelFilePath(getApplication(), "woman.mp4");
     }
 
     private void initView() {
@@ -138,6 +153,8 @@ public class MainActivity extends AppCompatActivity {
         mBtn3 = mBinding.btn3;
         mBtn4 = mBinding.btn4;
         mBtn5 = mBinding.btn5;
+        mBtn6 = mBinding.btn6;
+
         mSurfaceView = mBinding.surface;
 
     }

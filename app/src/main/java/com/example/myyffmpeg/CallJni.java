@@ -12,9 +12,6 @@ public class CallJni {
         return native_getFFmpegVersion();
     }
 
-    public void initFFmpeg() {
-        native_initFFmpeg();
-    }
 
     public void mp4CAvi(String inputUrl, String outputUrl) {
         native_MP4_AVI(inputUrl, outputUrl);
@@ -34,13 +31,26 @@ public class CallJni {
         native_Stop_Audio();
     }
 
-    public void playVideo(String videoUrl, Surface surface) {
-        native_Play_Video(videoUrl, surface);
+    public void initPlay(String videoUrl, Surface surface) {
+        native_Play_init(videoUrl, surface);
+    }
+
+    public void unInitPlay() {
+        native_Play_Uninit();
+    }
+
+    public void playVideo() {
+        native_Play_Video();
     }
 
     public void stopVideo() {
-       native_Stop_Video();
+        native_Stop_Video();
     }
+
+    public void pauseVideo() {
+        native_Pause_Video();
+    }
+
 
     public String callStringForJNI() {
         return stringFromJNI();
@@ -60,7 +70,6 @@ public class CallJni {
 
     private native void setInputUrl(String inputUrl);
 
-    private native long native_initFFmpeg();
 
     private native void native_MP4_AVI(String inputUrl, String outputUrl);
 
@@ -70,9 +79,16 @@ public class CallJni {
 
     private native void native_Stop_Audio();
 
-    private native void native_Play_Video(String audio, Surface surface);
+    private native void native_Play_init(String videoUrl, Surface surface);
+
+    private native void native_Play_Uninit();
+
+    private native void native_Play_Video();
 
     private native void native_Stop_Video();
+
+    private native void native_Pause_Video();
+
 
     private native String native_getFFmpegVersion();
 
