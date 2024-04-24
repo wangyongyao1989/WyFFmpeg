@@ -18,6 +18,7 @@ enum PlayerState {
 };
 
 typedef void (*MessageCallback)(void *, int, float);
+typedef void (*PlaystatusCallback)(void *, const char *);
 
 class FFmpegVideoPlay {
 private:
@@ -48,6 +49,7 @@ private:
 
     void *mMsgContext = nullptr;
     MessageCallback mMsgCallback = nullptr;
+    PlaystatusCallback mPlayStatusCallback = nullptr;
 
 private:
     void initFFmeg();
@@ -80,6 +82,8 @@ public:
     void initCallback(JNIEnv *env, jobject thiz);
 
     void SetMessageCallback(void *context, MessageCallback callback);
+
+    void SetPlayStatusCallback(void *context, PlaystatusCallback callback);
 
     ~FFmpegVideoPlay();
 };

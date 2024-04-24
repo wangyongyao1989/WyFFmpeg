@@ -23,7 +23,8 @@ int FFmpegVideoPlay::playVideo() {
         stopFlag = false;
         m_Cond.notify_all();
     }
-    mPlayerState = PLAYER_STATE_PLAYING;
+    if (mMsgContext && mPlayStatusCallback)
+        mPlayStatusCallback(mMsgContext,"playVideo");
     return 0;
 }
 
@@ -32,9 +33,10 @@ void FFmpegVideoPlay::stopVideo() {
         pauseFlag = false;
         stopFlag = true;
         m_Cond.notify_all();
-        LOGD("stopVideo=========%p", decodecThread);
     }
     mPlayerState = PLAYER_STATE_STOP;
+    if (mMsgContext && mPlayStatusCallback)
+        mPlayStatusCallback(mMsgContext,"stopVideo");
 }
 
 void FFmpegVideoPlay::pauseVideo() {
@@ -42,6 +44,8 @@ void FFmpegVideoPlay::pauseVideo() {
         pauseFlag = true;
     }
     mPlayerState = PLAYER_STATE_PAUSE;
+    if (mMsgContext && mPlayStatusCallback)
+        mPlayStatusCallback(mMsgContext,"pauseVideo");
 }
 
 int FFmpegVideoPlay::initFormatContext() {
@@ -227,22 +231,16 @@ int FFmpegVideoPlay::sendFrameDataToANativeWindow() {
         }
         switch (mAvFrame->pict_type) {
             case AV_PICTURE_TYPE_I:
-                LOGD("I");
-                if (mMsgContext && mMsgCallback) {
-                    mMsgCallback(mMsgContext, 1, 0.1);
-                }
+                if (mMsgContext && mPlayStatusCallback)
+                    mPlayStatusCallback(mMsgContext,"读取到I帧");
                 break;
             case AV_PICTURE_TYPE_P:
-                LOGD("P");
-                if (mMsgContext && mMsgCallback) {
-                    mMsgCallback(mMsgContext, 2, 0.2);
-                }
+                if (mMsgContext && mPlayStatusCallback)
+                    mPlayStatusCallback(mMsgContext,"读取到P帧");
                 break;
             case AV_PICTURE_TYPE_B:
-                LOGD("B");
-                if (mMsgContext && mMsgCallback) {
-                    mMsgCallback(mMsgContext, 3, 0.3);
-                }
+                if (mMsgContext && mPlayStatusCallback)
+                    mPlayStatusCallback(mMsgContext,"读取到B帧");
                 break;
             default:;
                 break;
@@ -286,6 +284,11 @@ void FFmpegVideoPlay::initCallback(JNIEnv *env, jobject thiz) {
 void FFmpegVideoPlay::SetMessageCallback(void *context, MessageCallback callback) {
     mMsgContext = context;
     mMsgCallback = callback;
+}
+
+void FFmpegVideoPlay::SetPlayStatusCallback(void *context, PlaystatusCallback callback) {
+    mMsgContext = context;
+    mPlayStatusCallback = callback;
 }
 
 

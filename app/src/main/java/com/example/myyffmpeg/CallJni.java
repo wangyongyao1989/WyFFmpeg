@@ -102,7 +102,12 @@ public class CallJni {
     private native String native_getFFmpegVersion();
 
     private void CppEventCallback(int msgType, float msgValue) {
-        Log.e(TAG,"msgType:"+msgType+"====msgValue:"+msgValue);
+//        Log.e(TAG,"msgType:"+msgType+"====msgValue:"+msgValue);
+
+    }
+
+    private  void CppPlayStatusCallback(String status) {
+        Log.e(TAG,"status:"+status);
 
     }
 

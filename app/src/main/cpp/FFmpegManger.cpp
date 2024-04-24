@@ -101,11 +101,11 @@ int FFmpegManger::initCallBack(JNIEnv *env, jobject thiz) {
     mJavaObj = env->NewGlobalRef(thiz);
     videoPlay->initCallback(env, thiz);
     videoPlay->SetMessageCallback(this, PostMessage);
-
+    videoPlay->SetPlayStatusCallback(this, PostPlayStatusMessage);
     return 0;
 }
 
-JNIEnv* FFmpegManger::GetJNIEnv(bool *isAttach) {
+JNIEnv *FFmpegManger::GetJNIEnv(bool *isAttach) {
     JNIEnv *env;
     int status;
     if (nullptr == mJavaVm) {
@@ -113,7 +113,7 @@ JNIEnv* FFmpegManger::GetJNIEnv(bool *isAttach) {
         return nullptr;
     }
     *isAttach = false;
-    status = mJavaVm->GetEnv((void **)&env, JNI_VERSION_1_4);
+    status = mJavaVm->GetEnv((void **) &env, JNI_VERSION_1_6);
     if (status != JNI_OK) {
         status = mJavaVm->AttachCurrentThread(&env, nullptr);
         if (status != JNI_OK) {
@@ -135,12 +135,32 @@ void FFmpegManger::PostMessage(void *context, int msgType, float msgCode) {
             return;
         }
         jobject javaObj = pFmpegManger->mJavaObj;
-        jmethodID mid = pEnv->GetMethodID(pEnv->GetObjectClass(javaObj)
-                , "CppEventCallback", "(IF)V");
+        jmethodID mid = pEnv->GetMethodID(pEnv->GetObjectClass(javaObj), "CppEventCallback",
+                                          "(IF)V");
         pEnv->CallVoidMethod(javaObj, mid, msgType, msgCode);
-        if(isAttach) {
+        if (isAttach) {
             JavaVM *pJavaVm = pFmpegManger->mJavaVm;
             pJavaVm->DetachCurrentThread();
         }
+    }
+}
+
+void FFmpegManger::PostPlayStatusMessage(void *context, const char *status) {
+    if (context != nullptr) {
+        FFmpegManger *pFmpegManger = static_cast<FFmpegManger *>(context);
+        bool isAttach = false;
+        JNIEnv *pEnv = pFmpegManger->GetJNIEnv(&isAttach);
+        if (pEnv == nullptr) {
+            return;
+        }
+        jobject javaObj = pFmpegManger->mJavaObj;
+        jmethodID mid = pEnv->GetMethodID(pEnv->GetObjectClass(javaObj), "CppPlayStatusCallback",
+                                          "(Ljava/lang/String;)V");
+        jstring pJstring = pEnv->NewStringUTF(status);
+        pEnv->CallVoidMethod(javaObj, mid, pJstring);
+//        if (isAttach) {
+//            JavaVM *pJavaVm = pFmpegManger->mJavaVm;
+//            pJavaVm->DetachCurrentThread();
+//        }
     }
 }

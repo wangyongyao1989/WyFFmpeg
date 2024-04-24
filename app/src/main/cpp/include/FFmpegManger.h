@@ -32,6 +32,9 @@ private:
     JNIEnv *mEnv = nullptr;
 
     static void PostMessage(void *context, int msgType, float msgCode);
+
+    static void PostPlayStatusMessage(void *context, const char *status);
+
     JavaVM *mJavaVm = nullptr;
     jobject mJavaObj = nullptr;
 
@@ -49,7 +52,7 @@ public:
 
     int stopAudio();
 
-    int initFFmpeg(JNIEnv *env,jobject thiz, const char *inputUrl, jobject surface);
+    int initFFmpeg(JNIEnv *env, jobject thiz, const char *inputUrl, jobject surface);
 
     void unInit();
 
@@ -59,7 +62,7 @@ public:
 
     int pauseVideo();
 
-    int initCallBack(JNIEnv *env,jobject thiz);
+    int initCallBack(JNIEnv *env, jobject thiz);
 
     JNIEnv *GetJNIEnv(bool *isAttach);
 };

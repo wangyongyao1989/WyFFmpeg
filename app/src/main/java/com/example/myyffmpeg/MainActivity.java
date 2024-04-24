@@ -106,7 +106,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mBtn6.setOnClickListener(v -> {
-            Log.e(TAG, "mBtn6=======");
             if (mBtn6.isSelected()) {
                 mBtn6.setSelected(false);
                 mBtn6.setText("播放视频");
