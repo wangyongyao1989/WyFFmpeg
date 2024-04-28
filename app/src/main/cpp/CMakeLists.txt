@@ -21,6 +21,14 @@ add_library(${CMAKE_PROJECT_NAME}
         FFmpegPlayAudio.cpp
         FFmpegWaterMarkTest.cpp
         FFmpegVideoPlay.cpp
+
+
+        ffmpegsrc/api-band-test.c
+        ffmpegsrc/api-threadmessage-test.c
+        ffmpegsrc/api-seek-test.c
+        ffmpegsrc/api-flac-test.c
+        ffmpegsrc/api-h264-slice-test.c
+        ffmpegsrc/api-h264-test.c
         )
 
 link_directories(

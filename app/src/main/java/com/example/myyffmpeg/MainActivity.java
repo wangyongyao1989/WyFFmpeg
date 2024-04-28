@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initData() {
         mCallJni = new CallJni();
-        mVideoUrl = FileUtils.getModelFilePath(getApplication(), "woman.mp4");
+        mVideoUrl = FileUtils.getModelFilePath(getApplication(), "midway.mp4");
     }
 
     private void initView() {
