@@ -42,7 +42,7 @@ private:
 
     std::thread *decodecThread = nullptr;
     PlayerState mPlayerState = PLAYER_STATE_UNKNOWN;
-    std::mutex m_Mutex;
+    static std::mutex m_Mutex;
     std::condition_variable m_Cond;
     std::atomic_bool pauseFlag;   ///<暂停标识
     std::atomic_bool stopFlag;   ///<停止标识
@@ -65,6 +65,8 @@ private:
     int sendFrameDataToANativeWindow();
 
     int loopDecodec();
+
+    static void do_some_work();
 
     static void DoAVdecoding(FFmpegVideoPlay *fmpegVideoPlay);
 
