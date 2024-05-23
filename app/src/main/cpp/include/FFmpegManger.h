@@ -62,6 +62,8 @@ public:
 
     int pauseVideo();
 
+    int seekToPosition(float position);
+
     int initCallBack(JNIEnv *env, jobject thiz);
 
     JNIEnv *GetJNIEnv(bool *isAttach);

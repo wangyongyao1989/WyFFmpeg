@@ -48,6 +48,12 @@ void FFmpegVideoPlay::pauseVideo() {
         mPlayStatusCallback(mMsgContext,"pauseVideo");
 }
 
+int FFmpegVideoPlay::seekToPosition(float position) {
+    m_SeekPosition = position;
+    m_Cond.notify_all();
+    return 0;
+}
+
 int FFmpegVideoPlay::initFormatContext() {
     mAvFormatContext = avformat_alloc_context();
     //1.打开文件
@@ -181,8 +187,28 @@ int FFmpegVideoPlay::loopDecodec() {
         if (stopFlag) {
             break;
         }
+        if (m_SeekPosition > 0) {
+            //seek to frame
+            int64_t seek_target = static_cast<int64_t>(m_SeekPosition * 1000000);//微秒
+            int64_t seek_min = INT64_MIN;
+            int64_t seek_max = INT64_MAX;
+            int seek_ret = avformat_seek_file(mAvFormatContext, -1,
+                                              seek_min, seek_target,
+                                              seek_max,
+                                              0);
+            if (seek_ret < 0) {
+                LOGD("SeekPosition 失败");
+            } else {
+                if (-1 != mVideoIndex) {
+                    avcodec_flush_buffers(mAvCodecContext);
+                }
+                m_SeekPosition = 0;
+            }
+        }
+
         int result = av_read_frame(mAvFormatContext, mAvPacket);
         if (result < 0) {
+            LOGD("av_read_frame fail");
             break;
         }
         if (mAvPacket->stream_index == mVideoIndex) {
@@ -190,6 +216,7 @@ int FFmpegVideoPlay::loopDecodec() {
             if (ret == AVERROR(EAGAIN)) {
                 continue;
             } else if (ret < 0) {
+                LOGD("codecAvFrame fail");
                 break;
             }
             sendFrameDataToANativeWindow();
@@ -204,7 +231,7 @@ int FFmpegVideoPlay::loopDecodec() {
 int FFmpegVideoPlay::codecAvFrame() {
     ret = avcodec_send_packet(mAvCodecContext, mAvPacket);
     if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) {
-        LOGD("解码出错");
+        LOGD("codecAvFrame 解码出错");
         return -1;
     }
     ret = avcodec_receive_frame(mAvCodecContext, mAvFrame);

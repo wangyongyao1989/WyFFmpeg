@@ -13,6 +13,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.example.myyffmpeg.databinding.ActivityMainBinding;
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     String mVideoUrl;
     private SurfaceView mSurfaceView = null;
     private Surface mSurface = null;
+    private SeekBar mSeekBar;
 
 
     @Override
@@ -138,6 +140,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                mCallJni.seekToPosition(mSeekBar.getProgress());
+            }
+        });
 
     }
 
@@ -156,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
         mBtn6 = mBinding.btn6;
 
         mSurfaceView = mBinding.surface;
+        mSeekBar = mBinding.seekBar;
 
     }
 

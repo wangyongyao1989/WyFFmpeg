@@ -74,6 +74,14 @@ int FFmpegManger::pauseVideo() {
     return 0;
 }
 
+int FFmpegManger::seekToPosition(float position) {
+    if (videoPlay == nullptr) {
+        return -1;
+    }
+    videoPlay->seekToPosition(position);
+    return 0;
+}
+
 int FFmpegManger::initFFmpeg(JNIEnv *env, jobject thiz, const char *inputUrl, jobject surface) {
     mEnv = env;
 //    mJvm = env->NewGlobalRef(thiz);
@@ -164,3 +172,5 @@ void FFmpegManger::PostPlayStatusMessage(void *context, const char *status) {
 //        }
     }
 }
+
+

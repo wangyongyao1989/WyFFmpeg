@@ -15,6 +15,10 @@ public class CallJni {
         native_callback();
     }
 
+    public void seekToPosition(float progress) {
+        native_seek_to_position(progress);
+    }
+
     public String getFFmpegVersion() {
         return native_getFFmpegVersion();
     }
@@ -95,6 +99,8 @@ public class CallJni {
     private native void native_Stop_Video();
 
     private native void native_Pause_Video();
+    private native void native_seek_to_position(float position);
+
 
     private native void native_callback();
 

@@ -18,6 +18,7 @@ enum PlayerState {
 };
 
 typedef void (*MessageCallback)(void *, int, float);
+
 typedef void (*PlaystatusCallback)(void *, const char *);
 
 class FFmpegVideoPlay {
@@ -42,10 +43,12 @@ private:
 
     std::thread *decodecThread = nullptr;
     PlayerState mPlayerState = PLAYER_STATE_UNKNOWN;
-    static std::mutex m_Mutex;
+    std::mutex m_Mutex;
     std::condition_variable m_Cond;
     std::atomic_bool pauseFlag;   ///<暂停标识
     std::atomic_bool stopFlag;   ///<停止标识
+    volatile float m_SeekPosition = 0;
+
 
     void *mMsgContext = nullptr;
     MessageCallback mMsgCallback = nullptr;
@@ -80,6 +83,8 @@ public:
     void pauseVideo();
 
     void stopVideo();
+
+    int seekToPosition(float position);
 
     void initCallback(JNIEnv *env, jobject thiz);
 

@@ -164,10 +164,18 @@ cpp_pause_video(JNIEnv *env, jobject thiz) {
 
 extern "C"
 JNIEXPORT void JNICALL
+cpp_seek_to_position(JNIEnv *env, jobject thiz, jfloat position) {
+    if (fmpegManger == nullptr)
+        return;
+    fmpegManger->seekToPosition(position);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
 cpp_init_callback(JNIEnv *env, jobject thiz) {
     if (fmpegManger == nullptr)
         fmpegManger = new FFmpegManger();
-    fmpegManger->initCallBack(env,thiz);
+    fmpegManger->initCallBack(env, thiz);
 
 }
 
@@ -191,6 +199,7 @@ static const JNINativeMethod methods[] = {
         {"native_Play_Video",       "()V",                                                       (void *) cpp_play_video},
         {"native_Stop_Video",       "()V",                                                       (void *) cpp_stop_video},
         {"native_Pause_Video",      "()V",                                                       (void *) cpp_pause_video},
+        {"native_seek_to_position", "(F)V",                                                      (void *) cpp_seek_to_position},
 
 };
 
