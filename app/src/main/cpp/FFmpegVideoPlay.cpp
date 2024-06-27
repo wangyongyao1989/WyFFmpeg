@@ -11,10 +11,8 @@ int FFmpegVideoPlay::playVideo() {
     if (decodecThread == nullptr) {
         LOGD("playVideo=========%p", decodecThread);
         decodecThread = new thread(DoAVdecoding, this);
-        decodecThread->detach();
-    }/* else {
-        decodecThread->swap(*decodecThread);
-    }*/
+//        decodecThread->detach();
+    }
     if (pauseFlag) {
         pauseFlag = false;
         m_Cond.notify_all();
@@ -23,8 +21,9 @@ int FFmpegVideoPlay::playVideo() {
         stopFlag = false;
         m_Cond.notify_all();
     }
+    mPlayerState = PLAYER_STATE_PLAYING;
     if (mMsgContext && mPlayStatusCallback)
-        mPlayStatusCallback(mMsgContext,"playVideo");
+        mPlayStatusCallback(mMsgContext, "playVideo");
     return 0;
 }
 
@@ -36,7 +35,7 @@ void FFmpegVideoPlay::stopVideo() {
     }
     mPlayerState = PLAYER_STATE_STOP;
     if (mMsgContext && mPlayStatusCallback)
-        mPlayStatusCallback(mMsgContext,"stopVideo");
+        mPlayStatusCallback(mMsgContext, "stopVideo");
 }
 
 void FFmpegVideoPlay::pauseVideo() {
@@ -45,12 +44,18 @@ void FFmpegVideoPlay::pauseVideo() {
     }
     mPlayerState = PLAYER_STATE_PAUSE;
     if (mMsgContext && mPlayStatusCallback)
-        mPlayStatusCallback(mMsgContext,"pauseVideo");
+        mPlayStatusCallback(mMsgContext, "pauseVideo");
 }
 
 int FFmpegVideoPlay::seekToPosition(float position) {
+    if (decodecThread != nullptr) {
+        pauseFlag = true;
+    }
+    mPlayerState = PLAYER_STATE_PAUSE;
     m_SeekPosition = position;
     m_Cond.notify_all();
+    if (mMsgContext && mPlayStatusCallback)
+        mPlayStatusCallback(mMsgContext, "seekToPosition pauseVideo");
     return 0;
 }
 
@@ -68,6 +73,7 @@ int FFmpegVideoPlay::initFormatContext() {
         LOGD("Couldn't find stream info. ret:%d", ret);
         return ret;
     }
+    av_dump_format(mAvFormatContext,0,0,0);
     return ret;
 }
 
@@ -93,9 +99,13 @@ int FFmpegVideoPlay::initFFmpegCodec() {
     AVCodec *findDecoder = avcodec_find_decoder(avCodecId);
     mAvCodecContext = avcodec_alloc_context3(findDecoder);
     avcodec_parameters_to_context(mAvCodecContext, pParameters);
-
+    AVDictionary *pAVDictionary = nullptr;
+    av_dict_set(&pAVDictionary, "buffer_size", "1024000", 0);
+    av_dict_set(&pAVDictionary, "stimeout", "20000000", 0);
+    av_dict_set(&pAVDictionary, "max_delay", "30000000", 0);
+    av_dict_set(&pAVDictionary, "rtsp_transport", "tcp", 0);
     //5.打开解码器
-    ret = avcodec_open2(mAvCodecContext, findDecoder, nullptr);
+    ret = avcodec_open2(mAvCodecContext, findDecoder, &pAVDictionary);
     if (ret < 0) {
         LOGD("Couldn't open codec.\n");
         return ret;
@@ -160,7 +170,7 @@ FFmpegVideoPlay::~FFmpegVideoPlay() {
         pauseFlag = false;
         stopFlag = true;
         m_Cond.notify_all();
-        decodecThread->detach();
+        decodecThread->join();
         delete decodecThread;
         decodecThread = nullptr;
     }
@@ -208,7 +218,7 @@ int FFmpegVideoPlay::loopDecodec() {
 
         int result = av_read_frame(mAvFormatContext, mAvPacket);
         if (result < 0) {
-            LOGD("av_read_frame fail");
+            LOGD("av_read_frame fail：%d",result);
             break;
         }
         if (mAvPacket->stream_index == mVideoIndex) {
@@ -259,15 +269,15 @@ int FFmpegVideoPlay::sendFrameDataToANativeWindow() {
         switch (mAvFrame->pict_type) {
             case AV_PICTURE_TYPE_I:
                 if (mMsgContext && mPlayStatusCallback)
-                    mPlayStatusCallback(mMsgContext,"读取到I帧");
+                    mPlayStatusCallback(mMsgContext, "读取到I帧");
                 break;
             case AV_PICTURE_TYPE_P:
-                if (mMsgContext && mPlayStatusCallback)
-                    mPlayStatusCallback(mMsgContext,"读取到P帧");
+//                if (mMsgContext && mPlayStatusCallback)
+//                    mPlayStatusCallback(mMsgContext, "读取到P帧");
                 break;
             case AV_PICTURE_TYPE_B:
-                if (mMsgContext && mPlayStatusCallback)
-                    mPlayStatusCallback(mMsgContext,"读取到B帧");
+//                if (mMsgContext && mPlayStatusCallback)
+//                    mPlayStatusCallback(mMsgContext, "读取到B帧");
                 break;
             default:;
                 break;

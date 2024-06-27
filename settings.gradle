@@ -15,3 +15,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "MyyFFmpeg"
 include ':app'
+include ':ffmpegplay'
+include ':rtmplive'
