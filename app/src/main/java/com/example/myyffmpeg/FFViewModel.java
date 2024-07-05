@@ -12,6 +12,7 @@ public class FFViewModel extends ViewModel {
     public enum FRAGMENT_STATUS {
         MAIN,
         PLAY,
+        RTMP,
     }
 
 

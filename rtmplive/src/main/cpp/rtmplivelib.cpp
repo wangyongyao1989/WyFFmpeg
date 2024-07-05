@@ -11,12 +11,7 @@
 //包名+类名字符串定义：
 const char *rtmp_class_name = "com/example/rtmplive/RtmpLivePusher";
 
-extern "C"
-JNIEXPORT void JNICALL
-cpp_init_callback(JNIEnv *env, jobject thiz) {
 
-
-}
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -26,7 +21,6 @@ cpp_init_rtmp(JNIEnv *env, jobject thiz) {
 }
 
 static const JNINativeMethod methods[] = {
-        {"native_callback", "()V", (void *) cpp_init_callback},
         {"native_rtmp_init", "()V", (void *) cpp_init_rtmp},
 
 

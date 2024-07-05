@@ -9,6 +9,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -45,6 +46,7 @@ public class FFmpegPlayFragment extends BaseFragment {
     private SeekBar mSeekBar;
     private TextView mSampleText;
     private FFViewModel mFfViewModel;
+    private RelativeLayout mRlClose;
 
     @Override
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
@@ -58,6 +60,7 @@ public class FFmpegPlayFragment extends BaseFragment {
 
     @Override
     public void initView() {
+        mRlClose = mBinding.rlClose;
         mSampleText = mBinding.sampleText;
         mBtnGetVersion = mBinding.btnGetVersion;
         mBtnMp4Avi = mBinding.btnMp4Avi;
@@ -84,6 +87,10 @@ public class FFmpegPlayFragment extends BaseFragment {
     @SuppressLint("SetTextI18n")
     @Override
     public void initListener() {
+        mRlClose.setOnClickListener(view -> {
+            mFfViewModel.getSwitchFragment().postValue(FFViewModel.FRAGMENT_STATUS.MAIN);
+        });
+
         mBtnGetVersion.setOnClickListener(view -> {
             mSampleText.setText(mCallJni.callStringForJNI()
                     + mCallJni.callIntForJNI()

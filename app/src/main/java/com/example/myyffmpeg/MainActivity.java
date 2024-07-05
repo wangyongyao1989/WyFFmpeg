@@ -17,6 +17,7 @@ import android.widget.FrameLayout;
 import com.example.myyffmpeg.databinding.ActivityMainBinding;
 import com.example.myyffmpeg.fragment.FFmpegPlayFragment;
 import com.example.myyffmpeg.fragment.MainFragment;
+import com.example.myyffmpeg.fragment.RtmpFragment;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -26,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
     private FrameLayout mFlPlay;
     private MainFragment mMainFragment;
     private FFViewModel mFfViewModel;
+    private RtmpFragment mRtmpFragment;
+    private FrameLayout mFlRtmp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,18 +63,17 @@ public class MainActivity extends AppCompatActivity {
     private void initView() {
         mFlMain = mBinding.flMain;
         mFlPlay = mBinding.flPlay;
+        mFlRtmp = mBinding.flRtmp;
+
 
     }
 
     private void addFragment() {
         mMainFragment = new MainFragment();
-        mFmpegPlayFragment = new FFmpegPlayFragment();
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction mFragmentTransaction = fragmentManager.beginTransaction();
         mFragmentTransaction
                 .add(mFlMain.getId(), mMainFragment)
-                .add(mFlPlay.getId(), mFmpegPlayFragment)
-                .hide(mFmpegPlayFragment)
                 .commit();
 
 
@@ -83,27 +85,42 @@ public class MainActivity extends AppCompatActivity {
         hideTransaction(fragmentTransaction);
         switch (status) {
             case PLAY: {
-                if (mFmpegPlayFragment != null) {
+                if (mFmpegPlayFragment == null) {
+                    mFmpegPlayFragment = new FFmpegPlayFragment();
                     fragmentTransaction
-                            .show(mFmpegPlayFragment);
-                    fragmentTransaction.commit();
+                            .add(mFlPlay.getId(), mFmpegPlayFragment);
                 }
+                fragmentTransaction.show(mFmpegPlayFragment);
+                fragmentTransaction.commit();
             }
             break;
             case MAIN: {
-                if (mMainFragment != null) {
+                fragmentTransaction.show(mMainFragment);
+                fragmentTransaction.commit();
+            }
+            break;
+            case RTMP: {
+                if (mRtmpFragment == null) {
+                    mRtmpFragment = new RtmpFragment();
                     fragmentTransaction
-                            .show(mMainFragment);
-                    fragmentTransaction.commit();
+                            .add(mFlRtmp.getId(), mRtmpFragment);
                 }
+                fragmentTransaction.show(mRtmpFragment);
+                fragmentTransaction.commit();
             }
             break;
         }
     }
 
     private void hideTransaction(FragmentTransaction ftr) {
+        if (mMainFragment != null) {
+            ftr.hide(mMainFragment);
+        }
         if (mFmpegPlayFragment != null) {
             ftr.hide(mFmpegPlayFragment);
+        }
+        if (mRtmpFragment != null) {
+            ftr.hide(mRtmpFragment);
         }
     }
 

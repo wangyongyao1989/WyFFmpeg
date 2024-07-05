@@ -14,6 +14,16 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="HardcodedText" />
 
+    <Button
+        android:id="@+id/btn_ff_rtmp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:text="RTMP"
+        app:layout_constraintStart_toEndOf="@+id/btn_ff_play"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="HardcodedText" />
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
