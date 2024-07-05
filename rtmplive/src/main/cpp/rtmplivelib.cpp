@@ -20,8 +20,25 @@ cpp_init_rtmp(JNIEnv *env, jobject thiz) {
 
 }
 
+extern "C"
+JNIEXPORT void JNICALL
+cpp_start_rtmp(JNIEnv *env, jobject thiz, jstring intputUrl) {
+    const char *url = env->GetStringUTFChars(intputUrl, 0);
+
+    env->ReleaseStringUTFChars(intputUrl, url);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_stop_rtmp(JNIEnv *env, jobject thiz) {
+
+
+}
+
 static const JNINativeMethod methods[] = {
         {"native_rtmp_init", "()V", (void *) cpp_init_rtmp},
+        {"native_rtmp_start_push", "(Ljava/lang/String;)V", (void *) cpp_start_rtmp},
+        {"native_rtmp_stop_push", "()V", (void *) cpp_stop_rtmp},
 
 
 };
