@@ -29,6 +29,7 @@ public class RtmpFragment extends BaseFragment {
     private LiveManger mLiveManger;
     private boolean isPushing = false;
     private String rtmpPushPath;
+    private Button mBtnFfPause;
 
     @Override
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
@@ -42,6 +43,7 @@ public class RtmpFragment extends BaseFragment {
     public void initView() {
         mRlClose = mBinding.rlClose;
         mBtnFfPush = mBinding.btnFfPush;
+        mBtnFfPause = mBinding.btnFfPause;
         mBtnFfStop = mBinding.btnFfStop;
         mTextureView = mBinding.textureView;
 
@@ -72,6 +74,10 @@ public class RtmpFragment extends BaseFragment {
         mBtnFfStop.setOnClickListener(view -> {
             mLiveManger.stopRtmpPush();
         });
+
+        mBtnFfPause.setOnClickListener(view -> {
+            mLiveManger.pauseRtmp();
+        });
     }
 
 
@@ -81,6 +87,7 @@ public class RtmpFragment extends BaseFragment {
             if (isPushing) {
                 mLiveManger.stopRtmpPush();
             }
+            mLiveManger.releaseRtmp();
             mLiveManger.release();
         }
         super.onDestroy();

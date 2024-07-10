@@ -1,6 +1,7 @@
 package com.example.rtmplive.camera;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -116,7 +117,7 @@ public class Camera2Helper {
         } else {
             result = (mSensorOrientation - degree + 360) % 360;
         }
-        Log.i(TAG, "getCameraOrientation, result=" + result);
+//        Log.i(TAG, "getCameraOrientation, result=" + result);
         return result;
     }
 
@@ -125,19 +126,19 @@ public class Camera2Helper {
 
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
-            Log.i(TAG, "onSurfaceTextureAvailable...");
+//            Log.i(TAG, "onSurfaceTextureAvailable...");
             openCamera();
         }
 
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture texture, int width, int height) {
-            Log.i(TAG, "onSurfaceTextureSizeChanged, width=" + width + "--height=" + height);
+//            Log.i(TAG, "onSurfaceTextureSizeChanged, width=" + width + "--height=" + height);
             configureTransform(width, height);
         }
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture texture) {
-            Log.i(TAG, "onSurfaceTextureDestroyed...");
+//            Log.i(TAG, "onSurfaceTextureDestroyed...");
             return true;
         }
 
@@ -151,7 +152,7 @@ public class Camera2Helper {
 
         @Override
         public void onOpened(@NonNull CameraDevice cameraDevice) {
-            Log.i(TAG, "onOpened: ");
+//            Log.i(TAG, "onOpened: ");
             mCameraOpenCloseLock.release();
             mCameraDevice = cameraDevice;
             createCameraPreviewSession();
@@ -162,7 +163,7 @@ public class Camera2Helper {
 
         @Override
         public void onDisconnected(@NonNull CameraDevice cameraDevice) {
-            Log.i(TAG, "onDisconnected: ");
+//            Log.i(TAG, "onDisconnected: ");
             mCameraOpenCloseLock.release();
             cameraDevice.close();
             mCameraDevice = null;
@@ -173,7 +174,7 @@ public class Camera2Helper {
 
         @Override
         public void onError(@NonNull CameraDevice cameraDevice, int error) {
-            Log.i(TAG, "onError: ");
+//            Log.i(TAG, "onError: ");
             mCameraOpenCloseLock.release();
             cameraDevice.close();
             mCameraDevice = null;
@@ -189,7 +190,7 @@ public class Camera2Helper {
 
         @Override
         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-            Log.i(TAG, "onConfigured: ");
+//            Log.i(TAG, "onConfigured: ");
             // The camera is already closed
             if (null == mCameraDevice) {
                 return;
@@ -209,7 +210,7 @@ public class Camera2Helper {
         @Override
         public void onConfigureFailed(
                 @NonNull CameraCaptureSession cameraCaptureSession) {
-            Log.i(TAG, "onConfigureFailed: ");
+//            Log.i(TAG, "onConfigureFailed: ");
             if (camera2Listener != null) {
                 camera2Listener.onCameraError(new Exception("configureFailed"));
             }
@@ -246,17 +247,17 @@ public class Camera2Helper {
 
     private Size getBestSupportedSize(List<Size> sizes) {
         Size defaultSize = sizes.get(0);
-        Log.e(TAG, "default width=" + defaultSize.getWidth() + "--height=" + defaultSize.getHeight());
+//        Log.e(TAG, "default width=" + defaultSize.getWidth() + "--height=" + defaultSize.getHeight());
         int defaultDelta = Math.abs(defaultSize.getWidth() * defaultSize.getHeight() - previewViewSize.x * previewViewSize.y);
         for (Size size : sizes) {
-            Log.e(TAG, "current width=" + defaultSize.getWidth() + "--height=" + defaultSize.getHeight());
+//            Log.e(TAG, "current width=" + defaultSize.getWidth() + "--height=" + defaultSize.getHeight());
             int currentDelta = Math.abs(size.getWidth() * size.getHeight() - previewViewSize.x * previewViewSize.y);
             if (currentDelta < defaultDelta) {
                 defaultDelta = currentDelta;
                 defaultSize = size;
             }
         }
-        Log.e(TAG, "final width=" + defaultSize.getWidth() + "--height=" + defaultSize.getHeight());
+//        Log.e(TAG, "final width=" + defaultSize.getWidth() + "--height=" + defaultSize.getHeight());
         return defaultSize;
     }
 
@@ -338,6 +339,7 @@ public class Camera2Helper {
         return true;
     }
 
+    @SuppressLint("MissingPermission")
     private void openCamera() {
         CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         setUpCameraOutput(cameraManager);

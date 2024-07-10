@@ -39,6 +39,14 @@ public class LiveManger implements TextureView.SurfaceTextureListener, Camera2Li
         mRtmpLivePusher.stopRtmpPush();
     }
 
+    public void releaseRtmp() {
+        mRtmpLivePusher.releaseRtmp();
+    }
+
+    public void pauseRtmp() {
+        mRtmpLivePusher.pauseRtmp();
+    }
+
     private void startCameraPreview() {
         if (mContext instanceof Activity) {
             rotation = ((Activity) mContext).getWindowManager().getDefaultDisplay().getRotation();

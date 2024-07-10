@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <string>
 #include <android/log.h>
+#include "RtmpPusherManger.h"
 
 #define LOG_TAG "wy"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -11,19 +12,33 @@
 //包名+类名字符串定义：
 const char *rtmp_class_name = "com/example/rtmplive/RtmpLivePusher";
 
+RtmpPusherManger *rtmpManger;
 
+extern "C"
+JNIEXPORT void JNICALL
+cpp_init_rtmp_callback(JNIEnv *env, jobject thiz) {
+    if (rtmpManger == nullptr)
+        rtmpManger = new RtmpPusherManger();
+    rtmpManger->initCallBack(env, thiz);
+
+}
 
 extern "C"
 JNIEXPORT void JNICALL
 cpp_init_rtmp(JNIEnv *env, jobject thiz) {
-
-
+    if (rtmpManger == nullptr)
+        rtmpManger = new RtmpPusherManger();
+    rtmpManger->init_rtmp(env, thiz);
+    rtmpManger->initCallBack(env, thiz);
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 cpp_start_rtmp(JNIEnv *env, jobject thiz, jstring intputUrl) {
     const char *url = env->GetStringUTFChars(intputUrl, 0);
+    if (rtmpManger != nullptr) {
+        rtmpManger->start_rtmp();
+    }
 
     env->ReleaseStringUTFChars(intputUrl, url);
 }
@@ -31,14 +46,37 @@ cpp_start_rtmp(JNIEnv *env, jobject thiz, jstring intputUrl) {
 extern "C"
 JNIEXPORT void JNICALL
 cpp_stop_rtmp(JNIEnv *env, jobject thiz) {
+    if (rtmpManger != nullptr) {
+        rtmpManger->stop_rtmp();
+    }
+}
 
+extern "C"
+JNIEXPORT void JNICALL
+cpp_pause_rtmp(JNIEnv *env, jobject thiz) {
+    if (rtmpManger != nullptr) {
+        rtmpManger->pause_rtmp();
+    }
+}
 
+extern "C"
+JNIEXPORT void JNICALL
+cpp_release_rtmp(JNIEnv *env, jobject thiz) {
+    if (rtmpManger != nullptr) {
+        rtmpManger->release_rtmp();
+        delete rtmpManger;
+    }
+
+    rtmpManger = 0;
 }
 
 static const JNINativeMethod methods[] = {
-        {"native_rtmp_init", "()V", (void *) cpp_init_rtmp},
+        {"native_init_callback",   "()V",                   (void *) cpp_init_rtmp_callback},
+        {"native_rtmp_init",       "()V",                   (void *) cpp_init_rtmp},
         {"native_rtmp_start_push", "(Ljava/lang/String;)V", (void *) cpp_start_rtmp},
-        {"native_rtmp_stop_push", "()V", (void *) cpp_stop_rtmp},
+        {"native_rtmp_stop_push",  "()V",                   (void *) cpp_stop_rtmp},
+        {"native_rtmp_pause",      "()V",                   (void *) cpp_pause_rtmp},
+        {"native_rtmp_release",    "()V",                   (void *) cpp_release_rtmp},
 
 
 };

@@ -16,7 +16,10 @@ add_library(
         rtmplive
         SHARED
         rtmplivelib.cpp
-        )
+        RtmpPusherManger.cpp
+        RtmpInit.cpp
+)
+
 link_directories(
         ${CMAKE_CURRENT_LIST_DIR}/libs/${ANDROID_ABI})
 
@@ -30,9 +33,9 @@ target_include_directories(
 
 
 set(third-party-libs
-#        ${jnilibs}/${ANDROID_ABI}/libgperf.so
+        #        ${jnilibs}/${ANDROID_ABI}/libgperf.so
 
-        )
+)
 
 
 target_link_libraries(

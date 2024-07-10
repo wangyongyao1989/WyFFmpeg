@@ -38,6 +38,14 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="HardcodedText" />
 
+    <Button
+        android:id="@+id/btn_ff_pause"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="暂停推流"
+        app:layout_constraintStart_toEndOf="@id/btn_ff_push"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/btn_ff_stop"
@@ -45,7 +53,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:text="停止rtmp推流"
-        app:layout_constraintStart_toEndOf="@id/btn_ff_push"
+        app:layout_constraintStart_toEndOf="@id/btn_ff_pause"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextureView

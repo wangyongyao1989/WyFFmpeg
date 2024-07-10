@@ -17,7 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProviders;
 
-import com.example.myyffmpeg.CallJni;
+import com.example.myyffmpeg.FFPlayCallJni;
 import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentPlayLayoutBinding;
 import com.example.myyffmpeg.utils.DirectoryPath;
@@ -37,7 +37,7 @@ public class FFmpegPlayFragment extends BaseFragment {
     private Button mBtnPlayAudio;
     private Button mBtnPlayPauseVideo;
     private Button mBtnPlayVideoStop;
-    private CallJni mCallJni;
+    private FFPlayCallJni mFFPlayCallJni;
 
     private String mVideoUrl;
 
@@ -74,7 +74,7 @@ public class FFmpegPlayFragment extends BaseFragment {
 
     @Override
     public void initData() {
-        mCallJni = new CallJni();
+        mFFPlayCallJni = new FFPlayCallJni();
         mVideoUrl = FileUtils.getModelFilePath(getActivity(), "midway.mp4");
     }
 
@@ -92,9 +92,9 @@ public class FFmpegPlayFragment extends BaseFragment {
         });
 
         mBtnGetVersion.setOnClickListener(view -> {
-            mSampleText.setText(mCallJni.callStringForJNI()
-                    + mCallJni.callIntForJNI()
-                    + mCallJni.getFFmpegVersion());
+            mSampleText.setText(mFFPlayCallJni.callStringForJNI()
+                    + mFFPlayCallJni.callIntForJNI()
+                    + mFFPlayCallJni.getFFmpegVersion());
         });
         
         mBtnMp4Avi.setOnClickListener(view -> {
@@ -105,7 +105,7 @@ public class FFmpegPlayFragment extends BaseFragment {
             String str = formatter.format(curDate);
             String aviDir = DirectoryPath.createVideoDir(getActivity());
             String aviName = aviDir + File.pathSeparator + str + ".avi";
-            mCallJni.mp4CAvi(inputFilePath, aviName);
+            mFFPlayCallJni.mp4CAvi(inputFilePath, aviName);
             SaveMediaUtils.saveImgFileToAlbum(getActivity(), aviName);
         });
         mAddWaterMark.setOnClickListener(view -> {
@@ -113,16 +113,16 @@ public class FFmpegPlayFragment extends BaseFragment {
             String pngFilePath = FileUtils.getModelFilePath(getActivity(), "water.png");
             String waterMakerDir = DirectoryPath.createVideoDir(getActivity());
             String waterMakerFilePath = waterMakerDir + File.pathSeparator + "watermark.mp4";
-            mCallJni.waterMark(inputFilePath, pngFilePath, waterMakerFilePath);
+            mFFPlayCallJni.waterMark(inputFilePath, pngFilePath, waterMakerFilePath);
         });
         mBtnPlayAudio.setOnClickListener(view -> {
             if (mBtnPlayAudio.isSelected()) {
-                mCallJni.stopAudio();
+                mFFPlayCallJni.stopAudio();
                 mBtnPlayAudio.setSelected(false);
                 mBtnPlayAudio.setText("音频播放");
             } else {
                 String audioUrl = FileUtils.getModelFilePath(getActivity(), "liudehua.mp3");
-                mCallJni.playAudio(audioUrl);
+                mFFPlayCallJni.playAudio(audioUrl);
                 mBtnPlayAudio.setSelected(true);
                 mBtnPlayAudio.setText("停止音频播放");
             }
@@ -131,11 +131,11 @@ public class FFmpegPlayFragment extends BaseFragment {
             if (mBtnPlayPauseVideo.isSelected()) {
                 mBtnPlayPauseVideo.setSelected(false);
                 mBtnPlayPauseVideo.setText("ffmpeg播放视频");
-                mCallJni.pauseVideo();
+                mFFPlayCallJni.pauseVideo();
             } else {
                 mBtnPlayPauseVideo.setSelected(true);
                 mBtnPlayPauseVideo.setText("ffmpeg播放暂停");
-                mCallJni.playVideo();
+                mFFPlayCallJni.playVideo();
             }
         });
 
@@ -143,12 +143,12 @@ public class FFmpegPlayFragment extends BaseFragment {
             if (mBtnPlayVideoStop.isSelected()) {
                 mBtnPlayVideoStop.setSelected(false);
                 mBtnPlayVideoStop.setText("播放视频");
-                mCallJni.stopVideo();
+                mFFPlayCallJni.stopVideo();
             } else {
                 String videoUrl = FileUtils.getModelFilePath(getActivity(), "woman.mp4");
                 mBtnPlayVideoStop.setSelected(true);
                 mBtnPlayVideoStop.setText("播放停止");
-                mCallJni.playVideo();
+                mFFPlayCallJni.playVideo();
             }
         });
 
@@ -157,8 +157,8 @@ public class FFmpegPlayFragment extends BaseFragment {
             @Override
             public void surfaceCreated(@NonNull SurfaceHolder holder) {
                 mSurface = surfaceViewHolder.getSurface();
-                mCallJni.initPlay(mVideoUrl, mSurface);
-                mCallJni.initCallBackListener();
+                mFFPlayCallJni.initPlay(mVideoUrl, mSurface);
+                mFFPlayCallJni.initCallBackListener();
             }
 
             @Override
@@ -168,7 +168,7 @@ public class FFmpegPlayFragment extends BaseFragment {
 
             @Override
             public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-                mCallJni.unInitPlay();
+                mFFPlayCallJni.unInitPlay();
             }
         });
 
@@ -184,7 +184,7 @@ public class FFmpegPlayFragment extends BaseFragment {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                mCallJni.seekToPosition(mSeekBar.getProgress());
+                mFFPlayCallJni.seekToPosition(mSeekBar.getProgress());
             }
         });
     }

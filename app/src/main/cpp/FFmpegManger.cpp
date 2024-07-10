@@ -87,6 +87,7 @@ int FFmpegManger::initFFmpeg(JNIEnv *env, jobject thiz, const char *inputUrl, jo
 //    mJvm = env->NewGlobalRef(thiz);
     env->GetJavaVM(&mJavaVm);
     mJavaObj = env->NewGlobalRef(thiz);
+    PostMessage(this,2,9);
     if (videoPlay == nullptr) {
         videoPlay = new FFmpegVideoPlay();
         videoPlay->init(env, thiz, inputUrl, surface);
