@@ -24,7 +24,11 @@ link_directories(
         ${CMAKE_CURRENT_LIST_DIR}/libs/${ANDROID_ABI})
 
 message(${CMAKE_CURRENT_LIST_DIR}/libs/${ANDROID_ABI}===ssss==)
+
+#添加rtmp文件到项目中
 add_subdirectory(${CMAKE_SOURCE_DIR}/rtmp)
+
+include_directories(${CMAKE_SOURCE_DIR}/rtmp)
 
 target_include_directories(
         rtmplive
@@ -44,6 +48,7 @@ target_link_libraries(
         android
         EGL
         GLESv3
+        rtmp
         OpenSLES
         log
         ${third-party-libs}

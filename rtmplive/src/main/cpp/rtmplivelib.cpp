@@ -36,8 +36,10 @@ extern "C"
 JNIEXPORT void JNICALL
 cpp_start_rtmp(JNIEnv *env, jobject thiz, jstring intputUrl) {
     const char *url = env->GetStringUTFChars(intputUrl, 0);
+    char *path = new char[strlen(url) + 1];
+    strcpy(path,url);
     if (rtmpManger != nullptr) {
-        rtmpManger->start_rtmp();
+        rtmpManger->start_rtmp(path);
     }
 
     env->ReleaseStringUTFChars(intputUrl, url);

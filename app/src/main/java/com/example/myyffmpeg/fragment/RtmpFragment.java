@@ -64,15 +64,18 @@ public class RtmpFragment extends BaseFragment {
     @Override
     public void initListener() {
         mRlClose.setOnClickListener(view -> {
+            mLiveManger.releaseRtmp();
             mFfViewModel.getSwitchFragment().postValue(FFViewModel.FRAGMENT_STATUS.MAIN);
         });
 
         mBtnFfPush.setOnClickListener(view -> {
             mLiveManger.startRtmpPush(rtmpPushPath);
+            isPushing = true;
         });
 
         mBtnFfStop.setOnClickListener(view -> {
             mLiveManger.stopRtmpPush();
+            isPushing = false;
         });
 
         mBtnFfPause.setOnClickListener(view -> {

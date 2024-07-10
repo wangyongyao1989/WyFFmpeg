@@ -14,9 +14,9 @@ void RtmpPusherManger::init_rtmp(JNIEnv *env, jobject thiz) {
 
 }
 
-void RtmpPusherManger::start_rtmp() {
+void RtmpPusherManger::start_rtmp(const char *path) {
     if (rtmpInit == nullptr) return;
-    rtmpInit->startRtmp();
+    rtmpInit->startRtmp(path);
 }
 
 void RtmpPusherManger::stop_rtmp() {

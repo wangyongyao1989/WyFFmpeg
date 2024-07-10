@@ -8,8 +8,8 @@
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
-#include <jni.h>
 #include <android/log.h>
+#include <jni.h>
 #include "RtmpInit.h"
 
 class RtmpPusherManger {
@@ -29,7 +29,7 @@ public:
 
     void init_rtmp(JNIEnv *env, jobject thiz);
 
-    void start_rtmp();
+    void start_rtmp(const char *path);
 
     void stop_rtmp();
 
