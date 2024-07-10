@@ -19,7 +19,7 @@ typedef void (*RtmpStatusCallback)(void *, const char *, float codeErr);
 extern "C"
 {
 #include "rtmp.h"
-
+#include "x264/x264.h"
 }
 
 
@@ -29,6 +29,7 @@ private:
     const char *mUrl = nullptr;
     thread *childThread = nullptr;
     void *mContext = nullptr;
+    x264_t  *view =0;
 public:
     RtmpStatusCallback mStatusCallback = nullptr;
 

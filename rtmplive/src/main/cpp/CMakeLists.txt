@@ -12,6 +12,24 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
 set(jnilibs ${CMAKE_SOURCE_DIR}/jniLibs)
 
+##添加faac库
+add_library(faac
+            STATIC
+            IMPORTED)
+set_target_properties(faac
+        PROPERTIES
+        IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/jniLibs/${ANDROID_ABI}/libfaac.a)
+
+##添加x264库
+add_library(x264
+        STATIC
+        IMPORTED)
+set_target_properties(x264
+        PROPERTIES
+        IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/jniLibs/${ANDROID_ABI}/libx264.a)
+
 add_library(
         rtmplive
         SHARED
@@ -49,6 +67,8 @@ target_link_libraries(
         EGL
         GLESv3
         rtmp
+        x264
+        faac
         OpenSLES
         log
         ${third-party-libs}
