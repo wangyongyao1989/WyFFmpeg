@@ -51,7 +51,7 @@ public class RtmpFragment extends BaseFragment {
 
     @Override
     public void initData() {
-        mLiveManger = new LiveManger(getContext(), mTextureView);
+        mLiveManger = new LiveManger(this.getViewLifecycleOwner(),getContext(), mTextureView);
         rtmpPushPath = "rtmp://live-push.bilivideo.com/live-bvc/?streamname=live_345162489_81809986&key=6ba7ec38481c5dd2b3f8e4fb2b5fb8e0&schedule=rtmp&pflag=1";
     }
 

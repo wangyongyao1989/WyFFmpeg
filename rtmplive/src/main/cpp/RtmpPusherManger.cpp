@@ -17,11 +17,14 @@ void RtmpPusherManger::init_rtmp(JNIEnv *env, jobject thiz) {
 void RtmpPusherManger::start_rtmp(const char *path) {
     if (rtmpInit == nullptr) return;
     rtmpInit->startRtmp(path);
+    isPushing = true;
 }
 
 void RtmpPusherManger::stop_rtmp() {
     if (rtmpInit == nullptr) return;
     rtmpInit->stopRtmp();
+    isPushing = false;
+
 }
 
 void RtmpPusherManger::pause_rtmp() {
@@ -33,6 +36,24 @@ void RtmpPusherManger::release_rtmp() {
     if (rtmpInit == nullptr) return;
     rtmpInit->releaseRtmp();
 }
+
+
+void RtmpPusherManger::encodeVideoPacket(int8_t *data) {
+//    RtmpStatusMessage(this, "encodeVideoPacket", 0);
+    if (videoStreamPacket == nullptr) return;
+    if (!isPushing) return;
+    videoStreamPacket->encodeVideo(data);
+}
+
+void RtmpPusherManger::initVideoPacket() {
+    RtmpStatusMessage(this, "initVideoPacket", 0);
+    if (videoStreamPacket == nullptr) {
+        videoStreamPacket = new VideoStreamPacket();
+    }
+    videoStreamPacket->setRtmpStatusCallback(this, RtmpStatusMessage);
+    videoStreamPacket->setVideoCallback(callbackRtmpPacket);
+}
+
 
 int RtmpPusherManger::initCallBack(JNIEnv *env, jobject thiz) {
     if (mEnv == nullptr) {
@@ -87,6 +108,10 @@ void RtmpPusherManger::RtmpStatusMessage(void *context, const char *status, floa
         }
     }
 
+}
+
+void RtmpPusherManger::callbackRtmpPacket(RTMPPacket *packet) {
+    LOGE("callbackRtmpPacket ===%p", packet);
 }
 
 

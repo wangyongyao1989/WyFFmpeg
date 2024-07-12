@@ -11,6 +11,7 @@
 #include <android/log.h>
 #include <jni.h>
 #include "RtmpInit.h"
+#include "VideoStreamPacket.h"
 
 class RtmpPusherManger {
 
@@ -19,8 +20,11 @@ private:
     JavaVM *mJavaVm = nullptr;
     jobject mJavaObj = nullptr;
     RtmpInit *rtmpInit = nullptr;
+    VideoStreamPacket *videoStreamPacket = nullptr;
+    std::atomic<bool> isPushing;
 
     static void RtmpStatusMessage(void *context, const char *status, float msgCode);
+    static void callbackRtmpPacket(RTMPPacket *packet);
 
 public:
     int initCallBack(JNIEnv *env, jobject thiz);
@@ -36,6 +40,10 @@ public:
     void pause_rtmp();
 
     void release_rtmp();
+
+    void initVideoPacket();
+
+    void encodeVideoPacket(int8_t *data);
 
 };
 

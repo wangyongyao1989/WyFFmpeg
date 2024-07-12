@@ -30,6 +30,7 @@ cpp_init_rtmp(JNIEnv *env, jobject thiz) {
         rtmpManger = new RtmpPusherManger();
     rtmpManger->init_rtmp(env, thiz);
     rtmpManger->initCallBack(env, thiz);
+    rtmpManger->initVideoPacket();
 }
 
 extern "C"
@@ -37,11 +38,10 @@ JNIEXPORT void JNICALL
 cpp_start_rtmp(JNIEnv *env, jobject thiz, jstring intputUrl) {
     const char *url = env->GetStringUTFChars(intputUrl, 0);
     char *path = new char[strlen(url) + 1];
-    strcpy(path,url);
+    strcpy(path, url);
     if (rtmpManger != nullptr) {
         rtmpManger->start_rtmp(path);
     }
-
     env->ReleaseStringUTFChars(intputUrl, url);
 }
 
@@ -72,14 +72,33 @@ cpp_release_rtmp(JNIEnv *env, jobject thiz) {
     rtmpManger = 0;
 }
 
-static const JNINativeMethod methods[] = {
-        {"native_init_callback",   "()V",                   (void *) cpp_init_rtmp_callback},
-        {"native_rtmp_init",       "()V",                   (void *) cpp_init_rtmp},
-        {"native_rtmp_start_push", "(Ljava/lang/String;)V", (void *) cpp_start_rtmp},
-        {"native_rtmp_stop_push",  "()V",                   (void *) cpp_stop_rtmp},
-        {"native_rtmp_pause",      "()V",                   (void *) cpp_pause_rtmp},
-        {"native_rtmp_release",    "()V",                   (void *) cpp_release_rtmp},
+extern "C"
+JNIEXPORT void JNICALL
+cpp_push_video_data(JNIEnv *env, jobject thiz, jbyteArray yuv) {
+    if (rtmpManger == nullptr) return;
+    jbyte *yuv_plane = env->GetByteArrayElements(yuv, JNI_FALSE);
+    rtmpManger->encodeVideoPacket(yuv_plane);
+    env->ReleaseByteArrayElements(yuv, yuv_plane, 0);
 
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_video_codec_info(JNIEnv *env, jobject thiz, jint width, jint height, jint fps, jint bitrate) {
+
+
+}
+
+static const JNINativeMethod methods[] = {
+        {"native_init_callback",    "()V",                   (void *) cpp_init_rtmp_callback},
+        {"native_rtmp_init",        "()V",                   (void *) cpp_init_rtmp},
+        {"native_rtmp_start_push",  "(Ljava/lang/String;)V", (void *) cpp_start_rtmp},
+        {"native_rtmp_stop_push",   "()V",                   (void *) cpp_stop_rtmp},
+        {"native_rtmp_pause",       "()V",                   (void *) cpp_pause_rtmp},
+        {"native_rtmp_release",     "()V",                   (void *) cpp_release_rtmp},
+
+        {"native_push_video_data",  "([B)V",                 (void *) cpp_push_video_data},
+        {"native_video_codec_info", "(IIII)V",               (void *) cpp_video_codec_info},
 
 };
 

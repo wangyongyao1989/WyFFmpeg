@@ -36,6 +36,7 @@ add_library(
         rtmplivelib.cpp
         RtmpPusherManger.cpp
         RtmpInit.cpp
+        VideoStreamPacket.cpp
 )
 
 link_directories(
