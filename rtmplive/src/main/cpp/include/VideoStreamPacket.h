@@ -6,11 +6,13 @@
 #define MYYFFMPEG_VIDEOSTREAMPACKET_H
 
 #include <mutex>
+
 #define LOG_TAG "wy"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 #include <android/log.h>
+
 extern "C"
 {
 #include "rtmp.h"
@@ -18,7 +20,9 @@ extern "C"
 }
 
 class VideoStreamPacket {
-    typedef void (*VideoCallback)(RTMPPacket *packet);
+
+    typedef void (*VideoCallback)(void *, RTMPPacket *packet);
+
     typedef void (*RtmpStatusCallback)(void *, const char *, float codeErr);
 
 
@@ -30,7 +34,7 @@ private:
     x264_picture_t *pic_in = 0;
     void *mContext;
 
-    VideoCallback mVideoCallback;
+    VideoCallback mVideoCallback = nullptr;
     RtmpStatusCallback mStatusCallback = nullptr;
 
     void sendSpsPps(uint8_t *sps, uint8_t *pps, int sps_len, int pps_len);
@@ -48,7 +52,7 @@ public:
 
     void encodeVideo(int8_t *data);
 
-    void setVideoCallback(VideoCallback videoCallback);
+    void setVideoCallback(void *context, VideoCallback videoCallback);
 
     void setRtmpStatusCallback(void *context, RtmpStatusCallback callback);
 

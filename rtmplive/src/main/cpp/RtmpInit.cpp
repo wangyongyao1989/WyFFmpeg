@@ -15,6 +15,13 @@ void RtmpInit::startRtmp(const char *path) {
     }
 }
 
+
+void RtmpInit::addRtmpPacket(RTMPPacket *packet) {
+    callbackStatusMsg("Rtmp addRtmpPacket", 0);
+    packet->m_nTimeStamp = RTMP_GetTime() - start_time;
+    packetQueue.push(packet);
+}
+
 void RtmpInit::stopRtmp() {
     callbackStatusMsg("Rtmp stopRtmp", 0);
 
@@ -66,15 +73,47 @@ void RtmpInit::startThread() {
             callbackStatusMsg("rtmp连接流失败", ret);
             break;
         }
-       //
+        //start pushing
+        isPushing = true;
+        packetQueue.setRunning(true);
+        RTMPPacket *packet = nullptr;
+        while (isPushing) {
+            packetQueue.pop(packet);
+            if (!isPushing) {
+                break;
+            }
+            if (!packet) {
+                continue;
+            }
 
+            packet->m_nInfoField2 = rtmp->m_stream_id;
+            ret = RTMP_SendPacket(rtmp, packet, 1);
+            releasePackets(packet);
+            if (!ret) {
+                LOGE("RTMP_SendPacket fail...");
+                callbackStatusMsg("RTMP_SendPacket fail...", -2);
+                break;
+            }
+        }
+        releasePackets(packet);
 
     } while (0);
-
+    isPushing = false;
+    packetQueue.setRunning(false);
+    packetQueue.clear();
     //释放rtmp
     if (rtmp) {
         RTMP_Close(rtmp);
         RTMP_Free(rtmp);
+    }
+    delete url;
+}
+
+void RtmpInit::releasePackets(RTMPPacket *&packet) {
+    if (packet) {
+        RTMPPacket_Free(packet);
+        delete packet;
+        packet = nullptr;
     }
 }
 

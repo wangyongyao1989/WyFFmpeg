@@ -16,12 +16,20 @@ VideoStreamPacket::VideoStreamPacket() : m_frameLen(0),
 }
 
 VideoStreamPacket::~VideoStreamPacket() {
-
+    if (videoCodec) {
+        x264_encoder_close(videoCodec);
+        videoCodec = nullptr;
+    }
+    if (pic_in) {
+        x264_picture_clean(pic_in);
+        delete pic_in;
+        pic_in = nullptr;
+    }
 }
 
 
 int VideoStreamPacket::setVideoEncInfo(int width, int height, int fps, int bitrate) {
-    callbackStatusMsg("VideoStreamPacket setVideoEncInfo",0);
+    callbackStatusMsg("VideoStreamPacket setVideoEncInfo", 0);
     m_frameLen = width * height;
     if (videoCodec) {
         x264_encoder_close(videoCodec);
@@ -33,7 +41,55 @@ int VideoStreamPacket::setVideoEncInfo(int width, int height, int fps, int bitra
         pic_in = nullptr;
     }
 
-    return 0;
+    //setting x264 params
+    x264_param_t param;
+    int ret = x264_param_default_preset(&param, "ultrafast", "zerolatency");
+    if (ret < 0) {
+        return ret;
+    }
+    param.i_level_idc = 32;
+    //input format
+    param.i_csp = X264_CSP_I420;
+    param.i_width = width;
+    param.i_height = height;
+    //no B frame
+    param.i_bframe = 0;
+    //i_rc_method:bitrate control, CQP(constant quality), CRF(constant bitrate), ABR(average bitrate)
+    param.rc.i_rc_method = X264_RC_ABR;
+    //bitrate(Kbps)
+    param.rc.i_bitrate = bitrate / 1024;
+    //max bitrate
+    param.rc.i_vbv_max_bitrate = bitrate / 1024 * 1.2;
+    //unit:kbps
+    param.rc.i_vbv_buffer_size = bitrate / 1024;
+
+    //frame rate
+    param.i_fps_num = fps;
+    param.i_fps_den = 1;
+    param.i_timebase_den = param.i_fps_num;
+    param.i_timebase_num = param.i_fps_den;
+    //using fps
+    param.b_vfr_input = 0;
+    //key frame interval(GOP)
+    param.i_keyint_max = fps * 2;
+    //each key frame attaches sps/pps
+    param.b_repeat_headers = 1;
+    //thread number
+    param.i_threads = 1;
+
+    ret = x264_param_apply_profile(&param, "baseline");
+    if (ret < 0) {
+        callbackStatusMsg("x264_param_apply_profile failed", 0);
+        return ret;
+    }
+    //open encoder
+    videoCodec = x264_encoder_open(&param);
+    if (!videoCodec) {
+        return -1;
+    }
+    pic_in = new x264_picture_t();
+    x264_picture_alloc(pic_in, X264_CSP_I420, width, height);
+    return ret;
 }
 
 void VideoStreamPacket::encodeVideo(int8_t *data) {
@@ -74,9 +130,11 @@ void VideoStreamPacket::encodeVideo(int8_t *data) {
 
 }
 
-void VideoStreamPacket::setVideoCallback(VideoCallback callback) {
+void VideoStreamPacket::setVideoCallback(void *context, VideoCallback callback) {
+    mContext = context;
     mVideoCallback = callback;
 }
+
 void VideoStreamPacket::setRtmpStatusCallback(void *context, RtmpStatusCallback callback) {
     mContext = context;
     mStatusCallback = callback;
@@ -125,10 +183,8 @@ void VideoStreamPacket::sendSpsPps(uint8_t *sps, uint8_t *pps, int sps_len, int 
     packet->m_nTimeStamp = 0;
     packet->m_hasAbsTimestamp = 0;
     packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;
-    LOGE("VideoStreamPacket:%p",packet);
-
-    mVideoCallback(packet);
-
+    if (mContext != nullptr && mStatusCallback != nullptr)
+        mVideoCallback(mContext, packet);
 }
 
 void VideoStreamPacket::sendFrame(int type, uint8_t *payload, int i_payload) {
@@ -169,7 +225,8 @@ void VideoStreamPacket::sendFrame(int type, uint8_t *payload, int i_payload) {
     packet->m_nChannel = 0x10;
     packet->m_headerType = RTMP_PACKET_SIZE_LARGE;
 
-    mVideoCallback(packet);
+    if (mContext != nullptr && mStatusCallback != nullptr)
+        mVideoCallback(mContext, packet);
 
 }
 

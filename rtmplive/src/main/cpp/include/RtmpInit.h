@@ -11,6 +11,7 @@
 
 #include <android/log.h>
 #include <thread>
+#include "PacketQueue.h"
 
 using namespace std;
 
@@ -28,6 +29,11 @@ private:
     const char *mUrl = nullptr;
     thread *childThread = nullptr;
     void *mContext = nullptr;
+    uint32_t start_time;
+    std::atomic<bool> isPushing;
+    PacketQueue<RTMPPacket *> packetQueue;
+
+
 public:
     RtmpStatusCallback mStatusCallback = nullptr;
 
@@ -38,8 +44,12 @@ private:
 
     void startThread();
 
+    void releasePackets(RTMPPacket *&packet);
+
 public:
     void startRtmp(const char *path);
+
+    void addRtmpPacket(RTMPPacket *packet);
 
     void stopRtmp();
 

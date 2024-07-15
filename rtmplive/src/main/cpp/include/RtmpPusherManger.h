@@ -24,7 +24,8 @@ private:
     std::atomic<bool> isPushing;
 
     static void RtmpStatusMessage(void *context, const char *status, float msgCode);
-    static void callbackRtmpPacket(RTMPPacket *packet);
+
+    static void callbackRtmpPacket(void *context, RTMPPacket *packet);
 
 public:
     int initCallBack(JNIEnv *env, jobject thiz);
@@ -35,6 +36,8 @@ public:
 
     void start_rtmp(const char *path);
 
+    void addRtmpPacket(RTMPPacket *packet);
+
     void stop_rtmp();
 
     void pause_rtmp();
@@ -44,6 +47,8 @@ public:
     void initVideoPacket();
 
     void encodeVideoPacket(int8_t *data);
+
+    int setVideoEncInfo(int width, int height, int fps, int bitrate);
 
 };
 

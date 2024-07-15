@@ -29,6 +29,9 @@ public class LiveManger implements TextureView.SurfaceTextureListener, Camera2Li
     private int videoBitRate = 800000;// kb/s
     private int videoFrameRate = 10;
     private boolean isLiving;
+    private Size previewSize;
+    private int rotateDegree = 90;
+
 
 
     public LiveManger(LifecycleOwner lifecycleOwner, Context context
@@ -120,7 +123,8 @@ public class LiveManger implements TextureView.SurfaceTextureListener, Camera2Li
     @Override
     public void onCameraOpened(Size previewSize, int displayOrientation) {
         Log.e(TAG, "onCameraOpened");
-
+        this.previewSize = previewSize;
+        updateVideoCodecInfo(rotateDegree);
     }
 
     @Override
@@ -143,5 +147,19 @@ public class LiveManger implements TextureView.SurfaceTextureListener, Camera2Li
 
     }
 
+
+    private void updateVideoCodecInfo(int degree) {
+        camera2Helper.updatePreviewDegree(degree);
+        if (mRtmpLivePusher != null) {
+            int width = previewSize.getWidth();
+            int height = previewSize.getHeight();
+            if (degree == 90 || degree == 270) {
+                int temp = width;
+                width = height;
+                height = temp;
+            }
+           mRtmpLivePusher.setVideoCodecInfo(width,height,videoFrameRate,videoBitRate);
+        }
+    }
 
 }

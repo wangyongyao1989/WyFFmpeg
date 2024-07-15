@@ -85,8 +85,8 @@ cpp_push_video_data(JNIEnv *env, jobject thiz, jbyteArray yuv) {
 extern "C"
 JNIEXPORT void JNICALL
 cpp_video_codec_info(JNIEnv *env, jobject thiz, jint width, jint height, jint fps, jint bitrate) {
-
-
+    if (rtmpManger == nullptr) return;
+    rtmpManger->setVideoEncInfo(width, height, fps, bitrate);
 }
 
 static const JNINativeMethod methods[] = {

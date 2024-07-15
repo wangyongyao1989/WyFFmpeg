@@ -20,6 +20,12 @@ void RtmpPusherManger::start_rtmp(const char *path) {
     isPushing = true;
 }
 
+void RtmpPusherManger::addRtmpPacket(RTMPPacket *packet) {
+    if (rtmpInit == nullptr) return;
+    rtmpInit->addRtmpPacket(packet);
+}
+
+
 void RtmpPusherManger::stop_rtmp() {
     if (rtmpInit == nullptr) return;
     rtmpInit->stopRtmp();
@@ -37,9 +43,13 @@ void RtmpPusherManger::release_rtmp() {
     rtmpInit->releaseRtmp();
 }
 
+int RtmpPusherManger::setVideoEncInfo(int width, int height, int fps, int bitrate) {
+    if (videoStreamPacket == nullptr) return -1;
+    videoStreamPacket->setVideoEncInfo(width, height, fps, bitrate);
+    return 0;
+}
 
 void RtmpPusherManger::encodeVideoPacket(int8_t *data) {
-//    RtmpStatusMessage(this, "encodeVideoPacket", 0);
     if (videoStreamPacket == nullptr) return;
     if (!isPushing) return;
     videoStreamPacket->encodeVideo(data);
@@ -51,7 +61,7 @@ void RtmpPusherManger::initVideoPacket() {
         videoStreamPacket = new VideoStreamPacket();
     }
     videoStreamPacket->setRtmpStatusCallback(this, RtmpStatusMessage);
-    videoStreamPacket->setVideoCallback(callbackRtmpPacket);
+    videoStreamPacket->setVideoCallback(this, callbackRtmpPacket);
 }
 
 
@@ -110,8 +120,12 @@ void RtmpPusherManger::RtmpStatusMessage(void *context, const char *status, floa
 
 }
 
-void RtmpPusherManger::callbackRtmpPacket(RTMPPacket *packet) {
-    LOGE("callbackRtmpPacket ===%p", packet);
+void RtmpPusherManger::callbackRtmpPacket(void *context, RTMPPacket *packet) {
+    if (context != nullptr && packet != nullptr) {
+        RtmpPusherManger *pFmpegManger = static_cast<RtmpPusherManger *>(context);
+        pFmpegManger->addRtmpPacket(packet);
+    }
+
 }
 
 
