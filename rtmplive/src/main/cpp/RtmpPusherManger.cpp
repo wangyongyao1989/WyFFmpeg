@@ -65,6 +65,48 @@ void RtmpPusherManger::initVideoPacket() {
 }
 
 
+void RtmpPusherManger::initAudioPacket() {
+    RtmpStatusMessage(this, "initAudioPacket", 0);
+    if (audioStreamPacket == nullptr) {
+        audioStreamPacket = new AudioStreamPacket();
+    }
+    audioStreamPacket->setRtmpStatusCallback(this, RtmpStatusMessage);
+    audioStreamPacket->setAudioCallback(this, callbackRtmpPacket);
+}
+
+void RtmpPusherManger::setAudioCodecInfo(int sampleRateInHz, int channels) {
+    if (audioStreamPacket == nullptr) {
+        RtmpStatusMessage(this, "Not initAudioPacket", 0);
+        return;
+    }
+    audioStreamPacket->setAudioEncInfo(sampleRateInHz, channels);
+}
+
+int RtmpPusherManger::getAudioInputSample() {
+    if (audioStreamPacket == nullptr) {
+        RtmpStatusMessage(this, "Not initAudioPacket", 0);
+        return -1;
+    }
+    return audioStreamPacket->getInputSamples();
+}
+
+RTMPPacket *RtmpPusherManger::getAudioTag() {
+    if (audioStreamPacket == nullptr) {
+        RtmpStatusMessage(this, "Not initAudioPacket", 0);
+        return nullptr;
+    }
+    return audioStreamPacket->getAudioTag();
+}
+
+void RtmpPusherManger::encodeAudioPacket(int8_t *data) {
+    if (audioStreamPacket == nullptr) {
+        RtmpStatusMessage(this, "Not initAudioPacket", 0);
+        return;
+    }
+    audioStreamPacket->encodeData(data);
+}
+
+
 int RtmpPusherManger::initCallBack(JNIEnv *env, jobject thiz) {
     if (mEnv == nullptr) {
         mEnv = env;
@@ -76,6 +118,7 @@ int RtmpPusherManger::initCallBack(JNIEnv *env, jobject thiz) {
     if (rtmpInit == nullptr)
         rtmpInit = new RtmpInit();
     rtmpInit->setRtmpStatusCallback(this, RtmpStatusMessage);
+    rtmpInit->setAudioTagCallBack(this, callbackAudioTag);
     return 0;
 }
 
@@ -126,6 +169,15 @@ void RtmpPusherManger::callbackRtmpPacket(void *context, RTMPPacket *packet) {
         pFmpegManger->addRtmpPacket(packet);
     }
 
+}
+
+void RtmpPusherManger::callbackAudioTag(void *context) {
+    if (context != nullptr) {
+        RtmpPusherManger *pFmpegManger = static_cast<RtmpPusherManger *>(context);
+        RTMPPacket *pPacket = pFmpegManger->getAudioTag();
+        RtmpStatusMessage(pFmpegManger, "callbackAudioTag", 0);
+        pFmpegManger->addRtmpPacket(pPacket);
+    }
 }
 
 

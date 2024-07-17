@@ -31,6 +31,7 @@ cpp_init_rtmp(JNIEnv *env, jobject thiz) {
     rtmpManger->init_rtmp(env, thiz);
     rtmpManger->initCallBack(env, thiz);
     rtmpManger->initVideoPacket();
+    rtmpManger->initAudioPacket();
 }
 
 extern "C"
@@ -89,16 +90,46 @@ cpp_video_codec_info(JNIEnv *env, jobject thiz, jint width, jint height, jint fp
     rtmpManger->setVideoEncInfo(width, height, fps, bitrate);
 }
 
-static const JNINativeMethod methods[] = {
-        {"native_init_callback",    "()V",                   (void *) cpp_init_rtmp_callback},
-        {"native_rtmp_init",        "()V",                   (void *) cpp_init_rtmp},
-        {"native_rtmp_start_push",  "(Ljava/lang/String;)V", (void *) cpp_start_rtmp},
-        {"native_rtmp_stop_push",   "()V",                   (void *) cpp_stop_rtmp},
-        {"native_rtmp_pause",       "()V",                   (void *) cpp_pause_rtmp},
-        {"native_rtmp_release",     "()V",                   (void *) cpp_release_rtmp},
+extern "C"
+JNIEXPORT jint JNICALL
+cpp_audio_get_input_samples(JNIEnv *env, jobject thiz) {
+    if (rtmpManger == nullptr) return -1;
+    return rtmpManger->getAudioInputSample();
+}
 
-        {"native_push_video_data",  "([B)V",                 (void *) cpp_push_video_data},
-        {"native_video_codec_info", "(IIII)V",               (void *) cpp_video_codec_info},
+extern "C"
+JNIEXPORT void JNICALL
+cpp_audio_set_audio_codec_info(JNIEnv *env, jobject thiz, jint sampleRateInHz, jint channels) {
+    if (rtmpManger == nullptr) return;
+    rtmpManger->setAudioCodecInfo(sampleRateInHz, channels);
+    return;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_push_audio_data(JNIEnv *env, jobject thiz, jbyteArray audioData) {
+    if (rtmpManger == nullptr) return;
+    jbyte *audio_data = env->GetByteArrayElements(audioData, JNI_FALSE);
+    rtmpManger->encodeAudioPacket(audio_data);
+    env->ReleaseByteArrayElements(audioData, audio_data, 0);
+
+}
+
+static const JNINativeMethod methods[] = {
+        {"native_init_callback",     "()V",                   (void *) cpp_init_rtmp_callback},
+        {"native_rtmp_init",         "()V",                   (void *) cpp_init_rtmp},
+        {"native_rtmp_start_push",   "(Ljava/lang/String;)V", (void *) cpp_start_rtmp},
+        {"native_rtmp_stop_push",    "()V",                   (void *) cpp_stop_rtmp},
+        {"native_rtmp_pause",        "()V",                   (void *) cpp_pause_rtmp},
+        {"native_rtmp_release",      "()V",                   (void *) cpp_release_rtmp},
+
+        {"native_push_video_data",   "([B)V",                 (void *) cpp_push_video_data},
+        {"native_video_codec_info",  "(IIII)V",               (void *) cpp_video_codec_info},
+
+        {"native_getInputSamples",   "()I",                   (void *) cpp_audio_get_input_samples},
+        {"native_setAudioCodecInfo", "(II)V",                 (void *) cpp_audio_set_audio_codec_info},
+        {"native_push_audio_data",   "([B)V",                 (void *) cpp_push_audio_data},
+
 
 };
 

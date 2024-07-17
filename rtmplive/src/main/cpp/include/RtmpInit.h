@@ -17,6 +17,8 @@ using namespace std;
 
 typedef void (*RtmpStatusCallback)(void *, const char *, float codeErr);
 
+typedef void (*GetAudioTagCallback)(void *);
+
 extern "C"
 {
 #include "rtmp.h"
@@ -36,6 +38,7 @@ private:
 
 public:
     RtmpStatusCallback mStatusCallback = nullptr;
+    GetAudioTagCallback mGetAudioTagCallback = nullptr;
 
 private:
     static void DoRtmpInit(RtmpInit *rtmpInit);
@@ -59,6 +62,11 @@ public:
 
     void setRtmpStatusCallback(void *context, RtmpStatusCallback callback);
 
+    void setAudioTagCallBack(void *context, GetAudioTagCallback mGetAudioTagCallback);
+
+    void getAudioTag();
+
+    ~RtmpInit();
 };
 
 

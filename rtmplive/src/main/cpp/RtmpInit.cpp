@@ -17,14 +17,15 @@ void RtmpInit::startRtmp(const char *path) {
 
 
 void RtmpInit::addRtmpPacket(RTMPPacket *packet) {
-    callbackStatusMsg("Rtmp addRtmpPacket", 0);
+//    callbackStatusMsg("Rtmp addRtmpPacket", 0);
     packet->m_nTimeStamp = RTMP_GetTime() - start_time;
     packetQueue.push(packet);
 }
 
 void RtmpInit::stopRtmp() {
     callbackStatusMsg("Rtmp stopRtmp", 0);
-
+    isPushing = false;
+    packetQueue.setRunning(false);
 }
 
 void RtmpInit::pauseRtmp() {
@@ -34,8 +35,12 @@ void RtmpInit::pauseRtmp() {
 
 void RtmpInit::releaseRtmp() {
     callbackStatusMsg("Rtmp releaseRtmp", 0);
-
-
+    isPushing = false;
+    packetQueue.setRunning(false);
+    if (childThread) {
+        delete childThread;
+        childThread = nullptr;
+    }
 }
 
 void RtmpInit::DoRtmpInit(RtmpInit *rtmpInit) {
@@ -76,6 +81,9 @@ void RtmpInit::startThread() {
         //start pushing
         isPushing = true;
         packetQueue.setRunning(true);
+        if (mContext != nullptr) {
+            mGetAudioTagCallback(mContext);
+        }
         RTMPPacket *packet = nullptr;
         while (isPushing) {
             packetQueue.pop(packet);
@@ -122,9 +130,25 @@ void RtmpInit::setRtmpStatusCallback(void *context, RtmpStatusCallback callback)
     mStatusCallback = callback;
 }
 
+void RtmpInit::setAudioTagCallBack(void *context, GetAudioTagCallback call) {
+    mContext = context;
+    mGetAudioTagCallback = call;
+}
+
 void RtmpInit::callbackStatusMsg(const char *msg, float codeErr) {
     if (mContext != nullptr && mStatusCallback != nullptr)
         mStatusCallback(mContext, msg, 0);
 }
+
+RtmpInit::~RtmpInit() {
+    isPushing = false;
+    packetQueue.setRunning(false);
+    if (childThread) {
+        delete childThread;
+        childThread = nullptr;
+    }
+}
+
+
 
 

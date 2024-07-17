@@ -131,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
                     android.Manifest.permission.READ_EXTERNAL_STORAGE,
                     Manifest.permission.CAMERA,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.RECORD_AUDIO,
             }, 1);
 
         }

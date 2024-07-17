@@ -12,6 +12,7 @@
 #include <jni.h>
 #include "RtmpInit.h"
 #include "VideoStreamPacket.h"
+#include "AudioStreamPacket.h"
 
 class RtmpPusherManger {
 
@@ -21,11 +22,15 @@ private:
     jobject mJavaObj = nullptr;
     RtmpInit *rtmpInit = nullptr;
     VideoStreamPacket *videoStreamPacket = nullptr;
+    AudioStreamPacket *audioStreamPacket = nullptr;
     std::atomic<bool> isPushing;
 
     static void RtmpStatusMessage(void *context, const char *status, float msgCode);
 
     static void callbackRtmpPacket(void *context, RTMPPacket *packet);
+
+    static void callbackAudioTag(void *context);
+
 
 public:
     int initCallBack(JNIEnv *env, jobject thiz);
@@ -49,6 +54,17 @@ public:
     void encodeVideoPacket(int8_t *data);
 
     int setVideoEncInfo(int width, int height, int fps, int bitrate);
+
+
+    void initAudioPacket();
+
+    int getAudioInputSample();
+
+    void setAudioCodecInfo(int sampleRateInHz, int channels);
+
+    RTMPPacket* getAudioTag();
+
+    void encodeAudioPacket(int8_t *data);
 
 };
 
