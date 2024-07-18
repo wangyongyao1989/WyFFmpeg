@@ -212,7 +212,6 @@ public class LiveManger implements TextureView.SurfaceTextureListener, Camera2Li
             while (isLiving) {
                 int len = mAudioRecord.read(bytes, 0, bytes.length);
                 if (len > 0) {
-                    Log.e(TAG, "mAudioRecord len: " + len);
                     mRtmpLivePusher.pushAudioData(bytes);
                 }
             }

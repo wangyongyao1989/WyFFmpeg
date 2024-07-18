@@ -81,6 +81,7 @@ void RtmpInit::startThread() {
         //start pushing
         isPushing = true;
         packetQueue.setRunning(true);
+        //获取音频的首帧值
         if (mContext != nullptr) {
             mGetAudioTagCallback(mContext);
         }

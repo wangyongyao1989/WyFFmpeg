@@ -33,7 +33,7 @@ int AudioStreamPacket::getInputSamples() const {
 }
 
 void AudioStreamPacket::encodeData(int8_t *data) {
-    callbackStatusMsg("AudioStreamPacket encodeData", 0);
+//    callbackStatusMsg("AudioStreamPacket encodeData", 0);
 
     //encode a frame, and return encoded len
     int byteLen = faacEncEncode(m_audioCodec, reinterpret_cast<int32_t *>(data),
