@@ -20,9 +20,9 @@ int AudioStreamPacket::setAudioEncInfo(int samplesInHZ, int channels) {
 
     //set encoder params
     faacEncConfigurationPtr config = faacEncGetCurrentConfiguration(m_audioCodec);
-    config->mpegVersion = MPEG4;
-    config->aacObjectType = LOW;
-    config->inputFormat = FAAC_INPUT_16BIT;
+    config->mpegVersion = MPEG4;    //设置版本,录制MP4文件时要用MPEG4
+    config->aacObjectType = LOW;     //编码类型
+    config->inputFormat = FAAC_INPUT_16BIT;     //输入数据类型
     config->outputFormat = 0;
     return faacEncSetConfiguration(m_audioCodec, config);
 }

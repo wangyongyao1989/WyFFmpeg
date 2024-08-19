@@ -9,6 +9,9 @@
 #include "jni.h"
 #include "android/native_window.h"
 #include <thread>
+#include "GLES3/gl3.h"
+#include "GLES3/gl3ext.h"
+#include "GLES3/gl3platform.h"
 
 enum PlayerState {
     PLAYER_STATE_UNKNOWN,
@@ -40,7 +43,6 @@ private:
     AVFrame *mAvFrame = nullptr;
     AVPacket *mAvPacket = nullptr;
     AVFrame *mRgbFrame = nullptr;
-
     std::thread *decodecThread = nullptr;
     PlayerState mPlayerState = PLAYER_STATE_UNKNOWN;
     std::mutex m_Mutex;

@@ -22,6 +22,9 @@ add_library(${CMAKE_PROJECT_NAME}
         FFmpegWaterMarkTest.cpp
         FFmpegVideoPlay.cpp
 
+        #OpenGL相关
+        opengl/OpenGLShader.cpp
+        opengl/OpenGLCamera3D.cpp
 
         ffmpegsrc/api-band-test.c
         ffmpegsrc/api-threadmessage-test.c
@@ -38,7 +41,8 @@ message(${CMAKE_CURRENT_LIST_DIR}/libs/${ANDROID_ABI}===ssss==)
 message(${CMAKE_SOURCE_DIR}===ssss==)
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-        ${distribution_DIR}/include)
+        ${distribution_DIR}/include
+        ${distribution_DIR}/includeopengl)
 
 
 set(third-party-libs
@@ -50,7 +54,6 @@ set(third-party-libs
         ${jnilibs}/${ANDROID_ABI}/libswresample.so
         ${jnilibs}/${ANDROID_ABI}/libswscale.so
         ${jnilibs}/${ANDROID_ABI}/libavfilter.so
-
         )
 
 
