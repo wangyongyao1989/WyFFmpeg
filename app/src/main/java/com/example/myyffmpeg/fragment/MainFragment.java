@@ -20,9 +20,11 @@ public class MainFragment extends BaseFragment {
     private Button mBtnFfPlay;
     private FFViewModel mFfViewModel;
     private Button mBtnFfRtmp;
+    private Button mGlCamera;
 
     @Override
-    public View getLayoutDataBing(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View getLayoutDataBing(@NonNull LayoutInflater inflater
+            , @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mBinding = FragmentMainLayoutBinding.inflate(inflater);
         return mBinding.getRoot();
     }
@@ -31,6 +33,7 @@ public class MainFragment extends BaseFragment {
     public void initView() {
         mBtnFfPlay = mBinding.btnFfPlay;
         mBtnFfRtmp = mBinding.btnFfRtmp;
+        mGlCamera = mBinding.btnFfGlCamera;
     }
 
     @Override
@@ -51,6 +54,9 @@ public class MainFragment extends BaseFragment {
         });
         mBtnFfRtmp.setOnClickListener(view -> {
             mFfViewModel.getSwitchFragment().postValue(FFViewModel.FRAGMENT_STATUS.RTMP);
+        });
+        mGlCamera.setOnClickListener(view -> {
+            mFfViewModel.getSwitchFragment().postValue(FFViewModel.FRAGMENT_STATUS.OPENGL_CAMERA);
         });
     }
 }

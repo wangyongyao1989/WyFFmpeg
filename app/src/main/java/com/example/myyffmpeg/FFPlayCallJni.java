@@ -117,4 +117,34 @@ public class FFPlayCallJni {
 
     }
 
+    /**
+     * 聚光手电筒
+     */
+    public void setFlashLightGLSLPath(String fragString, String vertexString, String picSrc1, String picSrc2) {
+        native_flash_light_set_glsl_path(fragString, vertexString, picSrc1, picSrc2);
+    }
+    public void setFlashLightColorGLSLPath(String fragString, String vertexString) {
+        native_flash_light_color_set_glsl_path(fragString, vertexString);
+    }
+    public boolean initFlashLightOpenGl(int w, int h) {
+        return native_flash_light_init_opengl(w, h);
+    }
+    public void flashLightOpenGLRenderFrame() {
+        native_flash_light_render_frame();
+    }
+    public void flashLightMoveXY(float dx, float dy, int action) {
+        native_flash_light_move_xy(dx, dy, action);
+    }
+    public void flashLightOnScale(float scaleFactor, float focusX, float focusY, int action) {
+        native_flash_light_on_scale(scaleFactor, focusX, focusY, action);
+    }
+
+    private native void native_flash_light_set_glsl_path(String fragPath, String vertexPath
+            , String picSrc1, String picSrc2);
+    private native void native_flash_light_color_set_glsl_path(String fragPath, String vertexPath);
+    private native boolean native_flash_light_init_opengl(int width, int height);
+    private native void native_flash_light_render_frame();
+    private native void native_flash_light_move_xy(float dx, float dy, int action);
+    private native void native_flash_light_on_scale(float scaleFactor, float focusX, float focusY, int action);
+
 }

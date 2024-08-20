@@ -25,6 +25,8 @@ add_library(${CMAKE_PROJECT_NAME}
         #OpenGL相关
         opengl/OpenGLShader.cpp
         opengl/OpenGLCamera3D.cpp
+        opengl/OpenglesFlashLight.cpp
+        opengl/OpenGLStdImage.cpp
 
         ffmpegsrc/api-band-test.c
         ffmpegsrc/api-threadmessage-test.c

@@ -13,6 +13,7 @@ public class FFViewModel extends ViewModel {
         MAIN,
         PLAY,
         RTMP,
+        OPENGL_CAMERA;
     }
 
 

@@ -17,6 +17,7 @@ import android.widget.FrameLayout;
 import com.example.myyffmpeg.databinding.ActivityMainBinding;
 import com.example.myyffmpeg.fragment.FFmpegPlayFragment;
 import com.example.myyffmpeg.fragment.MainFragment;
+import com.example.myyffmpeg.fragment.OpenGLCameraFragment;
 import com.example.myyffmpeg.fragment.RtmpFragment;
 
 public class MainActivity extends AppCompatActivity {
@@ -28,7 +29,10 @@ public class MainActivity extends AppCompatActivity {
     private MainFragment mMainFragment;
     private FFViewModel mFfViewModel;
     private RtmpFragment mRtmpFragment;
+    private OpenGLCameraFragment mGLCameraFragment;
+
     private FrameLayout mFlRtmp;
+    private FrameLayout mFlGlCamera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,13 +62,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initData() {
+
     }
 
     private void initView() {
         mFlMain = mBinding.flMain;
         mFlPlay = mBinding.flPlay;
         mFlRtmp = mBinding.flRtmp;
-
+        mFlGlCamera = mBinding.flGlCamera;
 
     }
 
@@ -106,6 +111,16 @@ public class MainActivity extends AppCompatActivity {
                             .add(mFlRtmp.getId(), mRtmpFragment);
                 }
                 fragmentTransaction.show(mRtmpFragment);
+                fragmentTransaction.commit();
+            }
+            break;
+            case OPENGL_CAMERA: {
+                if (mGLCameraFragment == null) {
+                    mGLCameraFragment = new OpenGLCameraFragment();
+                    fragmentTransaction
+                            .add(mFlGlCamera.getId(), mGLCameraFragment);
+                }
+                fragmentTransaction.show(mGLCameraFragment);
                 fragmentTransaction.commit();
             }
             break;
