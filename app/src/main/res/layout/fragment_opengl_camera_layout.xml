@@ -6,27 +6,25 @@
     android:layout_height="match_parent"
     android:background="#060606">
 
-    <RelativeLayout
-        android:id="@+id/rl_close"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_centerVertical="true"
-        android:background="#060606"
+    <Button
+        android:id="@+id/btn_gl_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="返回"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="UselessParent">
+        tools:ignore="HardcodedText" />
 
-        <ImageView
-            android:id="@+id/iv_close"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:padding="6dp"
-            android:src="@mipmap/zc_setting_back"
-            tools:ignore="ContentDescription" />
-
-    </RelativeLayout>
+    <Button
+        android:id="@+id/btn_camera_pre"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="摄像头预览"
+        app:layout_constraintStart_toEndOf="@id/btn_gl_back"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="HardcodedText" />
 
     <Button
         android:id="@+id/btn_gl_camera1"
@@ -34,22 +32,23 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:text="opengl分屏"
-        app:layout_constraintStart_toEndOf="@id/rl_close"
+        app:layout_constraintStart_toEndOf="@id/btn_camera_pre"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="HardcodedText" />
 
 
-<!--    <TextureView-->
-<!--        android:id="@+id/textureView"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@+id/rl_close" />-->
+    <TextureView
+        android:id="@+id/textureView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <FrameLayout
         android:id="@+id/gl_show"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

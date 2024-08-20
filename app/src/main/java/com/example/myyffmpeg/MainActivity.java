@@ -137,6 +137,9 @@ public class MainActivity extends AppCompatActivity {
         if (mRtmpFragment != null) {
             ftr.hide(mRtmpFragment);
         }
+        if (mGLCameraFragment != null) {
+            ftr.hide(mGLCameraFragment);
+        }
     }
 
     public boolean checkPermission() {
