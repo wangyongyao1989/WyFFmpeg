@@ -132,21 +132,12 @@ public class FFPlayCallJni {
     public void camerPreOpenGLRenderFrame() {
         native_camera_pre_render_frame();
     }
-    public void camerPreMoveXY(float dx, float dy, int action) {
-        native_camera_pre_move_xy(dx, dy, action);
-    }
-    public void camerPreOnScale(float scaleFactor, float focusX, float focusY, int action) {
-        native_camera_pre_on_scale(scaleFactor, focusX, focusY, action);
-    }
 
     private native void native_camera_pre_set_glsl_path(String fragPath, String vertexPath);
     private native boolean native_camera_pre_init_opengl();
     private native boolean native_camera_pre_set_wh_opengl(int width, int height);
     private native void native_camera_pre_render_frame();
-    private native void native_camera_pre_move_xy(float dx, float dy, int action);
-    private native void native_camera_pre_on_scale(float scaleFactor, float focusX, float focusY, int action);
-    
-    
+
 
     /**
      * 聚光手电筒

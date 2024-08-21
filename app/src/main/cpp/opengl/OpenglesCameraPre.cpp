@@ -78,35 +78,6 @@ bool OpenglesCameraPre::setSharderPath(const char *vertexPath, const char *fragm
 }
 
 
-void OpenglesCameraPre::setMoveXY(float dx, float dy, int actionMode) {
-    LOGI("setMoveXY dx:%f,dy:%f,actionMode:%d", dy, dy, actionMode);
-    float xoffset = dx - lastX;
-    float yoffset = lastY - dy; // reversed since y-coordinates go from bottom to top
-    lastX = dx;
-    lastY = dy;
-    mActionMode = actionMode;
-    mCamera.ProcessXYMovement(xoffset, yoffset);
-}
-
-void OpenglesCameraPre::setOnScale(float scaleFactor, float focusX, float focusY, int actionMode) {
-//    LOGI("setOnScale scaleFactor:%f,focusX:%f,focusY:%f,actionMode:%d", scaleFactor, focusX, focusY,
-//         actionMode);
-//    LOGI("setOnScale scaleFactor:%f", scaleFactor);
-    float scale;
-    if (actionMode == 1 || actionMode == 3) {
-        scale = 45.0f;
-    } else {
-        if (scaleFactor > 1) {
-            scale = (scaleFactor - 1) * 1000 + 45;
-        } else {
-            scale = 50 - (1 - scaleFactor) * 1000;
-        }
-    }
-    LOGI("setOnScale scale:%f", scale);
-    mCamera.ProcessScroll(scale);
-}
-
-
 OpenglesCameraPre::OpenglesCameraPre() {
     camerPreShader = new OpenGLShader();
 }

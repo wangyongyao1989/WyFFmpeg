@@ -302,21 +302,7 @@ cpp_camera_pre_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag, jstring
 }
 
 
-extern "C"
-JNIEXPORT void JNICALL
-cpp_camera_pre_move_xy(JNIEnv *env, jobject thiz, jfloat dx, jfloat dy, jint actionMode) {
-    if (cameraPre == nullptr) return;
-    cameraPre->setMoveXY(dx, dy, actionMode);
-}
 
-extern "C"
-JNIEXPORT void JNICALL
-cpp_camera_pre_on_scale(JNIEnv *env, jobject thiz, jfloat scaleFactor, jfloat focusX,
-                         jfloat focusY,
-                         jint actionMode) {
-    if (cameraPre == nullptr) return;
-    cameraPre->setOnScale(scaleFactor, focusX, focusY, actionMode);
-}
 
 
 
@@ -348,8 +334,7 @@ static const JNINativeMethod methods[] = {
         {"native_camera_pre_render_frame",         "()V",                   (void *) cpp_camera_pre_render_frame},
         {"native_camera_pre_set_glsl_path",        "(Ljava/lang/String"
                                                     ";Ljava/lang/String;)V", (void *) cpp_camera_pre_frag_vertex_path},
-        {"native_camera_pre_move_xy",              "(FFI)V",                (void *) cpp_camera_pre_move_xy},
-        {"native_camera_pre_on_scale",             "(FFFI)V",               (void *) cpp_camera_pre_on_scale},
+
 
         //聚光手电筒
         {"native_flash_light_init_opengl",          "(II)Z",                 (void *) cpp_flash_light_init_opengl},

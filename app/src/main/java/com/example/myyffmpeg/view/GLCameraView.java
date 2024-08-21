@@ -23,8 +23,6 @@ import javax.microedition.khronos.opengles.GL10;
 public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Renderer
         , SurfaceTexture.OnFrameAvailableListener, Camera2Listener {
 
-    private GestureDetector gestureDetector;
-    private ScaleGestureDetector scaleGestureDetector;
 
     private static String TAG = GLCameraView.class.getSimpleName();
     private FFPlayCallJni mJniCall;
@@ -68,39 +66,7 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
         }
         setRenderer(this);
 
-        gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener());
-        scaleGestureDetector = new ScaleGestureDetector(getContext()
-                , new ScaleGestureDetector.OnScaleGestureListener() {
-            @Override
-            public boolean onScale(ScaleGestureDetector detector) {
-                // 处理缩放事件
-                float scaleFactor = detector.getScaleFactor();
-//                Log.e(TAG, "onScale scaleFactor: " + scaleFactor
-//                        + "==getFocusX:" + detector.getFocusX()
-//                        + "===getFocusY" + detector.getFocusY());
-                mJniCall.camerPreOnScale(scaleFactor, detector.getFocusX()
-                        , detector.getFocusY(), 2);
-                return true;
-            }
 
-            @Override
-            public boolean onScaleBegin(ScaleGestureDetector detector) {
-                // 开始缩放事件
-//                Log.e(TAG, "onScaleBegin: " + detector);
-                mJniCall.camerPreOnScale(detector.getScaleFactor(), detector.getFocusX()
-                        , detector.getFocusY(), 1);
-                return true;
-            }
-
-            @Override
-            public void onScaleEnd(ScaleGestureDetector detector) {
-                // 结束缩放事件
-//                Log.e(TAG, "onScaleEnd: " + detector);
-                mJniCall.camerPreOnScale(detector.getScaleFactor(), detector.getFocusX()
-                        , detector.getFocusY(), 3);
-                        isScaleGesture = false;
-            }
-        });
     }
 
     private void startCameraPreview(SurfaceTexture surfaceTexture, int width, int height) {
@@ -155,51 +121,6 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
         requestRender();
     }
 
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if (isScaleGesture) {
-            gestureDetector.onTouchEvent(event);
-            scaleGestureDetector.onTouchEvent(event);
-            return true;
-        }
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_POINTER_2_DOWN: {
-                isScaleGesture = true;
-            }
-            break;
-            case MotionEvent.ACTION_POINTER_2_UP: {
-                isScaleGesture = false;
-            }
-            break;
-            case MotionEvent.ACTION_DOWN: {
-//                Log.e(TAG, "onTouchEvent: " + event.getAction());
-                downX = event.getX();
-                downY = event.getY();
-                mJniCall.camerPreMoveXY(0, 0, 1);
-            }
-            break;
-            case MotionEvent.ACTION_MOVE: {
-//                Log.e(TAG, "onTouchEvent: " + event.getAction());
-                float dx = event.getX() - downX;
-                float dy = event.getY() - downY;
-//                Log.e(TAG, "ACTION_MOVE:dx= "
-//                        + dx + "==dy:" + dy);
-                mJniCall.camerPreMoveXY(dx, dy, 2);
-            }
-            break;
-            case MotionEvent.ACTION_UP: {
-//                Log.e(TAG, "onTouchEvent: " + event.getAction());
-                downX = 0;
-                downY = 0;
-                mJniCall.camerPreMoveXY(0, 0, 3);
-            }
-            break;
-        }
-
-
-        return true;
-    }
 
 
     @Override
