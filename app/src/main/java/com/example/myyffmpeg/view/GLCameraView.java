@@ -59,16 +59,12 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
         getHolder().addCallback(this);
         setEGLContextClientVersion(3);
         setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        String fragPath = FileUtils.getModelFilePath(mContext, "flash_light_cube_fragment.glsl");
-        String vertexPath = FileUtils.getModelFilePath(mContext, "flash_light_cube_vertex.glsl");
-        String colorFragPath = FileUtils.getModelFilePath(mContext, "flash_light_color_fragment.glsl");
-        String colorVertexPath = FileUtils.getModelFilePath(mContext, "flash_light_color_vertex.glsl");
-        String picSrc1 = FileUtils.getModelFilePath(mContext, "diffuse_map_container2.png");
-        String picSrc2 = FileUtils.getModelFilePath(mContext, "specular_container2.png");
+        String fragPath = FileUtils.getModelFilePath(mContext, "camera_pre_fragment.glsl");
+        String vertexPath = FileUtils.getModelFilePath(mContext, "camera_pre_vertex.glsl");
+
 
         if (mJniCall != null) {
-            mJniCall.setCamerPreGLSLPath(colorFragPath, colorVertexPath, picSrc1, picSrc2);
-            mJniCall.setCamerPreColorGLSLPath(fragPath, vertexPath);
+            mJniCall.setCamerPreGLSLPath(fragPath, vertexPath);
         }
         setRenderer(this);
 
@@ -136,19 +132,19 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
 
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         Log.e(TAG, "onSurfaceChanged width:" + width + ",height" + height);
-
         if (mJniCall != null)
-            mJniCall.initCamerPreOpenGl(width, height);
+            mJniCall.setCamerPreWH(width, height);
         mWidth = width;
         mHeight = height;
         startCameraPreview(surfaceTexture, mWidth, mHeight);
-
     }
 
 
     @Override
     public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
         Log.e(TAG, "onSurfaceCreated:");
+        if (mJniCall != null)
+            mJniCall.initCamerPreOpenGl();
         surfaceTexture = new SurfaceTexture(mTextureId);
         surfaceTexture.setOnFrameAvailableListener(this);
     }

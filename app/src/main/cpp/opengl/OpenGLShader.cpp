@@ -4,8 +4,6 @@
 
 #include "OpenGLShader.h"
 
-
-
 GLuint
 OpenGLShader::createProgram() {
     vertexShader = loadShader(GL_VERTEX_SHADER, gVertexShaderCode);
