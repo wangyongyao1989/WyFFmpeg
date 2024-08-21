@@ -129,14 +129,14 @@ public class FFPlayCallJni {
     public boolean setCamerPreWH(int w, int h) {
         return native_camera_pre_set_wh_opengl(w, h);
     }
-    public void camerPreOpenGLRenderFrame() {
-        native_camera_pre_render_frame();
+    public void camerPreOpenGLRenderFrame(int renderTexture) {
+        native_camera_pre_render_frame(renderTexture);
     }
 
     private native void native_camera_pre_set_glsl_path(String fragPath, String vertexPath);
     private native boolean native_camera_pre_init_opengl();
     private native boolean native_camera_pre_set_wh_opengl(int width, int height);
-    private native void native_camera_pre_render_frame();
+    private native void native_camera_pre_render_frame(int renderTexture);
 
 
     /**

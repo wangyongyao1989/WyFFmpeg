@@ -27,10 +27,6 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
     private static String TAG = GLCameraView.class.getSimpleName();
     private FFPlayCallJni mJniCall;
     private Context mContext;
-    private boolean isScaleGesture;
-
-    private float downX;
-    private float downY;
 
     private SurfaceTexture surfaceTexture;
     private int mTextureId = 0;
@@ -90,10 +86,8 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
 
 
     public void onDrawFrame(GL10 gl) {
-//        Log.e(TAG, "onDrawFrame:");
-
         if (mJniCall != null)
-            mJniCall.camerPreOpenGLRenderFrame();
+            mJniCall.camerPreOpenGLRenderFrame(mTextureId);
     }
 
     public void onSurfaceChanged(GL10 gl, int width, int height) {
@@ -113,14 +107,13 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
             mJniCall.initCamerPreOpenGl();
         surfaceTexture = new SurfaceTexture(mTextureId);
         surfaceTexture.setOnFrameAvailableListener(this);
+        startCameraPreview(surfaceTexture, mWidth, mHeight);
     }
 
     @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-        Log.e(TAG, "onFrameAvailable:");
         requestRender();
     }
-
 
 
     @Override
@@ -132,7 +125,7 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
 
     @Override
     public void onPreviewFrame(byte[] yuvData) {
-//        Log.e(TAG, "onPreviewFrame:" + yuvData.length);
+        Log.e(TAG, "onPreviewFrame:" + yuvData.length);
 
     }
 

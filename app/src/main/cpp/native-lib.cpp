@@ -279,9 +279,9 @@ cpp_camera_pre_set_wh_opengl(JNIEnv *env, jobject thiz, jint width, jint height)
 
 extern "C"
 JNIEXPORT void JNICALL
-cpp_camera_pre_render_frame(JNIEnv *env, jobject thiz) {
+cpp_camera_pre_render_frame(JNIEnv *env, jobject thiz,jint renderTexture) {
     if (cameraPre == nullptr) return;
-    cameraPre->renderFrame();
+    cameraPre->renderFrame(renderTexture);
 
 }
 
@@ -331,7 +331,7 @@ static const JNINativeMethod methods[] = {
         //GLCameraPre
         {"native_camera_pre_init_opengl",          "()Z",                 (void *) cpp_camera_pre_init_opengl},
         {"native_camera_pre_set_wh_opengl",          "(II)Z",                 (void *) cpp_camera_pre_set_wh_opengl},
-        {"native_camera_pre_render_frame",         "()V",                   (void *) cpp_camera_pre_render_frame},
+        {"native_camera_pre_render_frame",         "(I)V",                   (void *) cpp_camera_pre_render_frame},
         {"native_camera_pre_set_glsl_path",        "(Ljava/lang/String"
                                                     ";Ljava/lang/String;)V", (void *) cpp_camera_pre_frag_vertex_path},
 

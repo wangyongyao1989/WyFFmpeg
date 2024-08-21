@@ -10,12 +10,6 @@
 using namespace std;
 using namespace glm;
 
-const float CAMERA_PRE_VERTEX[] = {
-        -1.0f, -1.0f,
-        1.0f, -1.0f,
-        -1.0f, 1.0f,
-        1.0f, 1.0f
-};
 
 const float CAMERA_PRE_TEXTURE[] = {
         0.0f, 0.0f,
@@ -24,11 +18,12 @@ const float CAMERA_PRE_TEXTURE[] = {
         1.0f, 1.0f
 };
 
-const float vertices[] = {
-    0.5f, 0.5f, 0.0f,  // top right
-    0.5f, -0.5f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f,  // bottom left
-    -0.5f, 0.5f, 0.0f   // top left
+const float CAMERA_PRE_VERTEX[] = {
+    // positions             // texture coords
+    1.0f, 1.0f, 0.0f,       0.0f, 0.0f,
+    1.0f, -1.0f, 0.0f,      1.0f, 0.0f,
+    -1.0f, -1.0f, 0.0f,     0.0f, 1.0f,
+    -1.0f, 1.0f, 0.0f ,      1.0f, 1.0f
 };
 
 const unsigned int indices[] = {
@@ -42,6 +37,16 @@ const unsigned int indices[] = {
 class OpenglesCameraPre {
 
 private:
+//    unsigned int textureIdY;
+//    unsigned int textureIdU;
+//    unsigned int textureIdV;
+//    GLuint textureUniformY, textureUniformU,textureUniformV;
+//
+//    const int pixel_w = 320, pixel_h = 180;
+//    unsigned char *plane[3];
+//    //YUV file
+//    unsigned char buf[pixel_w*pixel_h*3/2];
+
     int screenW, screenH;
     float lastX, lastY;
     int mActionMode;
@@ -67,7 +72,7 @@ public:
 
     void setScreenWH(int w, int h);
 
-    void renderFrame();
+    void renderFrame(int renderTexture);
 
     bool setSharderPath(const char *vertexPath, const char *fragmentPath);
 
