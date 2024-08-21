@@ -256,6 +256,81 @@ cpp_flash_light_on_scale(JNIEnv *env, jobject thiz, jfloat scaleFactor, jfloat f
     flashLight->setOnScale(scaleFactor, focusX, focusY, actionMode);
 }
 
+/*********************** GL 聚光手电筒********************/
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+cpp_camera_pre_init_opengl(JNIEnv *env, jobject thiz, jint width, jint height) {
+    if (flashLight == nullptr)
+        flashLight = new OpenglesFlashLight();
+    flashLight->setupGraphics(width, height);
+    return 0;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_camera_pre_render_frame(JNIEnv *env, jobject thiz) {
+    if (flashLight == nullptr) return;
+    flashLight->renderFrame();
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_camera_pre_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag, jstring vertex,
+                                 jstring picsrc1, jstring picsrc2) {
+    const char *fragPath = env->GetStringUTFChars(frag, nullptr);
+    const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
+    const char *picsrc1Path = env->GetStringUTFChars(picsrc1, nullptr);
+    const char *picsrc2Path = env->GetStringUTFChars(picsrc2, nullptr);
+
+    if (flashLight == nullptr) {
+        flashLight = new OpenglesFlashLight();
+    }
+    flashLight->setSharderPath(vertexPath, fragPath);
+
+    flashLight->setPicPath(picsrc1Path, picsrc2Path);
+
+    env->ReleaseStringUTFChars(frag, fragPath);
+    env->ReleaseStringUTFChars(vertex, vertexPath);
+    env->ReleaseStringUTFChars(picsrc1, picsrc1Path);
+    env->ReleaseStringUTFChars(picsrc2, picsrc2Path);
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_camera_pre_color_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag,
+                                       jstring vertex) {
+    const char *fragPath = env->GetStringUTFChars(frag, nullptr);
+    const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
+
+    if (flashLight == nullptr) {
+        flashLight = new OpenglesFlashLight();
+    }
+    flashLight->setColorSharderPath(vertexPath, fragPath);
+
+    env->ReleaseStringUTFChars(frag, fragPath);
+    env->ReleaseStringUTFChars(vertex, vertexPath);
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_camera_pre_move_xy(JNIEnv *env, jobject thiz, jfloat dx, jfloat dy, jint actionMode) {
+    if (flashLight == nullptr) return;
+    flashLight->setMoveXY(dx, dy, actionMode);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_camera_pre_on_scale(JNIEnv *env, jobject thiz, jfloat scaleFactor, jfloat focusX,
+                         jfloat focusY,
+                         jint actionMode) {
+    if (flashLight == nullptr) return;
+    flashLight->setOnScale(scaleFactor, focusX, focusY, actionMode);
+}
+
 
 
 // 重点：定义类名和函数签名，如果有多个方法要动态注册，在数组里面定义即可
@@ -279,6 +354,18 @@ static const JNINativeMethod methods[] = {
         {"native_Stop_Video",       "()V",                                                       (void *) cpp_stop_video},
         {"native_Pause_Video",      "()V",                                                       (void *) cpp_pause_video},
         {"native_seek_to_position", "(F)V",                                                      (void *) cpp_seek_to_position},
+
+        //GLCameraPre
+        {"native_camera_pre_init_opengl",          "(II)Z",                 (void *) cpp_camera_pre_init_opengl},
+        {"native_camera_pre_render_frame",         "()V",                   (void *) cpp_camera_pre_render_frame},
+        {"native_camera_pre_color_set_glsl_path",  "(Ljava/lang/String"
+                                                    ";Ljava/lang/String;)V", (void *) cpp_camera_pre_color_frag_vertex_path},
+        {"native_camera_pre_set_glsl_path",        "(Ljava/lang/String"
+                                                    ";Ljava/lang/String"
+                                                    ";Ljava/lang/String"
+                                                    ";Ljava/lang/String;)V", (void *) cpp_camera_pre_frag_vertex_path},
+        {"native_camera_pre_move_xy",              "(FFI)V",                (void *) cpp_camera_pre_move_xy},
+        {"native_camera_pre_on_scale",             "(FFFI)V",               (void *) cpp_camera_pre_on_scale},
 
         //聚光手电筒
         {"native_flash_light_init_opengl",          "(II)Z",                 (void *) cpp_flash_light_init_opengl},

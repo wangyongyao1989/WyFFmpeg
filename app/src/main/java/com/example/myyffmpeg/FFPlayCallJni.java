@@ -118,6 +118,38 @@ public class FFPlayCallJni {
     }
 
     /**
+     * GLCamerPre
+     */
+    public void setCamerPreGLSLPath(String fragString, String vertexString, String picSrc1, String picSrc2) {
+        native_camera_pre_set_glsl_path(fragString, vertexString, picSrc1, picSrc2);
+    }
+    public void setCamerPreColorGLSLPath(String fragString, String vertexString) {
+        native_camera_pre_color_set_glsl_path(fragString, vertexString);
+    }
+    public boolean initCamerPreOpenGl(int w, int h) {
+        return native_camera_pre_init_opengl(w, h);
+    }
+    public void camerPreOpenGLRenderFrame() {
+        native_camera_pre_render_frame();
+    }
+    public void camerPreMoveXY(float dx, float dy, int action) {
+        native_camera_pre_move_xy(dx, dy, action);
+    }
+    public void camerPreOnScale(float scaleFactor, float focusX, float focusY, int action) {
+        native_camera_pre_on_scale(scaleFactor, focusX, focusY, action);
+    }
+
+    private native void native_camera_pre_set_glsl_path(String fragPath, String vertexPath
+            , String picSrc1, String picSrc2);
+    private native void native_camera_pre_color_set_glsl_path(String fragPath, String vertexPath);
+    private native boolean native_camera_pre_init_opengl(int width, int height);
+    private native void native_camera_pre_render_frame();
+    private native void native_camera_pre_move_xy(float dx, float dy, int action);
+    private native void native_camera_pre_on_scale(float scaleFactor, float focusX, float focusY, int action);
+    
+    
+
+    /**
      * 聚光手电筒
      */
     public void setFlashLightGLSLPath(String fragString, String vertexString, String picSrc1, String picSrc2) {

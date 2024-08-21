@@ -14,6 +14,13 @@ import androidx.annotation.Nullable;
 import com.example.rtmplive.camera.Camera2Helper;
 import com.example.rtmplive.camera.Camera2Listener;
 
+
+/**
+ * author : wangyongyao https://github.com/wangyongyao1989
+ * Create Time : 2024/8/20 18:43
+ * Descibe : MyyFFmpeg com.example.rtmplive.camera
+ */
+
 public class CameraPreView extends TextureView implements TextureView.SurfaceTextureListener
         , Camera2Listener {
 
