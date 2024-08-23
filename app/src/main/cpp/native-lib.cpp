@@ -279,9 +279,16 @@ cpp_camera_pre_set_wh_opengl(JNIEnv *env, jobject thiz, jint width, jint height)
 
 extern "C"
 JNIEXPORT void JNICALL
-cpp_camera_pre_render_frame(JNIEnv *env, jobject thiz,jint renderTexture) {
+cpp_camera_pre_set_video_texture(JNIEnv *env, jobject thiz, jint videoTexture) {
     if (cameraPre == nullptr) return;
-    cameraPre->renderFrame(renderTexture);
+    cameraPre->setVideoTexture(videoTexture);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_camera_pre_render_frame(JNIEnv *env, jobject thiz) {
+    if (cameraPre == nullptr) return;
+    cameraPre->renderFrame();
 
 }
 
@@ -301,52 +308,65 @@ cpp_camera_pre_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag, jstring
 
 }
 
+extern "C"
+JNIEXPORT void JNICALL
+cpp_camera_pre_frag_vertex_pic(JNIEnv *env, jobject thiz, jstring pic) {
+    const char *picPath = env->GetStringUTFChars(pic, nullptr);
 
+    if (cameraPre == nullptr) {
+        cameraPre = new OpenglesCameraPre();
+    }
+    cameraPre->setSharderPic(picPath);
 
+    env->ReleaseStringUTFChars(pic, picPath);
 
+}
 
 
 // 重点：定义类名和函数签名，如果有多个方法要动态注册，在数组里面定义即可
 static const JNINativeMethod methods[] = {
-        {"native_callback",         "()V",                                                       (void *) cpp_init_callback},
+        {"native_callback",                        "()V",                                                       (void *) cpp_init_callback},
 
-        {"native_getFFmpegVersion", "()Ljava/lang/String;",                                      (void *) cpp_getFFmpegVersion},
-        {"stringFromJNI",           "()Ljava/lang/String;",                                      (std::string *) cpp_stringFromJNI},
-        {"intFromJNI",              "(I)I",                                                      (void *) cpp_intFromJNI},
-        {"setInputUrl",             "(Ljava/lang/String;)V",                                     (void *) cpp_set_input_url},
+        {"native_getFFmpegVersion",                "()Ljava/lang/String;",                                      (void *) cpp_getFFmpegVersion},
+        {"stringFromJNI",                          "()Ljava/lang/String;",                                      (std::string *) cpp_stringFromJNI},
+        {"intFromJNI",                             "(I)I",                                                      (void *) cpp_intFromJNI},
+        {"setInputUrl",                            "(Ljava/lang/String;)V",                                     (void *) cpp_set_input_url},
 
-        {"native_MP4_AVI",          "(Ljava/lang/String;Ljava/lang/String;)V",                   (void *) cpp_mp4_input_avi_output},
-        {"native_Water_mark",       "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", (void *) cpp_mp4_water_mark},
+        {"native_MP4_AVI",                         "(Ljava/lang/String;Ljava/lang/String;)V",                   (void *) cpp_mp4_input_avi_output},
+        {"native_Water_mark",                      "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", (void *) cpp_mp4_water_mark},
 
-        {"native_Play_Audio",       "(Ljava/lang/String;)V",                                     (void *) cpp_play_audio},
-        {"native_Stop_Audio",       "()V",                                                       (void *) cpp_stop_audio},
+        {"native_Play_Audio",                      "(Ljava/lang/String;)V",                                     (void *) cpp_play_audio},
+        {"native_Stop_Audio",                      "()V",                                                       (void *) cpp_stop_audio},
 
-        {"native_Play_init",        "(Ljava/lang/String;Landroid/view/Surface;)V",               (void *) cpp_play_init},
-        {"native_Play_Uninit",      "()V",                                                       (void *) cpp_play_uninit},
-        {"native_Play_Video",       "()V",                                                       (void *) cpp_play_video},
-        {"native_Stop_Video",       "()V",                                                       (void *) cpp_stop_video},
-        {"native_Pause_Video",      "()V",                                                       (void *) cpp_pause_video},
-        {"native_seek_to_position", "(F)V",                                                      (void *) cpp_seek_to_position},
+        {"native_Play_init",                       "(Ljava/lang/String;Landroid/view/Surface;)V",               (void *) cpp_play_init},
+        {"native_Play_Uninit",                     "()V",                                                       (void *) cpp_play_uninit},
+        {"native_Play_Video",                      "()V",                                                       (void *) cpp_play_video},
+        {"native_Stop_Video",                      "()V",                                                       (void *) cpp_stop_video},
+        {"native_Pause_Video",                     "()V",                                                       (void *) cpp_pause_video},
+        {"native_seek_to_position",                "(F)V",                                                      (void *) cpp_seek_to_position},
 
         //GLCameraPre
-        {"native_camera_pre_init_opengl",          "()Z",                 (void *) cpp_camera_pre_init_opengl},
-        {"native_camera_pre_set_wh_opengl",          "(II)Z",                 (void *) cpp_camera_pre_set_wh_opengl},
-        {"native_camera_pre_render_frame",         "(I)V",                   (void *) cpp_camera_pre_render_frame},
+        {"native_camera_pre_init_opengl",          "()Z",                                                       (void *) cpp_camera_pre_init_opengl},
+        {"native_camera_pre_set_wh_opengl",        "(II)Z",                                                     (void *) cpp_camera_pre_set_wh_opengl},
+        {"native_camera_pre_set_video_texture",    "(I)V",                                                      (void *) cpp_camera_pre_set_video_texture},
+        {"native_camera_pre_render_frame",         "()V",                                                      (void *) cpp_camera_pre_render_frame},
         {"native_camera_pre_set_glsl_path",        "(Ljava/lang/String"
-                                                    ";Ljava/lang/String;)V", (void *) cpp_camera_pre_frag_vertex_path},
+                                                   ";Ljava/lang/String;)V",                                     (void *) cpp_camera_pre_frag_vertex_path},
+        {"native_camera_pre_set_glsl_pic",        "(Ljava/lang/String;)V",                                     (void *) cpp_camera_pre_frag_vertex_pic},
+
 
 
         //聚光手电筒
-        {"native_flash_light_init_opengl",          "(II)Z",                 (void *) cpp_flash_light_init_opengl},
-        {"native_flash_light_render_frame",         "()V",                   (void *) cpp_flash_light_render_frame},
-        {"native_flash_light_color_set_glsl_path",  "(Ljava/lang/String"
-                                                    ";Ljava/lang/String;)V", (void *) cpp_flash_light_color_frag_vertex_path},
-        {"native_flash_light_set_glsl_path",        "(Ljava/lang/String"
-                                                    ";Ljava/lang/String"
-                                                    ";Ljava/lang/String"
-                                                    ";Ljava/lang/String;)V", (void *) cpp_flash_light_frag_vertex_path},
-        {"native_flash_light_move_xy",              "(FFI)V",                (void *) cpp_flash_light_move_xy},
-        {"native_flash_light_on_scale",             "(FFFI)V",               (void *) cpp_flash_light_on_scale},
+        {"native_flash_light_init_opengl",         "(II)Z",                                                     (void *) cpp_flash_light_init_opengl},
+        {"native_flash_light_render_frame",        "()V",                                                       (void *) cpp_flash_light_render_frame},
+        {"native_flash_light_color_set_glsl_path", "(Ljava/lang/String"
+                                                   ";Ljava/lang/String;)V",                                     (void *) cpp_flash_light_color_frag_vertex_path},
+        {"native_flash_light_set_glsl_path",       "(Ljava/lang/String"
+                                                   ";Ljava/lang/String"
+                                                   ";Ljava/lang/String"
+                                                   ";Ljava/lang/String;)V",                                     (void *) cpp_flash_light_frag_vertex_path},
+        {"native_flash_light_move_xy",             "(FFI)V",                                                    (void *) cpp_flash_light_move_xy},
+        {"native_flash_light_on_scale",            "(FFFI)V",                                                   (void *) cpp_flash_light_on_scale},
 
 
 };

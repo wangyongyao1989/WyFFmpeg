@@ -37,37 +37,24 @@ bool OpenglesCameraPre::initGraphics() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    // load and create a texture
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
-//    //Init Texture
-//    glGenTextures(1, &textureIdY);
-//    glBindTexture(GL_TEXTURE_2D, textureIdY);
-//    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-//
-//    glGenTextures(1, &textureIdU);
-//    glBindTexture(GL_TEXTURE_2D, textureIdU);
-//    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-//
-//    glGenTextures(1, &textureIdV);
-//    glBindTexture(GL_TEXTURE_2D, textureIdV);
-//    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//
-//
-//    //Get Uniform Variables Location
-////    textureUniformY = glGetUniformLocation(p, "tex_y");
-////    textureUniformU = glGetUniformLocation(p, "tex_u");
-////    textureUniformV = glGetUniformLocation(p, "tex_v");
-//    textureUniformY = glGetUniformLocation(lightingProgram, "tex_y");
-//    textureUniformU = glGetUniformLocation(lightingProgram, "tex_u");
-//    textureUniformV = glGetUniformLocation(lightingProgram, "tex_v");
+    // set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    if (data1) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width1, height1, 0, GL_RGB, GL_UNSIGNED_BYTE, data1);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    stbi_image_free(data1);
 
+    camerPreShader->use();
+    camerPreShader->setInt("texture", 0);
 
     // load and create a texture
     LOGI("load and create a texture!");
@@ -75,7 +62,7 @@ bool OpenglesCameraPre::initGraphics() {
     return true;
 }
 
-void OpenglesCameraPre::renderFrame(int renderTexture) {
+void OpenglesCameraPre::renderFrame() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
@@ -84,27 +71,8 @@ void OpenglesCameraPre::renderFrame(int renderTexture) {
 //    glEnable(GL_DEPTH_TEST);
 
     // bind Texture
-    //Y
-    //
-//    glActiveTexture(GL_TEXTURE0);
-//
-//    glBindTexture(GL_TEXTURE_2D, textureIdY);
-//
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, pixel_w, pixel_h, 0, GL_RED, GL_UNSIGNED_BYTE, plane[0]);
-//
-//    glUniform1i(textureUniformY, 0);
-//    //U
-//    glActiveTexture(GL_TEXTURE1);
-//    glBindTexture(GL_TEXTURE_2D, textureIdU);
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, pixel_w/2, pixel_h/2, 0, GL_RED, GL_UNSIGNED_BYTE, plane[1]);
-//    glUniform1i(textureUniformU, 1);
-//    //V
-//    glActiveTexture(GL_TEXTURE2);
-//    glBindTexture(GL_TEXTURE_2D, textureIdV);
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, pixel_w/2, pixel_h/2, 0, GL_RED, GL_UNSIGNED_BYTE, plane[2]);
-//    glUniform1i(textureUniformV, 2);
-
-
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
     camerPreShader->use();
     glBindVertexArray(VAO);
@@ -113,6 +81,10 @@ void OpenglesCameraPre::renderFrame(int renderTexture) {
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     checkGlError("glDrawArrays");
+}
+
+void OpenglesCameraPre::setVideoTexture(int renderTexture) {
+    texture = renderTexture;
 }
 
 void OpenglesCameraPre::setScreenWH(int w, int h) {
@@ -131,6 +103,10 @@ bool OpenglesCameraPre::setSharderPath(const char *vertexPath, const char *fragm
     camerPreShader->getSharderPath(vertexPath, fragmentPath);
     return 0;
 }
+void OpenglesCameraPre::setSharderPic(const char *picPath) {
+
+    data1 = stbi_load(picPath, &width1, &height1, &nrChannels1, 0);
+}
 
 
 OpenglesCameraPre::OpenglesCameraPre() {
@@ -138,9 +114,8 @@ OpenglesCameraPre::OpenglesCameraPre() {
 }
 
 OpenglesCameraPre::~OpenglesCameraPre() {
-//    textureIdY = 0;
-//    textureIdU = 0;
-//    textureIdV = 0;
+    texture = 0;
+    data1 = 0;
     //析构函数中释放资源
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);

@@ -37,19 +37,15 @@ const unsigned int indices[] = {
 class OpenglesCameraPre {
 
 private:
-//    unsigned int textureIdY;
-//    unsigned int textureIdU;
-//    unsigned int textureIdV;
-//    GLuint textureUniformY, textureUniformU,textureUniformV;
-//
-//    const int pixel_w = 320, pixel_h = 180;
-//    unsigned char *plane[3];
-//    //YUV file
-//    unsigned char buf[pixel_w*pixel_h*3/2];
 
     int screenW, screenH;
     float lastX, lastY;
     int mActionMode;
+    unsigned char *data1;
+
+    unsigned int texture;
+    int width1, height1, nrChannels1;
+
 
     unsigned int VBO, VAO;
     unsigned int EBO;
@@ -72,9 +68,12 @@ public:
 
     void setScreenWH(int w, int h);
 
-    void renderFrame(int renderTexture);
+    void renderFrame();
+
+    void setVideoTexture(int renderTexture);
 
     bool setSharderPath(const char *vertexPath, const char *fragmentPath);
+    void setSharderPic(const char *picPath);
 
 
     void printGLString(const char *name, GLenum s);

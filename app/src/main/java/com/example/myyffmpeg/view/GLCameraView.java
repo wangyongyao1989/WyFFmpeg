@@ -55,10 +55,11 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
         setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         String fragPath = FileUtils.getModelFilePath(mContext, "camera_pre_fragment.glsl");
         String vertexPath = FileUtils.getModelFilePath(mContext, "camera_pre_vertex.glsl");
-
+        String picSrc1 = FileUtils.getModelFilePath(mContext, "wall.jpg");
 
         if (mJniCall != null) {
             mJniCall.setCamerPreGLSLPath(fragPath, vertexPath);
+            mJniCall.setCamerPreGLSLPic(picSrc1);
         }
         setRenderer(this);
 
@@ -86,8 +87,9 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
 
 
     public void onDrawFrame(GL10 gl) {
+        surfaceTexture.updateTexImage();
         if (mJniCall != null)
-            mJniCall.camerPreOpenGLRenderFrame(mTextureId);
+            mJniCall.camerPreOpenGLRenderFrame();
     }
 
     public void onSurfaceChanged(GL10 gl, int width, int height) {
@@ -107,6 +109,8 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
             mJniCall.initCamerPreOpenGl();
         surfaceTexture = new SurfaceTexture(mTextureId);
         surfaceTexture.setOnFrameAvailableListener(this);
+        if (mJniCall != null)
+            mJniCall.setVideoTexture(mTextureId);
         startCameraPreview(surfaceTexture, mWidth, mHeight);
     }
 
@@ -125,7 +129,7 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
 
     @Override
     public void onPreviewFrame(byte[] yuvData) {
-        Log.e(TAG, "onPreviewFrame:" + yuvData.length);
+//        Log.e(TAG, "onPreviewFrame:" + yuvData.length);
 
     }
 
