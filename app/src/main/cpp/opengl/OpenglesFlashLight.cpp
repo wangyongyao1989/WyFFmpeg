@@ -12,7 +12,7 @@ bool OpenglesFlashLight::setupGraphics(int w, int h) {
         return false;
     }
     GLuint lightingPositionHandle = glGetAttribLocation(lightingProgram, "gl_Position");
-    checkGlError("lightingProgram glGetAttribLocation");
+    checkGlError("program glGetAttribLocation");
 
     GLuint lightCubeProgram = lightCubeShader->createProgram();
     if (!lightCubeProgram) {

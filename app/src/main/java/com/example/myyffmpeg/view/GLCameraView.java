@@ -55,7 +55,7 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
         setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         String fragPath = FileUtils.getModelFilePath(mContext, "camera_pre_fragment.glsl");
         String vertexPath = FileUtils.getModelFilePath(mContext, "camera_pre_vertex.glsl");
-        String picSrc1 = FileUtils.getModelFilePath(mContext, "wall.jpg");
+        String picSrc1 = FileUtils.getModelFilePath(mContext, "specular_container2.png");
 
         if (mJniCall != null) {
             mJniCall.setCamerPreGLSLPath(fragPath, vertexPath);

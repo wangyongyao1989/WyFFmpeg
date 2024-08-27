@@ -3,61 +3,49 @@
 #include <iostream>
 
 bool OpenglesCameraPre::initGraphics() {
-    GLuint lightingProgram = camerPreShader->createProgram();
-    if (!lightingProgram) {
+    program = camerPreShader->createProgram();
+    if (!program) {
         LOGE("Could not create shaderId.");
         return false;
     }
-    GLuint lightingPositionHandle = glGetAttribLocation(lightingProgram, "gl_Position");
-    checkGlError("lightingProgram glGetAttribLocation");
+    GLuint lightingPositionHandle = glGetAttribLocation(program, "gl_Position");
+    checkGlError("program glGetAttribLocation");
 
     LOGI("load VAO VBO Data");
 
     //绑定VAO
-    glBindVertexArray(VAO);
+    glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
+
+    //绑定VAO
+    glBindVertexArray(VAO);
     //把顶点数组复制到缓冲中供OpenGL使用
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(CAMERA_PRE_VERTEX), CAMERA_PRE_VERTEX, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(textureDemoVertices), textureDemoVertices, GL_STATIC_DRAW);
 
     //绑定EBO
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(textureDemoIndices), indices, GL_STATIC_DRAW);
+
 
     // 1. 设置顶点属性指针
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
-
-    // texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                          (void *) (6 * sizeof(float)));
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+                          (void *) (3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    // texture coord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+                          (void *) (6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // load and create a texture
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    // set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     if (data1) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width1, height1, 0, GL_RGB, GL_UNSIGNED_BYTE, data1);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        texture = loadTexture(data1, width1, height1);
     }
-    stbi_image_free(data1);
-
-    camerPreShader->use();
-    camerPreShader->setInt("texture", 0);
-
-    // load and create a texture
-    LOGI("load and create a texture!");
 
     return true;
 }
@@ -67,24 +55,20 @@ void OpenglesCameraPre::renderFrame() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
 
-    //开启深度测试
-//    glEnable(GL_DEPTH_TEST);
-
     // bind Texture
-    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    camerPreShader->use();
+    glUseProgram(program);
+    checkGlError("glUseProgram");
     glBindVertexArray(VAO);
-    camerPreShader->setVec4("ourColor", 0.0f, 0.5, 0.0f, 1.0f);
-
+    camerPreShader->use();
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     checkGlError("glDrawArrays");
 }
 
 void OpenglesCameraPre::setVideoTexture(int renderTexture) {
-    texture = renderTexture;
+//    texture = renderTexture;
 }
 
 void OpenglesCameraPre::setScreenWH(int w, int h) {
@@ -103,8 +87,9 @@ bool OpenglesCameraPre::setSharderPath(const char *vertexPath, const char *fragm
     camerPreShader->getSharderPath(vertexPath, fragmentPath);
     return 0;
 }
-void OpenglesCameraPre::setSharderPic(const char *picPath) {
 
+void OpenglesCameraPre::setSharderPic(const char *picPath) {
+    LOGI("setPicPath pic==%s", picPath);
     data1 = stbi_load(picPath, &width1, &height1, &nrChannels1, 0);
 }
 
@@ -139,14 +124,22 @@ void OpenglesCameraPre::checkGlError(const char *op) {
 }
 
 /**
- * 加载纹理
+ * 加载图片纹理
  * @param path
  * @return
  */
-int OpenglesCameraPre::loadTexture(unsigned char *data, int width, int height, GLenum format) {
+int OpenglesCameraPre::loadTexture(unsigned char *data, int width, int height) {
     unsigned int textureID;
     glGenTextures(1, &textureID);
-//    LOGI("loadTexture format =%d", format);
+    GLenum format;
+    if (nrChannels1 == 1) {
+        format = GL_RED;
+    } else if (nrChannels1 == 3) {
+        format = GL_RGB;
+    } else if (nrChannels1 == 4) {
+        format = GL_RGBA;
+    }
+    LOGI("loadTexture format =%d", format);
     if (data) {
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);

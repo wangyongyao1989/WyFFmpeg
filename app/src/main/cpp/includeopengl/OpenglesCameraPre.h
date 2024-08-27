@@ -34,18 +34,29 @@ const unsigned int indices[] = {
     1, 2, 3  // 第二个三角形
 };
 
+const float textureDemoVertices[] = {
+        // positions       // colors        // texture coords
+        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+        -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // top left
+};
+
+static unsigned int textureDemoIndices[] = {
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+};
+
 class OpenglesCameraPre {
 
 private:
 
     int screenW, screenH;
-    float lastX, lastY;
-    int mActionMode;
     unsigned char *data1;
 
     unsigned int texture;
     int width1, height1, nrChannels1;
-
+    GLuint program;
 
     unsigned int VBO, VAO;
     unsigned int EBO;
@@ -80,6 +91,6 @@ public:
 
     void checkGlError(const char *op);
 
-    int loadTexture(unsigned char *data, int width, int height, GLenum format);
+    int loadTexture(unsigned char *data, int width, int height);
 };
 
