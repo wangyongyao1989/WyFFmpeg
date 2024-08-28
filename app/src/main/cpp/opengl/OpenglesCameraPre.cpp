@@ -11,43 +11,18 @@ bool OpenglesCameraPre::initGraphics() {
     GLuint lightingPositionHandle = glGetAttribLocation(program, "gl_Position");
     checkGlError("program glGetAttribLocation");
 
-    LOGI("load VAO VBO Data");
-
-    //绑定VAO
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    //绑定VAO
-    glBindVertexArray(VAO);
-    //把顶点数组复制到缓冲中供OpenGL使用
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(textureDemoVertices), textureDemoVertices, GL_STATIC_DRAW);
-
-    //绑定EBO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(textureDemoIndices), indices, GL_STATIC_DRAW);
-
-
     // 1. 设置顶点属性指针
     // position attribute
     GLuint aPos = glGetAttribLocation(program, "aPos");
     LOGI("aPos = %d\n", aPos);
-    glVertexAttribPointer(aPos, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
-    glEnableVertexAttribArray(0);
-    // color attribute
-    GLuint aColor = glGetAttribLocation(program, "aColor");
-    LOGI("aColor = %d\n", aColor);
-    glVertexAttribPointer(aColor, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                          (void *) (3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // texture coord attribute
-    GLuint aTexCoord = glGetAttribLocation(program, "aTexCoord");
-    LOGI("aTexCoord = %d\n", aTexCoord);
-    glVertexAttribPointer(aTexCoord, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                          (void *) (6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
+    // 启用顶点数据
+    glEnableVertexAttribArray(aPos);
+    glVertexAttribPointer(aPos, 2, GL_FLOAT, GL_FALSE, 0, CAMERA_PRE_VERTEX);
 
+    GLuint aTexCoord = glGetAttribLocation(program, "aTexCoord");
+    // 纹理坐标
+    glEnableVertexAttribArray(aTexCoord);
+    glVertexAttribPointer(aTexCoord, 2, GL_FLOAT, GL_FALSE, 0, CAMERA_PRE_TEXTURE);
 
     // load and create a texture
     if (data1) {
@@ -63,15 +38,16 @@ void OpenglesCameraPre::renderFrame() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
 
     // bind Texture
+    glActiveTexture(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texture);
 
     glUseProgram(program);
     checkGlError("glUseProgram");
-    glBindVertexArray(VAO);
+    // 4个顶点绘制两个三角形组成矩形
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
     camerPreShader->use();
 
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    checkGlError("glDrawArrays");
 }
 
 void OpenglesCameraPre::setVideoTexture(int renderTexture) {
@@ -109,9 +85,6 @@ OpenglesCameraPre::~OpenglesCameraPre() {
     texture = 0;
     data1 = 0;
     //析构函数中释放资源
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
     camerPreShader = nullptr;
 
 

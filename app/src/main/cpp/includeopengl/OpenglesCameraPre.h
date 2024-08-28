@@ -12,18 +12,18 @@ using namespace glm;
 
 
 const float CAMERA_PRE_TEXTURE[] = {
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        0.0f, 1.0f,
-        1.0f, 1.0f
+        0.5f,0.5f, // 右下
+        0.5f,0.0f, // 右上
+        0.0f,0.5f, // 左下
+        0.0f,0.0f // 左上左上
 };
 
 const float CAMERA_PRE_VERTEX[] = {
-    // positions             // texture coords
-    1.0f, 1.0f, 0.0f,       0.0f, 0.0f,
-    1.0f, -1.0f, 0.0f,      1.0f, 0.0f,
-    -1.0f, -1.0f, 0.0f,     0.0f, 1.0f,
-    -1.0f, 1.0f, 0.0f ,      1.0f, 1.0f
+         // positions             // color
+        0.5f,-0.5f, // 右下
+        0.5f,0.5f, // 右上
+        -0.5f,-0.5f, // 左下
+        -0.5f,0.5f // 左上
 };
 
 const unsigned int indices[] = {
@@ -57,11 +57,7 @@ private:
     unsigned int texture;
     int width1, height1, nrChannels1;
     GLuint program;
-
-    unsigned int VBO, VAO;
-    unsigned int EBO;
-    int vertexColorLocation;
-
+    GLuint aTexCoord;
     string colorVertexCode;
     string colorFragmentCode;
 
