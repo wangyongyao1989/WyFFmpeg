@@ -31,16 +31,23 @@ bool OpenglesCameraPre::initGraphics() {
 
     // 1. 设置顶点属性指针
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
+    GLuint aPos = glGetAttribLocation(program, "aPos");
+    LOGI("aPos = %d\n", aPos);
+    glVertexAttribPointer(aPos, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
     // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+    GLuint aColor = glGetAttribLocation(program, "aColor");
+    LOGI("aColor = %d\n", aColor);
+    glVertexAttribPointer(aColor, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
                           (void *) (3 * sizeof(float)));
     glEnableVertexAttribArray(1);
     // texture coord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+    GLuint aTexCoord = glGetAttribLocation(program, "aTexCoord");
+    LOGI("aTexCoord = %d\n", aTexCoord);
+    glVertexAttribPointer(aTexCoord, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
                           (void *) (6 * sizeof(float)));
     glEnableVertexAttribArray(2);
+
 
     // load and create a texture
     if (data1) {
