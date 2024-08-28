@@ -91,7 +91,7 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
         float[] mtx = new float[16];
         surfaceTexture.getTransformMatrix(mtx);
         if (mJniCall != null)
-            mJniCall.camerPreOpenGLRenderFrame();
+            mJniCall.camerPreOpenGLRenderFrame(mtx);
     }
 
     public void onSurfaceChanged(GL10 gl, int width, int height) {

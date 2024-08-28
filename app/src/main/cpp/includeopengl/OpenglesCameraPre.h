@@ -75,7 +75,7 @@ public:
 
     void setScreenWH(int w, int h);
 
-    void renderFrame();
+    void renderFrame(const float mtx[]);
 
     void setVideoTexture(int renderTexture);
 

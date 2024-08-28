@@ -19,39 +19,44 @@ bool OpenglesCameraPre::initGraphics() {
     glEnableVertexAttribArray(aPos);
     glVertexAttribPointer(aPos, 2, GL_FLOAT, GL_FALSE, 0, CAMERA_PRE_VERTEX);
 
-    GLuint aTexCoord = glGetAttribLocation(program, "aTexCoord");
+    aTexCoord = glGetAttribLocation(program, "aTexCoord");
     // 纹理坐标
     glEnableVertexAttribArray(aTexCoord);
     glVertexAttribPointer(aTexCoord, 2, GL_FLOAT, GL_FALSE, 0, CAMERA_PRE_TEXTURE);
 
     // load and create a texture
-    if (data1) {
-        texture = loadTexture(data1, width1, height1);
-    }
+//    if (data1) {
+//        texture = loadTexture(data1, width1, height1);
+//    }
 
     return true;
 }
 
-void OpenglesCameraPre::renderFrame() {
+void OpenglesCameraPre::renderFrame(const float mtx[]) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
 
     // bind Texture
-    glActiveTexture(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE0, texture);
 
     glUseProgram(program);
-    checkGlError("glUseProgram");
+//    checkGlError("glUseProgram");
     // 4个顶点绘制两个三角形组成矩形
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+//    glUniform1i(aTexCoord, 0);
+    camerPreShader->setInt("aTexCoord", 0);
+    camerPreShader->setMat4("vMatrix", *mtx);
+
+//    glUniformMatrix4fv(aTexCoord, 1, false, &mtx);
     camerPreShader->use();
 
 }
 
 void OpenglesCameraPre::setVideoTexture(int renderTexture) {
-//    texture = renderTexture;
+    texture = renderTexture;
 }
 
 void OpenglesCameraPre::setScreenWH(int w, int h) {

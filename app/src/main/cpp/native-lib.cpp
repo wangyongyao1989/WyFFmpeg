@@ -286,9 +286,17 @@ cpp_camera_pre_set_video_texture(JNIEnv *env, jobject thiz, jint videoTexture) {
 
 extern "C"
 JNIEXPORT void JNICALL
-cpp_camera_pre_render_frame(JNIEnv *env, jobject thiz) {
+cpp_camera_pre_render_frame(JNIEnv *env, jobject thiz,jfloatArray jArray) {
     if (cameraPre == nullptr) return;
-    cameraPre->renderFrame();
+    const int MAX_LENGTH = 1024;
+    float cppArray[MAX_LENGTH];
+    jsize length = env->GetArrayLength(jArray);
+    jfloat *cArray = env->GetFloatArrayElements(jArray, 0);
+    if (cArray != NULL) {
+        memcpy(cppArray, cArray, length * sizeof(float));
+        env->ReleaseFloatArrayElements(jArray, cArray, 0);
+    }
+    cameraPre->renderFrame(cppArray);
 
 }
 
@@ -349,7 +357,7 @@ static const JNINativeMethod methods[] = {
         {"native_camera_pre_init_opengl",          "()Z",                                                       (void *) cpp_camera_pre_init_opengl},
         {"native_camera_pre_set_wh_opengl",        "(II)Z",                                                     (void *) cpp_camera_pre_set_wh_opengl},
         {"native_camera_pre_set_video_texture",    "(I)V",                                                      (void *) cpp_camera_pre_set_video_texture},
-        {"native_camera_pre_render_frame",         "()V",                                                      (void *) cpp_camera_pre_render_frame},
+        {"native_camera_pre_render_frame",         "([F)V",                                                      (void *) cpp_camera_pre_render_frame},
         {"native_camera_pre_set_glsl_path",        "(Ljava/lang/String"
                                                    ";Ljava/lang/String;)V",                                     (void *) cpp_camera_pre_frag_vertex_path},
         {"native_camera_pre_set_glsl_pic",        "(Ljava/lang/String;)V",                                     (void *) cpp_camera_pre_frag_vertex_pic},
