@@ -344,12 +344,12 @@ cpp_texture_video_play_init(JNIEnv *env, jobject thiz,
     ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
 
     auto *aAssetManager = assetManager
-            ? AAssetManager_fromJava(env, assetManager) : nullptr;
+                          ? AAssetManager_fromJava(env, assetManager) : nullptr;
 
     int textureId = -1;
     if (textureVideoPlay == nullptr)
         textureVideoPlay = new OpenglesTextureVideoPlay();
-    textureId = textureVideoPlay->initGraphics();
+    textureVideoPlay->init(window, aAssetManager);
     return textureId;
 }
 
@@ -357,7 +357,7 @@ extern "C"
 JNIEXPORT jboolean JNICALL
 cpp_texture_video_play_wh(JNIEnv *env, jobject thiz, jint width, jint height) {
     if (textureVideoPlay == nullptr) return -1;
-    textureVideoPlay->setScreenWH(width, height);
+    textureVideoPlay->setScreenWH((size_t) width, (size_t) height);
     return 0;
 }
 
@@ -380,16 +380,23 @@ cpp_texture_video_play_set_glsl_path(JNIEnv *env, jobject thiz, jstring frag, js
 extern "C"
 JNIEXPORT void JNICALL
 cpp_texture_video_play_render(JNIEnv *env, jobject thiz) {
-
+    if (textureVideoPlay == nullptr) return;
+    textureVideoPlay->render();
 
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-cpp_texture_video_play_draw(JNIEnv *env, jobject thiz, jbyteArray bytes, jint width,
+cpp_texture_video_play_draw(JNIEnv *env, jobject thiz, jbyteArray data, jint width,
                             jint height) {
+    if (textureVideoPlay == nullptr) return;
+    jbyte *bufferPtr = env->GetByteArrayElements(data, nullptr);
+    jsize arrayLength = env->GetArrayLength(data);
 
+    textureVideoPlay->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
+                           (size_t) height, 0);
 
+    env->ReleaseByteArrayElements(data, bufferPtr, 0);
 }
 
 extern "C"

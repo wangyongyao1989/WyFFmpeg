@@ -1,6 +1,6 @@
 
 cmake_minimum_required(VERSION 3.22.1)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
 project("myyffmpeg")
 
@@ -8,7 +8,7 @@ project("myyffmpeg")
 set(distribution_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 set(jnilibs ${CMAKE_SOURCE_DIR}/jniLibs)
 
@@ -28,6 +28,7 @@ add_library(${CMAKE_PROJECT_NAME}
         opengl/OpenglesFlashLight.cpp
         opengl/OpenGLStdImage.cpp
         opengl/OpenglesCameraPre.cpp
+        opengl/GLCommonUtils.cpp
         opengl/OpenglesTextureVideoPlay.cpp
 
         ffmpegsrc/api-band-test.c

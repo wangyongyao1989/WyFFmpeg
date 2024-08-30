@@ -149,6 +149,7 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
         if (mJniCall != null) {
             mJniCall.textureVieoPlayDestroy();
         }
+        stopCameraPreview();
     }
 
 }
