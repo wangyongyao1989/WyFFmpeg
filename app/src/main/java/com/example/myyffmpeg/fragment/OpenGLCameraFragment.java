@@ -2,7 +2,6 @@ package com.example.myyffmpeg.fragment;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -16,7 +15,6 @@ import com.example.myyffmpeg.FFPlayCallJni;
 import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentOpenglCameraLayoutBinding;
 import com.example.myyffmpeg.view.CameraPreView;
-import com.example.myyffmpeg.view.GLCameraView;
 import com.example.myyffmpeg.view.GLFlashLightView;
 import com.example.myyffmpeg.view.GLTextureCPlusVideoPlayerView;
 
@@ -32,6 +30,7 @@ public class OpenGLCameraFragment extends BaseFragment {
     private Button mBtnCameraPre;
     private Button mBtnGlCamera1;
     private Button mBtnGlCamera2;
+    private GLTextureCPlusVideoPlayerView mGLTextureVideoPlayerView;
 
     @Override
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
@@ -87,9 +86,9 @@ public class OpenGLCameraFragment extends BaseFragment {
             mGlShow.removeAllViews();
 //            GLCameraView glCameraView
 //                    = new GLCameraView(getActivity(), mFFPlayCallJni);
-            GLTextureCPlusVideoPlayerView glView = new GLTextureCPlusVideoPlayerView(getActivity()
+            mGLTextureVideoPlayerView = new GLTextureCPlusVideoPlayerView(getActivity()
                     , mFFPlayCallJni);
-            mGlShow.addView(glView);
+            mGlShow.addView(mGLTextureVideoPlayerView);
         });
 
     }
@@ -99,6 +98,9 @@ public class OpenGLCameraFragment extends BaseFragment {
     public void onDestroy() {
         if (mCameraPreView != null) {
             mCameraPreView.onDestroy();
+        }
+        if (mGLTextureVideoPlayerView != null) {
+            mGLTextureVideoPlayerView.destroyRender();
         }
 
         super.onDestroy();
