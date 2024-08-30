@@ -18,6 +18,7 @@ import com.example.myyffmpeg.databinding.FragmentOpenglCameraLayoutBinding;
 import com.example.myyffmpeg.view.CameraPreView;
 import com.example.myyffmpeg.view.GLCameraView;
 import com.example.myyffmpeg.view.GLFlashLightView;
+import com.example.myyffmpeg.view.GLTextureCPlusVideoPlayerView;
 
 public class OpenGLCameraFragment extends BaseFragment {
 
@@ -84,9 +85,11 @@ public class OpenGLCameraFragment extends BaseFragment {
 
         mBtnGlCamera2.setOnClickListener(view -> {
             mGlShow.removeAllViews();
-            GLCameraView glCameraView
-                    = new GLCameraView(getActivity(), mFFPlayCallJni);
-            mGlShow.addView(glCameraView);
+//            GLCameraView glCameraView
+//                    = new GLCameraView(getActivity(), mFFPlayCallJni);
+            GLTextureCPlusVideoPlayerView glView = new GLTextureCPlusVideoPlayerView(getActivity()
+                    , mFFPlayCallJni);
+            mGlShow.addView(glView);
         });
 
     }

@@ -169,7 +169,7 @@ public class LiveManger implements TextureView.SurfaceTextureListener, Camera2Li
     }
 
     @Override
-    public void onPreviewFrame(byte[] yuvData) {
+    public void onPreviewFrame(byte[] yuvData, int width, int height) {
 //        Log.e(TAG, "onPreviewFrame:"+yuvData.length);
         if (yuvData != null && isLiving && mRtmpLivePusher != null) {
             byte[] bytes = new byte[]{0x1, 0x2, 0x3, 0x4, 0x5};

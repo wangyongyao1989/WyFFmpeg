@@ -7,9 +7,7 @@ import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Size;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
+import android.view.Surface;
 
 import com.example.myyffmpeg.FFPlayCallJni;
 import com.example.myyffmpeg.utils.FileUtils;
@@ -20,30 +18,32 @@ import com.example.rtmplive.camera.Camera2Listener;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Renderer
+/**
+ *
+ */
+public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSurfaceView.Renderer
         , SurfaceTexture.OnFrameAvailableListener, Camera2Listener {
 
 
-    private static String TAG = GLCameraView.class.getSimpleName();
+    private static String TAG = GLTextureCPlusVideoPlayerView.class.getSimpleName();
     private FFPlayCallJni mJniCall;
     private Context mContext;
 
     private SurfaceTexture surfaceTexture;
-    private int mTextureId = 0;
 
     private Camera2Helper1 camera2Helper;
     private int mWidth;
     private int mHeight;
 
 
-    public GLCameraView(Context context, FFPlayCallJni jniCall) {
+    public GLTextureCPlusVideoPlayerView(Context context, FFPlayCallJni jniCall) {
         super(context);
         mContext = context;
         mJniCall = jniCall;
         init();
     }
 
-    public GLCameraView(Context context, AttributeSet attrs) {
+    public GLTextureCPlusVideoPlayerView(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
         init();
@@ -53,17 +53,14 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
         getHolder().addCallback(this);
         setEGLContextClientVersion(3);
         setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        String fragPath = FileUtils.getModelFilePath(mContext, "camera_pre_fragment.glsl");
-        String vertexPath = FileUtils.getModelFilePath(mContext, "camera_pre_vertex.glsl");
+        String fragPath = FileUtils.getModelFilePath(mContext, "texture_video_play_frament.glsl");
+        String vertexPath = FileUtils.getModelFilePath(mContext, "texture_video_play_vert.glsl");
         String picSrc1 = FileUtils.getModelFilePath(mContext, "wall.jpg");
 
         if (mJniCall != null) {
-            mJniCall.setCamerPreGLSLPath(fragPath, vertexPath);
-            mJniCall.setCamerPreGLSLPic(picSrc1);
+            mJniCall.setTextureVieoPlayGLSLPath(fragPath, vertexPath);
         }
         setRenderer(this);
-
-
     }
 
     private void startCameraPreview(SurfaceTexture surfaceTexture, int width, int height) {
@@ -88,16 +85,16 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
 
     public void onDrawFrame(GL10 gl) {
         surfaceTexture.updateTexImage();
-        float[] mtx = new float[16];
-        surfaceTexture.getTransformMatrix(mtx);
-        if (mJniCall != null)
-            mJniCall.camerPreOpenGLRenderFrame(mtx);
+        if (mJniCall != null) {
+            mJniCall.textureVieoPlayRender();
+        }
     }
 
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         Log.e(TAG, "onSurfaceChanged width:" + width + ",height" + height);
-        if (mJniCall != null)
-            mJniCall.setCamerPreWH(width, height);
+        if (mJniCall != null) {
+            mJniCall.setTextureVieoPlayWH(width, height);
+        }
         mWidth = width;
         mHeight = height;
         startCameraPreview(surfaceTexture, mWidth, mHeight);
@@ -108,13 +105,10 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
     public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
         Log.e(TAG, "onSurfaceCreated:");
         if (mJniCall != null) {
-            mTextureId = mJniCall.initCamerPreOpenGl();
+            mJniCall.textureVieoPlayInit(null, null);
         }
-        surfaceTexture = new SurfaceTexture(mTextureId);
+        surfaceTexture = new SurfaceTexture(0);
         surfaceTexture.setOnFrameAvailableListener(this);
-        Log.e(TAG, "onSurfaceCreated mTextureId:" + mTextureId);
-        if (mJniCall != null)
-            mJniCall.setVideoTexture(mTextureId);
         startCameraPreview(surfaceTexture, mWidth, mHeight);
     }
 
@@ -134,7 +128,9 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
     @Override
     public void onPreviewFrame(byte[] yuvData, int width, int height) {
 //        Log.e(TAG, "onPreviewFrame:" + yuvData.length);
-
+        if (mJniCall != null) {
+            mJniCall.textureVieoPlayDraw(yuvData, width, height);
+        }
     }
 
     @Override
@@ -149,5 +145,10 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
 
     }
 
+    public void destroyRender() {
+        if (mJniCall != null) {
+            mJniCall.textureVieoPlayDestroy();
+        }
+    }
 
 }

@@ -622,11 +622,11 @@ public class Camera2Helper1 {
                         YUVUtil.YUV420pRotate180(dstData, yuvData, width, height);
                     }
                     if (camera2Listener != null) {
-                        camera2Listener.onPreviewFrame(dstData);
+                        camera2Listener.onPreviewFrame(dstData, width, height);
                     }
                 } else {
                     if (camera2Listener != null) {
-                        camera2Listener.onPreviewFrame(yuvData);
+                        camera2Listener.onPreviewFrame(yuvData, width, height);
                     }
                 }
 

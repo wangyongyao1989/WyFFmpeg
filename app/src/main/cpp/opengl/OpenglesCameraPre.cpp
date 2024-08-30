@@ -2,7 +2,7 @@
 #include "../includeopengl/OpenglesCameraPre.h"
 #include <iostream>
 
-bool OpenglesCameraPre::initGraphics() {
+int OpenglesCameraPre::initGraphics() {
     program = camerPreShader->createProgram();
     if (!program) {
         LOGE("Could not create shaderId.");
@@ -29,14 +29,23 @@ bool OpenglesCameraPre::initGraphics() {
 //        texture = loadTexture(data1, width1, height1);
 //    }
 
-    return true;
+    glGenTextures(1, &texture);
+    LOGI("setVideoTexture texture = %d\n", texture);
+//    glBindTexture(GL_TEXTURE_2D, texture);
+
+//    glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES) eglImage);
+//    glTexParameteri(GL_TEXTURE0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//    glTexParameteri(GL_TEXTURE0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//    glTexParameteri(GL_TEXTURE0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//    glTexParameteri(GL_TEXTURE0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//    glBindTexture(GL_TEXTURE_2D, 0);
+    return texture;
 }
 
 void OpenglesCameraPre::renderFrame(const float mtx[]) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
-
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // also clear the depth buffer now!
     // bind Texture
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE0, texture);
@@ -56,6 +65,7 @@ void OpenglesCameraPre::renderFrame(const float mtx[]) {
 }
 
 void OpenglesCameraPre::setVideoTexture(int renderTexture) {
+//    LOGI("setVideoTexture renderTexture = %d\n", renderTexture);
     texture = renderTexture;
 }
 

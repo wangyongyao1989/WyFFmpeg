@@ -121,7 +121,7 @@ public class CameraPreView extends TextureView implements TextureView.SurfaceTex
     }
 
     @Override
-    public void onPreviewFrame(byte[] yuvData) {
+    public void onPreviewFrame(byte[] yuvData, int width, int height) {
 //        Log.e(TAG, "onPreviewFrame:" + yuvData.length);
 
     }

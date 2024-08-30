@@ -71,7 +71,7 @@ public:
 
     ~OpenglesCameraPre();
 
-    bool initGraphics();
+    int initGraphics();
 
     void setScreenWH(int w, int h);
 
