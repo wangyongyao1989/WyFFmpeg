@@ -60,7 +60,7 @@ class OpenglesTextureVideoPlay {
 private:
 
     int screenW, screenH;
-    GLuint program;
+    GLuint program = 0;
     GLuint aTexCoord;
     string colorVertexCode;
     string colorFragmentCode;
@@ -110,10 +110,10 @@ private:
     GLint m_textureYLoc;
     GLint m_textureULoc;
     GLint m_textureVLoc;
-    GLint m_textureSize;
-    GLint m_uniformProjection;
-    GLint m_uniformRotation;
-    GLint m_uniformScale;
+//    GLint m_textureSize;
+//    GLint m_uniformProjection;
+//    GLint m_uniformRotation;
+//    GLint m_uniformScale;
 
 public:
 

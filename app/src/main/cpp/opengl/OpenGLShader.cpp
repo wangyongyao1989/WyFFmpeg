@@ -7,8 +7,8 @@
 GLuint
 OpenGLShader::createProgram() {
     vertexShader = loadShader(GL_VERTEX_SHADER, gVertexShaderCode);
-    LOGI("=====gVertexShaderCode :%s", gVertexShaderCode);
-    LOGI("======gFragmentShaderCode :%s", gFragmentShaderCode);
+//    LOGI("=====gVertexShaderCode :%s", gVertexShaderCode);
+//    LOGI("======gFragmentShaderCode :%s", gFragmentShaderCode);
     if (!vertexShader) {
         checkGlError("loadShader GL_VERTEX_SHADER");
         return 0;

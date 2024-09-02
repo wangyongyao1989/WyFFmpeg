@@ -8,49 +8,33 @@ void OpenglesTextureVideoPlay::init(ANativeWindow *window, AAssetManager *assetM
 }
 
 void OpenglesTextureVideoPlay::render() {
-    LOGI("OpenglesTextureVideoPlay::render");
+//    LOGI("OpenglesTextureVideoPlay::render");
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     if (!useProgram() || !updateTextures()) return;
 
+
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 GLuint OpenglesTextureVideoPlay::useProgram() {
-    LOGI("OpenglesTextureVideoPlay::useProgram");
 
-    if (!createProgram() && !program) {
+    if (!program && !createProgram()) {
         LOGE("Could not use program.");
         return 0;
     }
 
     if (isProgramChanged) {
-        glUseProgram(program);
+        isProgramChanged = false;
+        LOGI("OpenglesTextureVideoPlay::useProgram %d",program);
 
-        checkGlError("Use program.");
+        glUseProgram(program);
+        checkGlError("Use program");
 
         glVertexAttribPointer(m_vertexPos, 2, GL_FLOAT, GL_FALSE, 0, kVertices);
         glEnableVertexAttribArray(m_vertexPos);
-
-        float targetAspectRatio = (float) m_width / (float) m_height;
-
-        GLfloat projection[16];
-        mat4f_load_ortho(-1.0f, 1.0f, -targetAspectRatio, targetAspectRatio, -1.0f, 1.0f,
-                         projection);
-        glUniformMatrix4fv(m_uniformProjection, 1, GL_FALSE, projection);
-
-        GLfloat rotationZ[16];
-        mat4f_load_rotation_z(m_rotation, rotationZ);
-        glUniformMatrix4fv(m_uniformRotation, 1, 0, &rotationZ[0]);
-
-        float scaleFactor = aspect_ratio_correction(false, m_backingWidth, m_backingHeight, m_width,
-                                                    m_height);
-
-        GLfloat scale[16];
-        mat4f_load_scale(scaleFactor, scaleFactor, 1.0f, scale);
-        glUniformMatrix4fv(m_uniformScale, 1, 0, &scale[0]);
 
         glUniform1i(m_textureYLoc, 0);
         glUniform1i(m_textureULoc, 1);
@@ -58,15 +42,10 @@ GLuint OpenglesTextureVideoPlay::useProgram() {
         glVertexAttribPointer(m_textureLoc, 2, GL_FLOAT, GL_FALSE, 0, kTextureCoords);
         glEnableVertexAttribArray(m_textureLoc);
 
-        if (m_textureSize >= 0) {
-            GLfloat size[2];
-            size[0] = m_width;
-            size[1] = m_height;
-            glUniform2fv(m_textureSize, 1, &size[0]);
-        }
 
-        isProgramChanged = false;
     }
+
+    return program;
 }
 
 void OpenglesTextureVideoPlay::setScreenWH(int w, int h) {
@@ -104,16 +83,14 @@ int OpenglesTextureVideoPlay::createProgram() {
         return 0;
     }
 
-
+    //Get Uniform Variables Location
     m_vertexPos = (GLuint) glGetAttribLocation(program, "position");
-    m_uniformProjection = glGetUniformLocation(program, "projection");
-    m_uniformRotation = glGetUniformLocation(program, "rotation");
-    m_uniformScale = glGetUniformLocation(program, "scale");
     m_textureYLoc = glGetUniformLocation(program, "s_textureY");
     m_textureULoc = glGetUniformLocation(program, "s_textureU");
     m_textureVLoc = glGetUniformLocation(program, "s_textureV");
-    m_textureSize = glGetUniformLocation(program, "texSize");
     m_textureLoc = (GLuint) glGetAttribLocation(program, "texcoord");
+
+    LOGI("OpenglesTextureVideoPlay::createProgram successed");
 
     return program;
 }
@@ -180,6 +157,9 @@ bool OpenglesTextureVideoPlay::updateTextures() {
     if (!m_textureIdY && !m_textureIdU && !m_textureIdV && !createTextures()) return false;
 
     if (isDirty) {
+        //todo yuv数据是否正确？
+        LOGI("OpenglesTextureVideoPlay::updateTextures %s",&m_pDataY);
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_textureIdY);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, (GLsizei) m_width, (GLsizei) m_height, 0,
@@ -243,6 +223,7 @@ void OpenglesTextureVideoPlay::checkGlError(const char *op) {
 
 void OpenglesTextureVideoPlay::draw(uint8_t *buffer, size_t length, size_t width, size_t height,
                                     float rotation) {
+//    LOGI("OpenglesTextureVideoPlay::draw");
     m_length = length;
     m_rotation = rotation;
 
@@ -268,7 +249,7 @@ void OpenglesTextureVideoPlay::updateFrame(const video_frame &frame) {
 //        m_pDataY = m_sizeY + m_sizeU + m_sizeV;
         m_pDataU = m_pDataY.get() + m_sizeY;
         m_pDataV = m_pDataU + m_sizeU;
-        isProgramChanged = true;
+//        isProgramChanged = true;
     }
 
     m_width = frame.width;
@@ -308,6 +289,7 @@ void OpenglesTextureVideoPlay::updateFrame(const video_frame &frame) {
             pSrcV += frame.stride_uv;
         }
     }
+//    LOGI("OpenglesTextureVideoPlay::updateFrame");
 
     isDirty = true;
 }
