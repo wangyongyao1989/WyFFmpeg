@@ -13,6 +13,7 @@ import com.example.myyffmpeg.FFPlayCallJni;
 import com.example.myyffmpeg.utils.FileUtils;
 import com.example.rtmplive.camera.Camera2Helper;
 import com.example.rtmplive.camera.Camera2Helper1;
+import com.example.rtmplive.camera.Camera2Helper2;
 import com.example.rtmplive.camera.Camera2Listener;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -21,17 +22,16 @@ import javax.microedition.khronos.opengles.GL10;
 /**
  *
  */
-public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSurfaceView.Renderer
-        , SurfaceTexture.OnFrameAvailableListener, Camera2Listener {
+public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSurfaceView.Renderer, Camera2Listener {
 
 
     private static String TAG = GLTextureCPlusVideoPlayerView.class.getSimpleName();
     private FFPlayCallJni mJniCall;
     private Context mContext;
 
-    private SurfaceTexture surfaceTexture;
+//    private SurfaceTexture surfaceTexture;
 
-    private Camera2Helper1 camera2Helper;
+    private Camera2Helper2 camera2Helper;
     private int mWidth;
     private int mHeight;
 
@@ -63,13 +63,12 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
         setRenderer(this);
     }
 
-    private void startCameraPreview(SurfaceTexture surfaceTexture, int width, int height) {
+    private void startCameraPreview(int width, int height) {
         if (camera2Helper == null) {
-            camera2Helper = new Camera2Helper1.Builder()
+            camera2Helper = new Camera2Helper2.Builder()
                     .cameraListener(this)
                     .specificCameraId(Camera2Helper.CAMERA_ID_BACK)
                     .context(mContext)
-                    .setSurfaceTexture(surfaceTexture)
                     .previewViewSize(new Point(width, height))
                     .build();
         }
@@ -84,10 +83,10 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
 
 
     public void onDrawFrame(GL10 gl) {
-        surfaceTexture.updateTexImage();
         if (mJniCall != null) {
             mJniCall.textureVieoPlayRender();
         }
+        requestRender();
     }
 
     public void onSurfaceChanged(GL10 gl, int width, int height) {
@@ -97,7 +96,7 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
         }
         mWidth = width;
         mHeight = height;
-        startCameraPreview(surfaceTexture, mWidth, mHeight);
+        startCameraPreview(mWidth, mHeight);
     }
 
 
@@ -107,16 +106,8 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
         if (mJniCall != null) {
             mJniCall.textureVieoPlayInit(null, null);
         }
-        surfaceTexture = new SurfaceTexture(0);
-        surfaceTexture.setOnFrameAvailableListener(this);
-        startCameraPreview(surfaceTexture, mWidth, mHeight);
+        startCameraPreview(mWidth, mHeight);
     }
-
-    @Override
-    public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-        requestRender();
-    }
-
 
     @Override
     public void onCameraOpened(Size previewSize, int displayOrientation) {
