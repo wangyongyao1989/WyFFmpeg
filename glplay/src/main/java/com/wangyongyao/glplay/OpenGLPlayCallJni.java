@@ -138,47 +138,48 @@ public class OpenGLPlayCallJni {
     private native void native_flash_light_on_scale(float scaleFactor, float focusX, float focusY, int action);
 
 
-    private long mNativeContext; // using by native
-
-    public static void glcreate(int type) {
+    public void glcreate(int type) {
         create(type);
     }
 
-    public static void gldestroy() {
+    public void gldestroy() {
         destroy();
     }
 
-    public static void glinit(Surface surface, AssetManager assetManager, int width, int height) {
+    public void glinit(Surface surface, AssetManager assetManager, int width, int height) {
         init(surface, assetManager, width, height);
     }
 
-    public static void glrender() {
+    public void glrender() {
         render();
     }
 
-    public static void gldraw(byte[] data, int width, int height, int rotation) {
+    public void gldraw(byte[] data, int width, int height, int rotation) {
         draw(data, width, height, rotation);
     }
 
-    public static void glsetParameters(int params) {
+    public void glsetParameters(int params) {
         setParameters(params);
     }
 
-    public static int glgetParameters() {
+    public int glgetParameters() {
         return getParameters();
     }
 
-    protected static native void create(int type);
 
-    protected static native void destroy();
+    private long mNativeContext; // using by native
 
-    protected static native void init(Surface surface, AssetManager assetManager, int width, int height);
+    protected native void create(int type);
 
-    protected static native void render();
+    protected native void destroy();
 
-    protected static native void draw(byte[] data, int width, int height, int rotation);
+    protected native void init(Surface surface, AssetManager assetManager, int width, int height);
 
-    protected static native void setParameters(int params);
+    protected native void render();
 
-    protected static native int getParameters();
+    protected native void draw(byte[] data, int width, int height, int rotation);
+
+    protected native void setParameters(int params);
+
+    protected native int getParameters();
 }

@@ -49,7 +49,7 @@ public class CameraController implements PreviewFrameHandler {
     }
 
     private final Context mContext;
-    private final VideoRenderer mVideoRenderer;
+    private final GLVideoRenderer mVideoRenderer;
 
     private final VideoCapture mVideoCapture;
     private final Semaphore mCameraOpenCloseLock = new Semaphore(1);
@@ -63,7 +63,7 @@ public class CameraController implements PreviewFrameHandler {
     private List<Size> mOutputSizes = new ArrayList<>();
     private Size mPreviewSize;
 
-    public CameraController(Context context, VideoRenderer videoRenderer) {
+    public CameraController(Context context, GLVideoRenderer videoRenderer) {
         mContext = context;
         mVideoRenderer = videoRenderer;
         mVideoCapture = new VideoCapture(this);
