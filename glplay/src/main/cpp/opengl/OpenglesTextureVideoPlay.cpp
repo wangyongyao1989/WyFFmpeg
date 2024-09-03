@@ -1,6 +1,6 @@
 
-#include "../includeopengl/OpenglesTextureVideoPlay.h"
 #include <iostream>
+#include "OpenglesTextureVideoPlay.h"
 
 void OpenglesTextureVideoPlay::init(ANativeWindow *window, AAssetManager *assetManager) {
     LOGI("OpenglesTextureVideoPlay::init");

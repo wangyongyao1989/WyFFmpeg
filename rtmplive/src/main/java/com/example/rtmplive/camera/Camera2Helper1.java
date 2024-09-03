@@ -460,40 +460,6 @@ public class Camera2Helper1 {
         }
     }
 
-    /**
-     * Configures the necessary {@link Matrix} transformation to `mTextureView`.
-     * This method should be called after the camera preview size is determined in
-     * setUpCameraOutputs and also the size of `mTextureView` is fixed.
-     *
-//     * @param viewWidth  The width of `mTextureView`
-//     * @param viewHeight The height of `mTextureView`
-     */
-    /*private void configureTransform(int viewWidth, int viewHeight) {
-//        if (null == mTextureView || null == mPreviewSize) {
-//            return;
-//        }
-        if (null == mSurfaceTexture || null == mPreviewSize) {
-            return;
-        }
-        Matrix matrix = new Matrix();
-        RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
-        RectF bufferRect = new RectF(0, 0, mPreviewSize.getHeight(), mPreviewSize.getWidth());
-        float centerX = viewRect.centerX();
-        float centerY = viewRect.centerY();
-        if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
-            bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY());
-            matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL);
-            float scale = Math.max(
-                    (float) viewHeight / mPreviewSize.getHeight(),
-                    (float) viewWidth / mPreviewSize.getWidth());
-            matrix.postScale(scale, scale, centerX, centerY);
-            matrix.postRotate((90 * (rotation - 2)) % 360, centerX, centerY);
-        } else if (Surface.ROTATION_180 == rotation) {
-            matrix.postRotate(180, centerX, centerY);
-        }
-        mTextureView.setTransform(matrix);
-
-    }*/
 
     public static final class Builder {
 

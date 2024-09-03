@@ -1,6 +1,6 @@
 
-#include "../includeopengl/OpenglesFlashLight.h"
 #include <iostream>
+#include "OpenglesFlashLight.h"
 
 bool OpenglesFlashLight::setupGraphics(int w, int h) {
     screenW = w;

@@ -22,14 +22,6 @@ add_library(${CMAKE_PROJECT_NAME}
         FFmpegWaterMarkTest.cpp
         FFmpegVideoPlay.cpp
 
-        #OpenGL相关
-        opengl/OpenGLShader.cpp
-        opengl/OpenGLCamera3D.cpp
-        opengl/OpenglesFlashLight.cpp
-        opengl/OpenGLStdImage.cpp
-        opengl/OpenglesCameraPre.cpp
-        opengl/GLCommonUtils.cpp
-        opengl/OpenglesTextureVideoPlay.cpp
 
         ffmpegsrc/api-band-test.c
         ffmpegsrc/api-threadmessage-test.c

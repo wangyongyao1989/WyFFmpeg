@@ -1,4 +1,4 @@
-package com.example.myyffmpeg.view;
+package com.wangyongyao.glplay.view;
 
 import android.content.Context;
 import android.graphics.Point;
@@ -7,15 +7,12 @@ import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Size;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
 
-import com.example.myyffmpeg.FFPlayCallJni;
-import com.example.myyffmpeg.utils.FileUtils;
-import com.example.rtmplive.camera.Camera2Helper;
-import com.example.rtmplive.camera.Camera2Helper1;
-import com.example.rtmplive.camera.Camera2Listener;
+
+import com.wangyongyao.glplay.OpenGLPlayCallJni;
+import com.wangyongyao.glplay.camera.Camera2Helper1;
+import com.wangyongyao.glplay.camera.Camera2Listener;
+import com.wangyongyao.glplay.utils.OpenGLPlayFileUtils;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -25,7 +22,7 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
 
 
     private static String TAG = GLCameraView.class.getSimpleName();
-    private FFPlayCallJni mJniCall;
+    private OpenGLPlayCallJni mJniCall;
     private Context mContext;
 
     private SurfaceTexture surfaceTexture;
@@ -36,7 +33,7 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
     private int mHeight;
 
 
-    public GLCameraView(Context context, FFPlayCallJni jniCall) {
+    public GLCameraView(Context context, OpenGLPlayCallJni jniCall) {
         super(context);
         mContext = context;
         mJniCall = jniCall;
@@ -53,9 +50,9 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
         getHolder().addCallback(this);
         setEGLContextClientVersion(3);
         setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        String fragPath = FileUtils.getModelFilePath(mContext, "camera_pre_fragment.glsl");
-        String vertexPath = FileUtils.getModelFilePath(mContext, "camera_pre_vertex.glsl");
-        String picSrc1 = FileUtils.getModelFilePath(mContext, "wall.jpg");
+        String fragPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "camera_pre_fragment.glsl");
+        String vertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "camera_pre_vertex.glsl");
+        String picSrc1 = OpenGLPlayFileUtils.getModelFilePath(mContext, "wall.jpg");
 
         if (mJniCall != null) {
             mJniCall.setCamerPreGLSLPath(fragPath, vertexPath);
@@ -70,7 +67,7 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
         if (camera2Helper == null) {
             camera2Helper = new Camera2Helper1.Builder()
                     .cameraListener(this)
-                    .specificCameraId(Camera2Helper.CAMERA_ID_BACK)
+//                    .specificCameraId(Camera2Helper.CAMERA_ID_BACK)
                     .context(mContext)
                     .setSurfaceTexture(surfaceTexture)
                     .previewViewSize(new Point(width, height))

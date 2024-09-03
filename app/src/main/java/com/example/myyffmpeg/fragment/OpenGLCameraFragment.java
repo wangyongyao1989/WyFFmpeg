@@ -11,12 +11,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProviders;
 
-import com.example.myyffmpeg.FFPlayCallJni;
 import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentOpenglCameraLayoutBinding;
-import com.example.myyffmpeg.view.CameraPreView;
-import com.example.myyffmpeg.view.GLFlashLightView;
-import com.example.myyffmpeg.view.GLTextureCPlusVideoPlayerView;
+import com.wangyongyao.glplay.OpenGLPlayCallJni;
+import com.wangyongyao.glplay.view.CameraPreView;
+import com.wangyongyao.glplay.view.GLFlashLightView;
+import com.wangyongyao.glplay.view.GLTextureCPlusVideoPlayerView;
 
 public class OpenGLCameraFragment extends BaseFragment {
 
@@ -25,7 +25,7 @@ public class OpenGLCameraFragment extends BaseFragment {
     private Button mBtnGlBack;
     private FFViewModel mFfViewModel;
     private FrameLayout mGlShow;
-    private FFPlayCallJni mFFPlayCallJni;
+    private OpenGLPlayCallJni mFFPlayCallJni;
     private CameraPreView mCameraPreView;
     private Button mBtnCameraPre;
     private Button mBtnGlCamera1;
@@ -51,7 +51,7 @@ public class OpenGLCameraFragment extends BaseFragment {
 
     @Override
     public void initData() {
-        mFFPlayCallJni = new FFPlayCallJni();
+        mFFPlayCallJni = new OpenGLPlayCallJni();
     }
 
     @Override

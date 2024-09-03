@@ -1,6 +1,7 @@
 
-#include "../includeopengl/OpenglesCameraPre.h"
+
 #include <iostream>
+#include "OpenglesCameraPre.h"
 
 int OpenglesCameraPre::initGraphics() {
     program = camerPreShader->createProgram();

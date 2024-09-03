@@ -1,4 +1,4 @@
-package com.example.myyffmpeg.view;
+package com.wangyongyao.glplay.view;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView;
@@ -7,8 +7,9 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
-import com.example.myyffmpeg.FFPlayCallJni;
-import com.example.myyffmpeg.utils.FileUtils;
+
+import com.wangyongyao.glplay.OpenGLPlayCallJni;
+import com.wangyongyao.glplay.utils.OpenGLPlayFileUtils;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -19,7 +20,7 @@ public class GLFlashLightView extends GLSurfaceView implements GLSurfaceView.Ren
     private ScaleGestureDetector scaleGestureDetector;
 
     private static String TAG = GLFlashLightView.class.getSimpleName();
-    private FFPlayCallJni mJniCall;
+    private OpenGLPlayCallJni mJniCall;
     private Context mContext;
     private boolean isScaleGesture;
 
@@ -27,7 +28,7 @@ public class GLFlashLightView extends GLSurfaceView implements GLSurfaceView.Ren
     private float downY;
 
 
-    public GLFlashLightView(Context context, FFPlayCallJni jniCall) {
+    public GLFlashLightView(Context context, OpenGLPlayCallJni jniCall) {
         super(context);
         mContext = context;
         mJniCall = jniCall;
@@ -44,12 +45,12 @@ public class GLFlashLightView extends GLSurfaceView implements GLSurfaceView.Ren
         getHolder().addCallback(this);
         setEGLContextClientVersion(3);
         setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        String fragPath = FileUtils.getModelFilePath(mContext, "flash_light_cube_fragment.glsl");
-        String vertexPath = FileUtils.getModelFilePath(mContext, "flash_light_cube_vertex.glsl");
-        String colorFragPath = FileUtils.getModelFilePath(mContext, "flash_light_color_fragment.glsl");
-        String colorVertexPath = FileUtils.getModelFilePath(mContext, "flash_light_color_vertex.glsl");
-        String picSrc1 = FileUtils.getModelFilePath(mContext, "diffuse_map_container2.png");
-        String picSrc2 = FileUtils.getModelFilePath(mContext, "specular_container2.png");
+        String fragPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "flash_light_cube_fragment.glsl");
+        String vertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "flash_light_cube_vertex.glsl");
+        String colorFragPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "flash_light_color_fragment.glsl");
+        String colorVertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "flash_light_color_vertex.glsl");
+        String picSrc1 = OpenGLPlayFileUtils.getModelFilePath(mContext, "diffuse_map_container2.png");
+        String picSrc2 = OpenGLPlayFileUtils.getModelFilePath(mContext, "specular_container2.png");
 
         if (mJniCall != null) {
             mJniCall.setFlashLightGLSLPath(colorFragPath, colorVertexPath, picSrc1, picSrc2);

@@ -1,4 +1,4 @@
-package com.example.myyffmpeg.view;
+package com.wangyongyao.glplay.view;
 
 import android.content.Context;
 import android.graphics.Point;
@@ -11,8 +11,8 @@ import android.view.TextureView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.example.rtmplive.camera.Camera2Helper;
-import com.example.rtmplive.camera.Camera2Listener;
+import com.wangyongyao.glplay.camera.Camera2Helper;
+import com.wangyongyao.glplay.camera.Camera2Listener;
 
 
 /**
