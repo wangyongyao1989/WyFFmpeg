@@ -1,4 +1,4 @@
-package com.example.myyffmpeg.camerahelper;
+package com.wangyongyao.glplay.camerahelper.camerahelper;
 
 import android.graphics.ImageFormat;
 import android.media.Image;

@@ -227,7 +227,7 @@ void OpenglesTextureVideoPlay::draw(uint8_t *buffer, size_t length, size_t width
     m_length = length;
     m_rotation = rotation;
 
-    video_frame frame{};
+    texture_video_frame frame{};
     frame.width = width;
     frame.height = height;
     frame.stride_y = width;
@@ -239,7 +239,7 @@ void OpenglesTextureVideoPlay::draw(uint8_t *buffer, size_t length, size_t width
     updateFrame(frame);
 }
 
-void OpenglesTextureVideoPlay::updateFrame(const video_frame &frame) {
+void OpenglesTextureVideoPlay::updateFrame(const texture_video_frame &frame) {
     m_sizeY = frame.width * frame.height;
     m_sizeU = frame.width * frame.height / 4;
     m_sizeV = frame.width * frame.height / 4;

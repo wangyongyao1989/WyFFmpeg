@@ -11,7 +11,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/ffmpegplay" />
-            <option value="$PROJECT_DIR$/openglplay" />
+            <option value="$PROJECT_DIR$/glplay" />
             <option value="$PROJECT_DIR$/rtmplive" />
           </set>
         </option>

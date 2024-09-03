@@ -45,7 +45,7 @@ const float kTextureCoords[8] = {
         1, 1
 };
 
-struct video_frame {
+struct texture_video_frame {
     size_t width;
     size_t height;
     size_t stride_y;
@@ -79,7 +79,7 @@ private:
 
     GLuint useProgram();
 
-    void updateFrame(const video_frame &frame);
+    void updateFrame(const texture_video_frame &frame);
 
     bool isDirty;
     bool isProgramChanged;

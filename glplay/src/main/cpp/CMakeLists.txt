@@ -22,6 +22,18 @@ add_library(
         opengl/OpenglesCameraPre.cpp
         opengl/GLCommonUtils.cpp
         opengl/OpenglesTextureVideoPlay.cpp
+
+        #        test
+        test/CommonUtils.cpp
+        test/GLUtils.cpp
+        test/GLVideoRendererYUV420.cpp
+        test/GLVideoRendererYUV420Filter.cpp
+        test/VideoRenderer.cpp
+        test/VideoRendererContext.cpp
+        test/VKUtils.cpp
+        test/VKVideoRendererYUV420.cpp
+
+
 )
 
 link_directories(
@@ -49,6 +61,7 @@ target_link_libraries(
         EGL
         GLESv3
         OpenSLES
+        vulkan
         log
         ${third-party-libs}
 

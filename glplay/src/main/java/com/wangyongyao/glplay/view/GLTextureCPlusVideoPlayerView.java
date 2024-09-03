@@ -7,7 +7,8 @@ import android.util.Log;
 
 
 import com.wangyongyao.glplay.OpenGLPlayCallJni;
-import com.wangyongyao.glplay.camera.CameraHelper;
+import com.wangyongyao.glplay.camerahelper.camerahelper.CameraDataHelper;
+import com.wangyongyao.glplay.camerahelper.camerahelper.CameraDataListener;
 import com.wangyongyao.glplay.utils.OpenGLPlayFileUtils;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -16,18 +17,18 @@ import javax.microedition.khronos.opengles.GL10;
 /**
  *
  */
-public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSurfaceView.Renderer {
+public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSurfaceView.Renderer
+        , CameraDataListener {
 
 
     private static String TAG = GLTextureCPlusVideoPlayerView.class.getSimpleName();
     private OpenGLPlayCallJni mJniCall;
     private Context mContext;
 
-//    private SurfaceTexture surfaceTexture;
 
     private int mWidth;
     private int mHeight;
-    private CameraHelper mCameraHelper;
+    private CameraDataHelper mCameraHelper;
 
 
     public GLTextureCPlusVideoPlayerView(Context context, OpenGLPlayCallJni jniCall) {
@@ -50,6 +51,8 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
         String fragPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "texture_video_play_frament.glsl");
         String vertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "texture_video_play_vert.glsl");
         String picSrc1 = OpenGLPlayFileUtils.getModelFilePath(mContext, "wall.jpg");
+        mCameraHelper = new CameraDataHelper(getContext(), this);
+        mCameraHelper.startCamera();
 
         if (mJniCall != null) {
             mJniCall.setTextureVieoPlayGLSLPath(fragPath, vertexPath);
@@ -58,9 +61,8 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
     }
 
 
-
     private void stopCameraPreview() {
-
+        mCameraHelper.destroy();
     }
 
 
@@ -78,8 +80,7 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
         }
         mWidth = width;
         mHeight = height;
-//        startCameraPreview(mWidth, mHeight);
-//        mCameraHelper.initialize(width, height);
+        mCameraHelper.initialize(width, height);
     }
 
 
@@ -89,18 +90,17 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
         if (mJniCall != null) {
             mJniCall.textureVieoPlayInit(null, null);
         }
-//        startCameraPreview(mWidth, mHeight);
-//        mCameraHelper = new CameraHelper(getContext());
+
     }
 
-//
-//    @Override
-//    public void onPreviewFrame(byte[] yuvData, int width, int height) {
-////        Log.e(TAG, "onPreviewFrame:" + yuvData.length);
-//        if (mJniCall != null && yuvData != null && yuvData.length > 0) {
-//            mJniCall.textureVieoPlayDraw(yuvData, width, height);
-//        }
-//    }
+
+    @Override
+    public void onPreviewFrame(byte[] yuvData, int width, int height) {
+        Log.e(TAG, "onPreviewFrame:" + yuvData.length);
+        if (mJniCall != null && yuvData != null && yuvData.length > 0) {
+            mJniCall.textureVieoPlayDraw(yuvData, width, height);
+        }
+    }
 
 
     public void destroyRender() {

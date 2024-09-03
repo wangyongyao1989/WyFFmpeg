@@ -1,8 +1,8 @@
-#include "GLCommonUtils.h"
+#include "../includeopengl/CommonUtils.h"
 
 #include <cmath>
 
-void mat4f_load_ortho1(float left, float right, float bottom, float top, float near, float far,
+void mat4f_load_ortho(float left, float right, float bottom, float top, float near, float far,
                       float *mat4f) {
     float r_l = right - left;
     float t_b = top - bottom;
@@ -32,7 +32,7 @@ void mat4f_load_ortho1(float left, float right, float bottom, float top, float n
     mat4f[15] = 1.0f;
 }
 
-void mat4f_load_rotation_z1(float rotation, float *mat4f) {
+void mat4f_load_rotation_z(float rotation, float *mat4f) {
     float radians = rotation * (float) M_PI / 180.0f;
     float s = std::sin(radians);
     float c = std::cos(radians);
@@ -58,7 +58,7 @@ void mat4f_load_rotation_z1(float rotation, float *mat4f) {
     mat4f[15] = 1.0f;
 }
 
-void mat4f_load_scale1(float scaleX, float scaleY, float scaleZ, float *mat4f) {
+void mat4f_load_scale(float scaleX, float scaleY, float scaleZ, float *mat4f) {
     mat4f[0] = scaleX;
     mat4f[1] = 0.0f;
     mat4f[2] = 0.0f;
@@ -80,7 +80,7 @@ void mat4f_load_scale1(float scaleX, float scaleY, float scaleZ, float *mat4f) {
     mat4f[15] = 1.0f;
 }
 
-float aspect_ratio_correction1(bool fillScreen,
+float aspect_ratio_correction(bool fillScreen,
                               size_t backingWidth,
                               size_t backingHeight,
                               size_t width,

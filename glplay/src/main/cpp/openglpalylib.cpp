@@ -16,12 +16,17 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 //包名+类名字符串定义：
-//const char *rtmp_class_name = "com/wangyongyao/glplay/OpenGLPlayCallJni";
 const char *rtmp_class_name = "com/wangyongyao/glplay/OpenGLPlayCallJni";
 
 OpenglesFlashLight *flashLight;
 OpenglesCameraPre *cameraPre;
 OpenglesTextureVideoPlay *textureVideoPlay;
+
+
+#include "../includeopengl/VideoRendererContext.h"
+
+#include <android/native_window_jni.h>
+#include <android/asset_manager_jni.h>
 
 /*********************** GL 聚光手电筒********************/
 
@@ -244,40 +249,122 @@ cpp_texture_video_play_destroy(JNIEnv *env, jobject thiz) {
 
 }
 
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_creat(JNIEnv *env, jobject thiz, jint type) {
+    VideoRendererContext::createContext(env, thiz, type);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_destroy(JNIEnv *env, jobject thiz) {
+    VideoRendererContext::deleteContext(env, thiz);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_init(JNIEnv *env, jobject thiz, jobject surface, jobject assetManager, jint width,
+         jint height) {
+    VideoRendererContext *context = VideoRendererContext::getContext(env, thiz);
+
+    ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
+
+    auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
+
+    if (context) context->init(window, aAssetManager, (size_t) width, (size_t) height);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_render(JNIEnv *env, jobject thiz) {
+    VideoRendererContext *context = VideoRendererContext::getContext(env, thiz);
+
+    if (context) context->render();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_draw(JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height, jint rotation) {
+    jbyte *bufferPtr = env->GetByteArrayElements(data, nullptr);
+
+    jsize arrayLength = env->GetArrayLength(data);
+
+    VideoRendererContext *context = VideoRendererContext::getContext(env, obj);
+
+    if (context)
+        context->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width, (size_t) height,
+                      rotation);
+
+    env->ReleaseByteArrayElements(data, bufferPtr, 0);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_setParameters(JNIEnv *env, jobject thiz, jint p) {
+
+        VideoRendererContext *context = VideoRendererContext::getContext(env, thiz);
+
+        if (context) context->setParameters((uint32_t) p);
+
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+cpp_getParameters(JNIEnv *env, jobject thiz) {
+    VideoRendererContext *context = VideoRendererContext::getContext(env, thiz);
+
+    if (context) return context->getParameters();
+
+    return 0;
+
+}
+
+
 static const JNINativeMethod methods[] = {
         //GLCameraPre
-        {"native_camera_pre_init_opengl",           "()I",                       (void *) cpp_camera_pre_init_opengl},
-        {"native_camera_pre_set_wh_opengl",         "(II)Z",                     (void *) cpp_camera_pre_set_wh_opengl},
-        {"native_camera_pre_set_video_texture",     "(I)V",                      (void *) cpp_camera_pre_set_video_texture},
-        {"native_camera_pre_render_frame",          "([F)V",                     (void *) cpp_camera_pre_render_frame},
+        {"native_camera_pre_init_opengl",           "()I",                   (void *) cpp_camera_pre_init_opengl},
+        {"native_camera_pre_set_wh_opengl",         "(II)Z",                 (void *) cpp_camera_pre_set_wh_opengl},
+        {"native_camera_pre_set_video_texture",     "(I)V",                  (void *) cpp_camera_pre_set_video_texture},
+        {"native_camera_pre_render_frame",          "([F)V",                 (void *) cpp_camera_pre_render_frame},
         {"native_camera_pre_set_glsl_path",         "(Ljava/lang/String"
-                                                    ";Ljava/lang/String;)V",     (void *) cpp_camera_pre_frag_vertex_path},
-        {"native_camera_pre_set_glsl_pic",          "(Ljava/lang/String;)V",     (void *) cpp_camera_pre_frag_vertex_pic},
+                                                    ";Ljava/lang/String;)V", (void *) cpp_camera_pre_frag_vertex_path},
+        {"native_camera_pre_set_glsl_pic",          "(Ljava/lang/String;)V", (void *) cpp_camera_pre_frag_vertex_pic},
 
 
 
         //聚光手电筒
-        {"native_flash_light_init_opengl",          "(II)Z",                     (void *) cpp_flash_light_init_opengl},
-        {"native_flash_light_render_frame",         "()V",                       (void *) cpp_flash_light_render_frame},
+        {"native_flash_light_init_opengl",          "(II)Z",                 (void *) cpp_flash_light_init_opengl},
+        {"native_flash_light_render_frame",         "()V",                   (void *) cpp_flash_light_render_frame},
         {"native_flash_light_color_set_glsl_path",  "(Ljava/lang/String"
-                                                    ";Ljava/lang/String;)V",     (void *) cpp_flash_light_color_frag_vertex_path},
+                                                    ";Ljava/lang/String;)V", (void *) cpp_flash_light_color_frag_vertex_path},
         {"native_flash_light_set_glsl_path",        "(Ljava/lang/String"
                                                     ";Ljava/lang/String"
                                                     ";Ljava/lang/String"
-                                                    ";Ljava/lang/String;)V",     (void *) cpp_flash_light_frag_vertex_path},
-        {"native_flash_light_move_xy",              "(FFI)V",                    (void *) cpp_flash_light_move_xy},
-        {"native_flash_light_on_scale",             "(FFFI)V",                   (void *) cpp_flash_light_on_scale},
+                                                    ";Ljava/lang/String;)V", (void *) cpp_flash_light_frag_vertex_path},
+        {"native_flash_light_move_xy",              "(FFI)V",                (void *) cpp_flash_light_move_xy},
+        {"native_flash_light_on_scale",             "(FFFI)V",               (void *) cpp_flash_light_on_scale},
 
         //OpenGL Texture Video Play
         {"native_texture_video_play_init",          "(Landroid/view/Surface;"
                                                     "Landroid/content/res"
-                                                    "/AssetManager;)V",          (void *) cpp_texture_video_play_init},
-        {"native_texture_video_play_wh",            "(II)Z",                     (void *) cpp_texture_video_play_wh},
-        {"native_texture_video_play_render",        "()V",                       (void *) cpp_texture_video_play_render},
+                                                    "/AssetManager;)V",      (void *) cpp_texture_video_play_init},
+        {"native_texture_video_play_wh",            "(II)Z",                 (void *) cpp_texture_video_play_wh},
+        {"native_texture_video_play_render",        "()V",                   (void *) cpp_texture_video_play_render},
         {"native_texture_video_play_set_glsl_path", "(Ljava/lang/String"
-                                                    ";Ljava/lang/String;)V",     (void *) cpp_texture_video_play_set_glsl_path},
-        {"native_texture_video_play_draw",          "([BII)V",                   (void *) cpp_texture_video_play_draw},
-        {"native_texture_video_play_destroy",       "()V",                       (void *) cpp_texture_video_play_destroy},
+                                                    ";Ljava/lang/String;)V", (void *) cpp_texture_video_play_set_glsl_path},
+        {"native_texture_video_play_draw",          "([BII)V",               (void *) cpp_texture_video_play_draw},
+        {"native_texture_video_play_destroy",       "()V",                   (void *) cpp_texture_video_play_destroy},
+
+        {"create",                                  "(I)V",                  (void *) cpp_creat},
+        {"destroy",                                 "()V",                   (void *) cpp_destroy},
+        {"init",                                    "(Landroid/view/Surface;"
+                                                    "Landroid/content/res"
+                                                    "/AssetManager;II)V",    (void *) cpp_init},
+        {"render",                                  "()V",                   (void *) cpp_render},
+        {"draw",                                    "([BIII)V",              (void *) cpp_draw},
+        {"setParameters",                           "(I)V",                  (void *) cpp_setParameters},
+        {"getParameters",                           "()I",                   (void *) cpp_getParameters},
 
 
 };
@@ -304,5 +391,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     }
     return JNI_VERSION_1_6;
 }
+
 
 

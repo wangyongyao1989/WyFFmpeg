@@ -1,4 +1,4 @@
-package com.example.myyffmpeg.camerahelper;
+package com.wangyongyao.glplay.camerahelper.camerahelper;
 
 /**
  * author : wangyongyao https://github.com/wangyongyao1989

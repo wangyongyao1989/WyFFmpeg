@@ -1,4 +1,4 @@
-package com.example.myyffmpeg.camerahelper;
+package com.wangyongyao.glplay.camerahelper.camerahelper;
 
 import static androidx.core.content.PermissionChecker.checkSelfPermission;
 
@@ -38,8 +38,8 @@ import java.util.concurrent.TimeUnit;
  * Create Time : 2024/9/3 10:57
  * Descibe : MyyFFmpeg com.example.myyffmpeg.utils
  */
-public class CameraHelper implements PreviewFrameHandler {
-    private static final String TAG = CameraHelper.class.toString();
+public class CameraDataHelper implements PreviewFrameHandler {
+    private static final String TAG = CameraDataHelper.class.toString();
     private static final int IMAGE_BUFFER_SIZE = 3;
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
@@ -52,7 +52,6 @@ public class CameraHelper implements PreviewFrameHandler {
     }
 
     private final Context mContext;
-//    private final VideoRenderer mVideoRenderer;
     private final VideoCapture mVideoCapture;
     private final Semaphore mCameraOpenCloseLock = new Semaphore(1);
     private CameraCaptureSession mCaptureSession;
@@ -64,16 +63,19 @@ public class CameraHelper implements PreviewFrameHandler {
     private Integer mSensorOrientation;
     private List<Size> mOutputSizes = new ArrayList<>();
     private Size mPreviewSize;
+    private CameraDataListener mCameraDataListener;
 
-    public CameraHelper(Context context) {
+    public CameraDataHelper(Context context, CameraDataListener cameraDataListener) {
         mContext = context;
-//        mVideoRenderer = videoRenderer;
+        mCameraDataListener = cameraDataListener;
         mVideoCapture = new VideoCapture(this);
     }
 
     @Override
     public void onPreviewFrame(byte[] data, int width, int height) {
-//        mVideoRenderer.drawVideoFrame(data, width, height, getOrientation());
+        if (mCameraDataListener != null) {
+            mCameraDataListener.onPreviewFrame(data, width, height);
+        }
     }
 
     public Integer getSensorOrientation() {
