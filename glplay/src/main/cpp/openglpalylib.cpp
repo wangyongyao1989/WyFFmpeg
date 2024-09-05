@@ -179,7 +179,7 @@ cpp_camera_pre_frag_vertex_pic(JNIEnv *env, jobject thiz, jstring pic) {
 /***********************  OpenGL纹理方式显示视频********************/
 
 extern "C"
-JNIEXPORT jint JNICALL
+JNIEXPORT void JNICALL
 cpp_texture_video_play_init(JNIEnv *env, jobject thiz,
                             jobject surface,
                             jobject assetManager) {
@@ -193,7 +193,7 @@ cpp_texture_video_play_init(JNIEnv *env, jobject thiz,
     if (textureVideoPlay == nullptr)
         textureVideoPlay = new OpenglesTextureVideoPlay();
     textureVideoPlay->init(window, aAssetManager);
-    return textureId;
+
 }
 
 extern "C"

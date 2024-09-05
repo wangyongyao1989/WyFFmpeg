@@ -119,32 +119,6 @@ public class Camera2Helper2 {
         return result;
     }
 
-//    private final TextureView.SurfaceTextureListener mSurfaceTextureListener
-//            = new TextureView.SurfaceTextureListener() {
-//
-//        @Override
-//        public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
-////            Log.i(TAG, "onSurfaceTextureAvailable...");
-//            openCamera();
-//        }
-//
-//        @Override
-//        public void onSurfaceTextureSizeChanged(SurfaceTexture texture, int width, int height) {
-////            Log.i(TAG, "onSurfaceTextureSizeChanged, width=" + width + "--height=" + height);
-//            configureTransform(width, height);
-//        }
-//
-//        @Override
-//        public boolean onSurfaceTextureDestroyed(SurfaceTexture texture) {
-////            Log.i(TAG, "onSurfaceTextureDestroyed...");
-//            return true;
-//        }
-//
-//        @Override
-//        public void onSurfaceTextureUpdated(SurfaceTexture texture) {
-//        }
-//
-//    };
 
     private final CameraDevice.StateCallback mDeviceStateCallback = new CameraDevice.StateCallback() {
 

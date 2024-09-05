@@ -54,10 +54,15 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
         mCameraHelper = new CameraDataHelper(getContext(), this);
         mCameraHelper.startCamera();
 
-        if (mJniCall != null) {
-            mJniCall.setTextureVieoPlayGLSLPath(fragPath, vertexPath);
-        }
+//        if (mJniCall != null) {
+//            mJniCall.setTextureVieoPlayGLSLPath(fragPath, vertexPath);
+//        }
+
+        mJniCall.glcreate(0);
+
         setRenderer(this);
+        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+
     }
 
 
@@ -67,16 +72,22 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
 
 
     public void onDrawFrame(GL10 gl) {
+//        if (mJniCall != null) {
+//            mJniCall.textureVieoPlayRender();
+//        }
         if (mJniCall != null) {
-            mJniCall.textureVieoPlayRender();
+            mJniCall.glrender();
         }
-        requestRender();
+
     }
 
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         Log.e(TAG, "onSurfaceChanged width:" + width + ",height" + height);
+//        if (mJniCall != null) {
+//            mJniCall.setTextureVieoPlayWH(width, height);
+//        }
         if (mJniCall != null) {
-            mJniCall.setTextureVieoPlayWH(width, height);
+            mJniCall.glinit(null, null, width, height);
         }
         mWidth = width;
         mHeight = height;
@@ -87,9 +98,9 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
     @Override
     public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
         Log.e(TAG, "onSurfaceCreated:");
-        if (mJniCall != null) {
-            mJniCall.textureVieoPlayInit(null, null);
-        }
+//        if (mJniCall != null) {
+//            mJniCall.textureVieoPlayInit(null, null);
+//        }
 
     }
 
@@ -97,16 +108,19 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
     @Override
     public void onPreviewFrame(byte[] yuvData, int width, int height) {
         Log.e(TAG, "onPreviewFrame:" + yuvData.length);
-        if (mJniCall != null && yuvData != null && yuvData.length > 0) {
-            mJniCall.textureVieoPlayDraw(yuvData, width, height);
-        }
+//        if (mJniCall != null && yuvData != null && yuvData.length > 0) {
+//            mJniCall.textureVieoPlayDraw(yuvData, width, height);
+//        }
+        mJniCall.gldraw(yuvData, width, height, 90);
+        requestRender();
     }
 
 
     public void destroyRender() {
-        if (mJniCall != null) {
-            mJniCall.textureVieoPlayDestroy();
-        }
+//        if (mJniCall != null) {
+//            mJniCall.textureVieoPlayDestroy();
+//        }
+        mJniCall.gldestroy();
         stopCameraPreview();
     }
 
