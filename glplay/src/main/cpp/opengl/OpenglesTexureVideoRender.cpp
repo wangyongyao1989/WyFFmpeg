@@ -162,7 +162,7 @@ bool OpenglesTexureVideoRender::createTextures() {
 
 bool OpenglesTexureVideoRender::updateTextures() {
     if (!m_textureIdY && !m_textureIdU && !m_textureIdV && !createTextures()) return false;
-    LOGI("OpenglesTexureVideoRender updateTextures");
+//    LOGI("OpenglesTexureVideoRender updateTextures");
 
     if (isDirty) {
         glActiveTexture(GL_TEXTURE0);
@@ -217,8 +217,11 @@ void OpenglesTexureVideoRender::deleteTextures() {
 }
 
 int
-OpenglesTexureVideoRender::createProgram(const char *pVertexSource, const char *pFragmentSource) {
-    m_program = create_program(pVertexSource, pFragmentSource, m_vertexShader, m_pixelShader);
+OpenglesTexureVideoRender::createProgram() {
+
+    m_program = lightColorShader->createProgram();
+    m_vertexShader = lightColorShader->vertexShader;
+    m_pixelShader = lightColorShader->fraShader;
     LOGI("OpenglesTexureVideoRender createProgram m_program:%d", m_program);
 
     if (!m_program) {
@@ -247,7 +250,7 @@ OpenglesTexureVideoRender::createProgram(const char *pVertexSource, const char *
 }
 
 GLuint OpenglesTexureVideoRender::useProgram() {
-    if (!m_program && !createProgram(kVertexShader2, kFragmentShader2)) {
+    if (!m_program && !createProgram()) {
         LOGE("Could not use program.");
         return 0;
     }
@@ -292,7 +295,6 @@ GLuint OpenglesTexureVideoRender::useProgram() {
          }
  */
 
-        LOGI("OpenglesTexureVideoRender useProgram isProgramChanged");
 
         glUseProgram(m_program);
 

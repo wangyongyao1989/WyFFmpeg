@@ -173,21 +173,20 @@ cpp_camera_pre_frag_vertex_pic(JNIEnv *env, jobject thiz, jstring pic) {
 
 
 /*********************** OpenGL Texture显示视频********************/
-
 extern "C"
 JNIEXPORT void JNICALL
 cpp_texture_video_play_creat(JNIEnv *env, jobject thiz, jint type,
-                             jstring frag,
-                             jstring vertex) {
-    const char *fragPath = env->GetStringUTFChars(frag, nullptr);
+                             jstring vertex,
+                             jstring frag) {
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
+    const char *fragPath = env->GetStringUTFChars(frag, nullptr);
     if (textureVideoRender == nullptr)
         textureVideoRender = new OpenglesTexureVideoRender();
 
-    textureVideoRender->setSharderPath(fragPath, vertexPath);
+    textureVideoRender->setSharderPath(vertexPath, fragPath);
 
-    env->ReleaseStringUTFChars(frag, fragPath);
     env->ReleaseStringUTFChars(vertex, vertexPath);
+    env->ReleaseStringUTFChars(frag, fragPath);
 }
 
 extern "C"

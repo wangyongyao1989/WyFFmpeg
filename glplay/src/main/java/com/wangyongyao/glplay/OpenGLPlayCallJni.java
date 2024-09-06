@@ -93,8 +93,8 @@ public class OpenGLPlayCallJni {
     private native void native_flash_light_on_scale(float scaleFactor, float focusX, float focusY, int action);
 
     /*********************** OpenGL Texture显示视频********************/
-    public void glTextureVideoPlayCreate(int type, String fragPath, String vertexPath) {
-        native_texture_video_play_create(type, fragPath, vertexPath);
+    public void glTextureVideoPlayCreate(int type, String vertexPath, String fragPath) {
+        native_texture_video_play_create(type, vertexPath, fragPath);
     }
 
     public void glTextureVideoPlayDestroy() {
@@ -121,7 +121,7 @@ public class OpenGLPlayCallJni {
         return native_texture_video_play_get_parameters();
     }
 
-    private native void native_texture_video_play_create(int type, String fragPath, String vertexPath);
+    private native void native_texture_video_play_create(int type, String vertexPath, String fragPath);
 
     private native void native_texture_video_play_destroy();
 

@@ -58,7 +58,7 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
 //            mJniCall.setTextureVieoPlayGLSLPath(fragPath, vertexPath);
 //        }
 
-        mJniCall.glTextureVideoPlayCreate(0, fragPath, vertexPath);
+        mJniCall.glTextureVideoPlayCreate(0, vertexPath, fragPath);
 
         setRenderer(this);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);

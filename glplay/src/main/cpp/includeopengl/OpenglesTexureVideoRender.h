@@ -42,40 +42,6 @@ static const float kTextureCoordk[8] = {
         1, 1
 };
 
-static const char kVertexShader2[] =
-        "#version 320 es\n\
-    out vec2 v_texcoord; \
-    in vec4 position; \
-    in vec2 texcoord; \
-    void main() { \
-        v_texcoord = texcoord; \
-        gl_Position =  position; \
-    }";
-
-
-// Pixel shader, YUV420 to RGB conversion.
-static const char kFragmentShader2[] =
-        "#version 320 es\n \
-    precision mediump float; \
-    in vec2 v_texcoord;\
-    uniform lowp sampler2D s_textureY;\
-    uniform lowp sampler2D s_textureU;\
-    uniform lowp sampler2D s_textureV;\
-    out vec4 gl_FragColor;\
-    void main() {\
-        float y, u, v, r, g, b;\
-        y = texture(s_textureY, v_texcoord).r;\
-        u = texture(s_textureU, v_texcoord).r;\
-        v = texture(s_textureV, v_texcoord).r;\
-        u = u - 0.5;\
-        v = v - 0.5;\
-        r = y + 1.403 * v;\
-        g = y - 0.344 * u - 0.714 * v;\
-        b = y + 1.770 * u;\
-        gl_FragColor = vec4(r, g, b, 1.0);\
-    }";
-
-
 class OpenglesTexureVideoRender {
 
 public:
@@ -96,7 +62,7 @@ public:
 
     uint32_t getParameters();
 
-    int createProgram(const char *pVertexSource, const char *pFragmentSource);
+    int createProgram();
 
     bool setSharderPath(const char *vertexPath, const char *fragmentPath);
 
