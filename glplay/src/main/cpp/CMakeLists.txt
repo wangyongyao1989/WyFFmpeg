@@ -21,7 +21,7 @@ add_library(
         opengl/OpenGLStdImage.cpp
         opengl/OpenglesCameraPre.cpp
         opengl/GLCommonUtils.cpp
-        opengl/OpenglesTextureVideoPlay.cpp
+        opengl/OpenglesTexureVideoRender.cpp
 
         #        test
         test/CommonUtils.cpp

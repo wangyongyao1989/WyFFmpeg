@@ -15,49 +15,6 @@ public class OpenGLPlayCallJni {
     }
 
     /**
-     * OpenGL纹理方式显示视频
-     */
-    public void textureVieoPlayInit(Surface surface, AssetManager assetManager) {
-        native_texture_video_play_init(surface, assetManager);
-    }
-
-    public boolean setTextureVieoPlayWH(int w, int h) {
-        return native_texture_video_play_wh(w, h);
-    }
-
-    public void setTextureVieoPlayGLSLPath(String fragString, String vertexString) {
-        native_texture_video_play_set_glsl_path(fragString, vertexString);
-    }
-
-    public void textureVieoPlayRender() {
-        native_texture_video_play_render();
-    }
-
-    public void textureVieoPlayDraw(byte[] data, int width
-            , int height) {
-        native_texture_video_play_draw(data, width, height);
-    }
-
-    public void textureVieoPlayDestroy() {
-        native_texture_video_play_destroy();
-    }
-
-    //    public native void create(int type);
-    public native void native_texture_video_play_init(Surface surface, AssetManager assetManager);
-
-    private native boolean native_texture_video_play_wh(int width, int height);
-
-    private native void native_texture_video_play_set_glsl_path(String fragPath, String vertexPath);
-
-    public native void native_texture_video_play_render();
-
-    public native void native_texture_video_play_draw(byte[] data, int width
-            , int height);
-
-    public native void native_texture_video_play_destroy();
-
-
-    /**
      * GLCamerPre
      */
     public void setCamerPreGLSLPath(String fragString, String vertexString) {

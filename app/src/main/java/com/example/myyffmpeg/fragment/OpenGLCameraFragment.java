@@ -87,8 +87,6 @@ public class OpenGLCameraFragment extends BaseFragment {
 
         mBtnGlCamera2.setOnClickListener(view -> {
             mGlShow.removeAllViews();
-//            GLCameraView glCameraView
-//                    = new GLCameraView(getActivity(), mFFPlayCallJni);
             mGLTextureVideoPlayerView = new GLTextureCPlusVideoPlayerView(getActivity()
                     , mFFPlayCallJni);
             mGlShow.addView(mGLTextureVideoPlayerView);

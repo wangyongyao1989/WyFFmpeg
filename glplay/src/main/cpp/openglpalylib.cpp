@@ -3,11 +3,11 @@
 #include <android/log.h>
 #include "includeopengl/OpenglesFlashLight.h"
 #include "includeopengl/OpenglesCameraPre.h"
-#include "includeopengl/OpenglesTextureVideoPlay.h"
 #include "includeopengl/OpenGLShader.h"
 #include "includeopengl/OpenGLCamera3D.h"
 #include <android/native_window_jni.h>
 #include <android/asset_manager_jni.h>
+#include "OpenglesTexureVideoRender.h"
 
 #define LOG_TAG "wy"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -20,13 +20,11 @@ const char *rtmp_class_name = "com/wangyongyao/glplay/OpenGLPlayCallJni";
 
 OpenglesFlashLight *flashLight;
 OpenglesCameraPre *cameraPre;
-OpenglesTextureVideoPlay *textureVideoPlay;
+OpenglesTexureVideoRender *texureVideoRender;
 
 
-#include "../includeopengl/VideoRendererContext.h"
+//#include "../includeopengl/VideoRendererContext.h"
 
-#include <android/native_window_jni.h>
-#include <android/asset_manager_jni.h>
 
 /*********************** GL 聚光手电筒********************/
 
@@ -176,111 +174,59 @@ cpp_camera_pre_frag_vertex_pic(JNIEnv *env, jobject thiz, jstring pic) {
 
 }
 
-/***********************  OpenGL纹理方式显示视频********************/
 
-extern "C"
-JNIEXPORT void JNICALL
-cpp_texture_video_play_init(JNIEnv *env, jobject thiz,
-                            jobject surface,
-                            jobject assetManager) {
-
-    ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
-
-    auto *aAssetManager = assetManager
-                          ? AAssetManager_fromJava(env, assetManager) : nullptr;
-
-    int textureId = -1;
-    if (textureVideoPlay == nullptr)
-        textureVideoPlay = new OpenglesTextureVideoPlay();
-    textureVideoPlay->init(window, aAssetManager);
-
-}
-
-extern "C"
-JNIEXPORT jboolean JNICALL
-cpp_texture_video_play_wh(JNIEnv *env, jobject thiz, jint width, jint height) {
-    if (textureVideoPlay == nullptr) return -1;
-    textureVideoPlay->setScreenWH((size_t) width, (size_t) height);
-    return 0;
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-cpp_texture_video_play_set_glsl_path(JNIEnv *env, jobject thiz, jstring frag, jstring vertex) {
-    const char *fragPath = env->GetStringUTFChars(frag, nullptr);
-    const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
-
-    if (textureVideoPlay == nullptr) {
-        textureVideoPlay = new OpenglesTextureVideoPlay();
-    }
-    textureVideoPlay->setSharderPath(vertexPath, fragPath);
-
-    env->ReleaseStringUTFChars(frag, fragPath);
-    env->ReleaseStringUTFChars(vertex, vertexPath);
-
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-cpp_texture_video_play_render(JNIEnv *env, jobject thiz) {
-    if (textureVideoPlay == nullptr) return;
-    textureVideoPlay->render();
-
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-cpp_texture_video_play_draw(JNIEnv *env, jobject thiz, jbyteArray data, jint width,
-                            jint height) {
-    if (textureVideoPlay == nullptr) return;
-    jbyte *bufferPtr = env->GetByteArrayElements(data, nullptr);
-    jsize arrayLength = env->GetArrayLength(data);
-
-    textureVideoPlay->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
-                           (size_t) height, 0);
-
-    env->ReleaseByteArrayElements(data, bufferPtr, 0);
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-cpp_texture_video_play_destroy(JNIEnv *env, jobject thiz) {
-
-
-}
-
+/*********************** OpenGL Texture显示视频********************/
 
 extern "C"
 JNIEXPORT void JNICALL
 cpp_creat(JNIEnv *env, jobject thiz, jint type) {
-    VideoRendererContext::createContext(env, thiz, type);
+//    VideoRendererContext::createContext(env, thiz, type);
+    texureVideoRender = new OpenglesTexureVideoRender();
+
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 cpp_destroy(JNIEnv *env, jobject thiz) {
-    VideoRendererContext::deleteContext(env, thiz);
+//    VideoRendererContext::deleteContext(env, thiz);
+//    if (texureVideoRender != nullptr) {
+//    }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 cpp_init(JNIEnv *env, jobject thiz, jobject surface, jobject assetManager, jint width,
          jint height) {
-    VideoRendererContext *context = VideoRendererContext::getContext(env, thiz);
 
-    ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
 
-    auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
+//    VideoRendererContext *context = VideoRendererContext::getContext(env, thiz);
+//
+//    ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
+//
+//    auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
+//
+//    if (context) context->init(window, aAssetManager, (size_t) width, (size_t) height);
 
-    if (context) context->init(window, aAssetManager, (size_t) width, (size_t) height);
+
+    if (texureVideoRender != nullptr) {
+        LOGE("cpp_init");
+
+        ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
+
+        auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
+        texureVideoRender->init(window,aAssetManager,(size_t) width, (size_t) height);
+    }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 cpp_render(JNIEnv *env, jobject thiz) {
-    VideoRendererContext *context = VideoRendererContext::getContext(env, thiz);
+//    VideoRendererContext *context = VideoRendererContext::getContext(env, thiz);
+//    if (context) context->render();
 
-    if (context) context->render();
+    if (texureVideoRender != nullptr) {
+        texureVideoRender->render();
+    }
 }
 
 extern "C"
@@ -290,11 +236,18 @@ cpp_draw(JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height, jin
 
     jsize arrayLength = env->GetArrayLength(data);
 
-    VideoRendererContext *context = VideoRendererContext::getContext(env, obj);
+//    VideoRendererContext *context = VideoRendererContext::getContext(env, obj);
 
-    if (context)
-        context->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width, (size_t) height,
-                      rotation);
+//    if (context)
+//        context->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width, (size_t) height,
+//                      rotation);
+
+
+    if (texureVideoRender != nullptr) {
+
+        texureVideoRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width, (size_t) height,
+                                rotation);
+    }
 
     env->ReleaseByteArrayElements(data, bufferPtr, 0);
 }
@@ -303,19 +256,24 @@ extern "C"
 JNIEXPORT void JNICALL
 cpp_setParameters(JNIEnv *env, jobject thiz, jint p) {
 
-        VideoRendererContext *context = VideoRendererContext::getContext(env, thiz);
+//        VideoRendererContext *context = VideoRendererContext::getContext(env, thiz);
+//        if (context) context->setParameters((uint32_t) p);
 
-        if (context) context->setParameters((uint32_t) p);
+    if (texureVideoRender != nullptr) {
+        texureVideoRender->setParameters((uint32_t) p);
+    }
 
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 cpp_getParameters(JNIEnv *env, jobject thiz) {
-    VideoRendererContext *context = VideoRendererContext::getContext(env, thiz);
+//    VideoRendererContext *context = VideoRendererContext::getContext(env, thiz);
+//    if (context) return context->getParameters();
 
-    if (context) return context->getParameters();
-
+    if (texureVideoRender != nullptr) {
+        texureVideoRender->getParameters();
+    }
     return 0;
 
 }
@@ -346,16 +304,6 @@ static const JNINativeMethod methods[] = {
         {"native_flash_light_on_scale",             "(FFFI)V",               (void *) cpp_flash_light_on_scale},
 
         //OpenGL Texture Video Play
-        {"native_texture_video_play_init",          "(Landroid/view/Surface;"
-                                                    "Landroid/content/res"
-                                                    "/AssetManager;)V",      (void *) cpp_texture_video_play_init},
-        {"native_texture_video_play_wh",            "(II)Z",                 (void *) cpp_texture_video_play_wh},
-        {"native_texture_video_play_render",        "()V",                   (void *) cpp_texture_video_play_render},
-        {"native_texture_video_play_set_glsl_path", "(Ljava/lang/String"
-                                                    ";Ljava/lang/String;)V", (void *) cpp_texture_video_play_set_glsl_path},
-        {"native_texture_video_play_draw",          "([BII)V",               (void *) cpp_texture_video_play_draw},
-        {"native_texture_video_play_destroy",       "()V",                   (void *) cpp_texture_video_play_destroy},
-
         {"create",                                  "(I)V",                  (void *) cpp_creat},
         {"destroy",                                 "()V",                   (void *) cpp_destroy},
         {"init",                                    "(Landroid/view/Surface;"

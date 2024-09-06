@@ -107,7 +107,6 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
 
     @Override
     public void onPreviewFrame(byte[] yuvData, int width, int height) {
-        Log.e(TAG, "onPreviewFrame:" + yuvData.length);
 //        if (mJniCall != null && yuvData != null && yuvData.length > 0) {
 //            mJniCall.textureVieoPlayDraw(yuvData, width, height);
 //        }
