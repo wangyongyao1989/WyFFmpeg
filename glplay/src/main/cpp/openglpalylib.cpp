@@ -172,7 +172,7 @@ cpp_camera_pre_frag_vertex_pic(JNIEnv *env, jobject thiz, jstring pic) {
 }
 
 
-/*********************** OpenGL Texture显示视频********************/
+/*********************** OpenGL Texture预览Camera视频********************/
 extern "C"
 JNIEXPORT void JNICALL
 cpp_texture_video_play_creat(JNIEnv *env, jobject thiz, jint type,

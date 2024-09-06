@@ -68,7 +68,6 @@ public:
 
 private:
 
-
     bool createTextures();
 
     bool updateTextures();

@@ -236,16 +236,6 @@ OpenglesTexureVideoRender::createProgram() {
     m_textureVLoc = glGetUniformLocation(m_program, "s_textureV");
     m_textureLoc = (GLuint) glGetAttribLocation(m_program, "texcoord");
 
-//    m_vertexPos = (GLuint) glGetAttribLocation(m_program, "position");
-//    m_uniformProjection = glGetUniformLocation(m_program, "projection");
-//    m_uniformRotation = glGetUniformLocation(m_program, "rotation");
-//    m_uniformScale = glGetUniformLocation(m_program, "scale");
-//    m_textureYLoc = glGetUniformLocation(m_program, "s_textureY");
-//    m_textureULoc = glGetUniformLocation(m_program, "s_textureU");
-//    m_textureVLoc = glGetUniformLocation(m_program, "s_textureV");
-//    m_textureSize = glGetUniformLocation(m_program, "texSize");
-//    m_textureLoc = (GLuint) glGetAttribLocation(m_program, "texcoord");
-
     return m_program;
 }
 
@@ -256,48 +246,7 @@ GLuint OpenglesTexureVideoRender::useProgram() {
     }
 
     if (isProgramChanged) {
-        /* glUseProgram(m_program);
-
-         check_gl_error("Use program.");
-
-         glVertexAttribPointer(m_vertexPos, 2, GL_FLOAT, GL_FALSE, 0, kVertices);
-         glEnableVertexAttribArray(m_vertexPos);
-
-         float targetAspectRatio = (float) m_width / (float) m_height;
-
-         GLfloat projection[16];
-         mat4f_load_ortho(-1.0f, 1.0f, -targetAspectRatio, targetAspectRatio, -1.0f, 1.0f,
-                          projection);
-         glUniformMatrix4fv(m_uniformProjection, 1, GL_FALSE, projection);
-
-         GLfloat rotationZ[16];
-         mat4f_load_rotation_z(m_rotation, rotationZ);
-         glUniformMatrix4fv(m_uniformRotation, 1, 0, &rotationZ[0]);
-
-         float scaleFactor = aspect_ratio_correction(false, m_backingWidth, m_backingHeight, m_width,
-                                                     m_height);
-
-         GLfloat scale[16];
-         mat4f_load_scale(scaleFactor, scaleFactor, 1.0f, scale);
-         glUniformMatrix4fv(m_uniformScale, 1, 0, &scale[0]);
-
-         glUniform1i(m_textureYLoc, 0);
-         glUniform1i(m_textureULoc, 1);
-         glUniform1i(m_textureVLoc, 2);
-         glVertexAttribPointer(m_textureLoc, 2, GL_FLOAT, GL_FALSE, 0, kTextureCoords);
-         glEnableVertexAttribArray(m_textureLoc);
-
-         if (m_textureSize >= 0) {
-             GLfloat size[2];
-             size[0] = m_width;
-             size[1] = m_height;
-             glUniform2fv(m_textureSize, 1, &size[0]);
-         }
- */
-
-
         glUseProgram(m_program);
-
         glVertexAttribPointer(m_vertexPos, 2, GL_FLOAT, GL_FALSE, 0, kVerticek);
         glEnableVertexAttribArray(m_vertexPos);
 
