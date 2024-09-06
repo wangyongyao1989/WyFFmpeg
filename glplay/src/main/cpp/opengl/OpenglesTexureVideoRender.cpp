@@ -222,7 +222,6 @@ OpenglesTexureVideoRender::createProgram(const char *pVertexSource, const char *
     LOGI("OpenglesTexureVideoRender createProgram m_program:%d", m_program);
 
     if (!m_program) {
-//        check_gl_error("Create program");
         LOGE("Could not create program.");
         return 0;
     }
@@ -253,40 +252,38 @@ GLuint OpenglesTexureVideoRender::useProgram() {
         return 0;
     }
 
-    LOGI("OpenglesTexureVideoRender useProgram m_program:%d", m_program);
-
     if (isProgramChanged) {
         /* glUseProgram(m_program);
- 
+
          check_gl_error("Use program.");
- 
+
          glVertexAttribPointer(m_vertexPos, 2, GL_FLOAT, GL_FALSE, 0, kVertices);
          glEnableVertexAttribArray(m_vertexPos);
- 
+
          float targetAspectRatio = (float) m_width / (float) m_height;
- 
+
          GLfloat projection[16];
          mat4f_load_ortho(-1.0f, 1.0f, -targetAspectRatio, targetAspectRatio, -1.0f, 1.0f,
                           projection);
          glUniformMatrix4fv(m_uniformProjection, 1, GL_FALSE, projection);
- 
+
          GLfloat rotationZ[16];
          mat4f_load_rotation_z(m_rotation, rotationZ);
          glUniformMatrix4fv(m_uniformRotation, 1, 0, &rotationZ[0]);
- 
+
          float scaleFactor = aspect_ratio_correction(false, m_backingWidth, m_backingHeight, m_width,
                                                      m_height);
- 
+
          GLfloat scale[16];
          mat4f_load_scale(scaleFactor, scaleFactor, 1.0f, scale);
          glUniformMatrix4fv(m_uniformScale, 1, 0, &scale[0]);
- 
+
          glUniform1i(m_textureYLoc, 0);
          glUniform1i(m_textureULoc, 1);
          glUniform1i(m_textureVLoc, 2);
          glVertexAttribPointer(m_textureLoc, 2, GL_FLOAT, GL_FALSE, 0, kTextureCoords);
          glEnableVertexAttribArray(m_textureLoc);
- 
+
          if (m_textureSize >= 0) {
              GLfloat size[2];
              size[0] = m_width;
@@ -313,8 +310,13 @@ GLuint OpenglesTexureVideoRender::useProgram() {
     return m_program;
 }
 
-OpenglesTexureVideoRender::OpenglesTexureVideoRender() {
+bool OpenglesTexureVideoRender::setSharderPath(const char *vertexPath, const char *fragmentPath) {
+    lightColorShader->getSharderPath(vertexPath, fragmentPath);
+    return 0;
+}
 
+OpenglesTexureVideoRender::OpenglesTexureVideoRender() {
+    lightColorShader = new OpenGLShader();
 }
 
 OpenglesTexureVideoRender::~OpenglesTexureVideoRender() {

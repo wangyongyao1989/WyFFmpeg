@@ -54,9 +54,7 @@ public class OpenGLPlayCallJni {
     private native void native_camera_pre_render_frame(float[] mtx);
 
 
-    /**
-     * 聚光手电筒
-     */
+    /*********************** OpenGL 聚光手电筒*******************/
     public void setFlashLightGLSLPath(String fragString, String vertexString, String picSrc1, String picSrc2) {
         native_flash_light_set_glsl_path(fragString, vertexString, picSrc1, picSrc2);
     }
@@ -94,49 +92,48 @@ public class OpenGLPlayCallJni {
 
     private native void native_flash_light_on_scale(float scaleFactor, float focusX, float focusY, int action);
 
-
-    public void glcreate(int type) {
-        create(type);
+    /*********************** OpenGL Texture显示视频********************/
+    public void glTextureVideoPlayCreate(int type, String fragPath, String vertexPath) {
+        native_texture_video_play_create(type, fragPath, vertexPath);
     }
 
-    public void gldestroy() {
-        destroy();
+    public void glTextureVideoPlayDestroy() {
+        native_texture_video_play_destroy();
     }
 
-    public void glinit(Surface surface, AssetManager assetManager, int width, int height) {
-        init(surface, assetManager, width, height);
+    public void glTextureVideoPlayInit(Surface surface, AssetManager assetManager, int width, int height) {
+        native_texture_video_play_init(surface, assetManager, width, height);
     }
 
-    public void glrender() {
-        render();
+    public void glTextureVideoPlayRender() {
+        native_texture_video_play_render();
     }
 
-    public void gldraw(byte[] data, int width, int height, int rotation) {
-        draw(data, width, height, rotation);
+    public void glTextureVideoPlayDraw(byte[] data, int width, int height, int rotation) {
+        native_texture_video_play_draw(data, width, height, rotation);
     }
 
-    public void glsetParameters(int params) {
-        setParameters(params);
+    public void glTextureVideoPlaySetParameters(int params) {
+        native_texture_video_play_set_parameters(params);
     }
 
-    public int glgetParameters() {
-        return getParameters();
+    public int glTextureVideoPlayGetParameters() {
+        return native_texture_video_play_get_parameters();
     }
 
+    private native void native_texture_video_play_create(int type, String fragPath, String vertexPath);
 
-    private long mNativeContext; // using by native
+    private native void native_texture_video_play_destroy();
 
-    protected native void create(int type);
+    private native void native_texture_video_play_init(Surface surface, AssetManager assetManager, int width, int height);
 
-    protected native void destroy();
+    private native void native_texture_video_play_render();
 
-    protected native void init(Surface surface, AssetManager assetManager, int width, int height);
+    private native void native_texture_video_play_draw(byte[] data, int width, int height, int rotation);
 
-    protected native void render();
+    private native void native_texture_video_play_set_parameters(int params);
 
-    protected native void draw(byte[] data, int width, int height, int rotation);
+    private native int native_texture_video_play_get_parameters();
 
-    protected native void setParameters(int params);
 
-    protected native int getParameters();
 }

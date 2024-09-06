@@ -16,7 +16,7 @@ public class GLVideoRenderer  implements GLSurfaceView.Renderer {
     public GLVideoRenderer() {
 //        create(Type.GL_YUV420_FILTER.getValue());
         mOpenGLPlayCallJni = new OpenGLPlayCallJni();
-        mOpenGLPlayCallJni.glcreate(0);
+        mOpenGLPlayCallJni.glTextureVideoPlayCreate(0,null,null);
 
     }
 
@@ -29,36 +29,36 @@ public class GLVideoRenderer  implements GLSurfaceView.Renderer {
     }
 
     public void destroyRender() {
-        mOpenGLPlayCallJni.gldestroy();
+        mOpenGLPlayCallJni.glTextureVideoPlayDestroy();
     }
 
     public void drawVideoFrame(byte[] data, int width, int height, int rotation) {
-        mOpenGLPlayCallJni.gldraw(data, width, height, rotation);
+        mOpenGLPlayCallJni.glTextureVideoPlayDraw(data, width, height, rotation);
         requestRender();
     }
 
     public void setVideoParameters(int params) {
 //        setParameters(params);
-        mOpenGLPlayCallJni.glsetParameters(params);
+        mOpenGLPlayCallJni.glTextureVideoPlaySetParameters(params);
     }
 
     public int getVideoParameters() {
 //        return getParameters();
-        return mOpenGLPlayCallJni.glgetParameters();
+        return mOpenGLPlayCallJni.glTextureVideoPlayGetParameters();
 
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
 //        render();
-         mOpenGLPlayCallJni.glrender();
+         mOpenGLPlayCallJni.glTextureVideoPlayRender();
 
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
 //        init(null, null, width, height);
-         mOpenGLPlayCallJni.glinit(null, null, width, height);
+         mOpenGLPlayCallJni.glTextureVideoPlayInit(null, null, width, height);
 
     }
 
@@ -74,6 +74,6 @@ public class GLVideoRenderer  implements GLSurfaceView.Renderer {
     }
 
     public void destroyRenderer() {
-        mOpenGLPlayCallJni.gldestroy();
+        mOpenGLPlayCallJni.glTextureVideoPlayDestroy();
     }
 }

@@ -58,7 +58,7 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
 //            mJniCall.setTextureVieoPlayGLSLPath(fragPath, vertexPath);
 //        }
 
-        mJniCall.glcreate(0);
+        mJniCall.glTextureVideoPlayCreate(0, fragPath, vertexPath);
 
         setRenderer(this);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
@@ -72,22 +72,16 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
 
 
     public void onDrawFrame(GL10 gl) {
-//        if (mJniCall != null) {
-//            mJniCall.textureVieoPlayRender();
-//        }
         if (mJniCall != null) {
-            mJniCall.glrender();
+            mJniCall.glTextureVideoPlayRender();
         }
 
     }
 
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         Log.e(TAG, "onSurfaceChanged width:" + width + ",height" + height);
-//        if (mJniCall != null) {
-//            mJniCall.setTextureVieoPlayWH(width, height);
-//        }
         if (mJniCall != null) {
-            mJniCall.glinit(null, null, width, height);
+            mJniCall.glTextureVideoPlayInit(null, null, width, height);
         }
         mWidth = width;
         mHeight = height;
@@ -98,28 +92,19 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
     @Override
     public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
         Log.e(TAG, "onSurfaceCreated:");
-//        if (mJniCall != null) {
-//            mJniCall.textureVieoPlayInit(null, null);
-//        }
 
     }
 
 
     @Override
     public void onPreviewFrame(byte[] yuvData, int width, int height) {
-//        if (mJniCall != null && yuvData != null && yuvData.length > 0) {
-//            mJniCall.textureVieoPlayDraw(yuvData, width, height);
-//        }
-        mJniCall.gldraw(yuvData, width, height, 90);
+        mJniCall.glTextureVideoPlayDraw(yuvData, width, height, 90);
         requestRender();
     }
 
 
     public void destroyRender() {
-//        if (mJniCall != null) {
-//            mJniCall.textureVieoPlayDestroy();
-//        }
-        mJniCall.gldestroy();
+        mJniCall.glTextureVideoPlayDestroy();
         stopCameraPreview();
     }
 

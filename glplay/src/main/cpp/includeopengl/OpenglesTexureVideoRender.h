@@ -12,6 +12,8 @@
 #include <android/native_window.h>
 #include <android/asset_manager.h>
 #include "GLUtils.h"
+#include "OpenGLShader.h"
+
 
 
 struct video_frame {
@@ -96,6 +98,8 @@ public:
 
     int createProgram(const char *pVertexSource, const char *pFragmentSource);
 
+    bool setSharderPath(const char *vertexPath, const char *fragmentPath);
+
 private:
 
 
@@ -141,4 +145,5 @@ private:
     bool isDirty;
     bool isProgramChanged = true;
 
+    OpenGLShader *lightColorShader;
 };
