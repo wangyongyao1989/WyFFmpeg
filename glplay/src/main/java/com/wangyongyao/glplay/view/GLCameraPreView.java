@@ -11,8 +11,8 @@ import android.view.TextureView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.wangyongyao.glplay.camera.Camera2Helper;
-import com.wangyongyao.glplay.camera.Camera2Listener;
+import com.wangyongyao.glplay.camera.GLCamera2Helper;
+import com.wangyongyao.glplay.camera.GLCamera2Listener;
 
 
 /**
@@ -21,37 +21,37 @@ import com.wangyongyao.glplay.camera.Camera2Listener;
  * Descibe : MyyFFmpeg com.example.rtmplive.camera
  */
 
-public class CameraPreView extends TextureView implements TextureView.SurfaceTextureListener
-        , Camera2Listener {
+public class GLCameraPreView extends TextureView implements TextureView.SurfaceTextureListener
+        , GLCamera2Listener {
 
-    private static final String TAG = CameraPreView.class.getSimpleName();
+    private static final String TAG = GLCameraPreView.class.getSimpleName();
 
     private Context mContext;
     private int width = 640;
     private int height = 480;
-    private Camera2Helper camera2Helper;
+    private GLCamera2Helper mGLCamera2Helper;
     private int rotation = 90;
 
 
-    public CameraPreView(@NonNull Context context) {
+    public GLCameraPreView(@NonNull Context context) {
         super(context);
         mContext = context;
         init();
     }
 
-    public CameraPreView(@NonNull Context context, @Nullable AttributeSet attrs) {
+    public GLCameraPreView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
         init();
     }
 
-    public CameraPreView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public GLCameraPreView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContext = context;
         init();
     }
 
-    public CameraPreView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public GLCameraPreView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         mContext = context;
         init();
@@ -62,10 +62,10 @@ public class CameraPreView extends TextureView implements TextureView.SurfaceTex
     }
 
     private void startCameraPreview() {
-        if (camera2Helper == null) {
-            camera2Helper = new Camera2Helper.Builder()
+        if (mGLCamera2Helper == null) {
+            mGLCamera2Helper = new GLCamera2Helper.Builder()
                     .cameraListener(this)
-                    .specificCameraId(Camera2Helper.CAMERA_ID_BACK)
+                    .specificCameraId(GLCamera2Helper.CAMERA_ID_BACK)
                     .context(mContext)
                     .previewOn(this)
                     .previewViewSize(new Point(width, height))
@@ -73,20 +73,20 @@ public class CameraPreView extends TextureView implements TextureView.SurfaceTex
                     .build();
         }
 
-        camera2Helper.start();
+        mGLCamera2Helper.start();
     }
 
     private void stopCameraPreview() {
-        if (camera2Helper != null) {
-            camera2Helper.stop();
+        if (mGLCamera2Helper != null) {
+            mGLCamera2Helper.stop();
         }
     }
 
     public void onDestroy() {
-        if (camera2Helper != null) {
-            camera2Helper.stop();
-            camera2Helper.release();
-            camera2Helper = null;
+        if (mGLCamera2Helper != null) {
+            mGLCamera2Helper.stop();
+            mGLCamera2Helper.release();
+            mGLCamera2Helper = null;
         }
     }
 

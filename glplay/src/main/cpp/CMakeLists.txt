@@ -14,7 +14,7 @@ add_library(
         glplay
         SHARED
         #OpenGL相关
-        openglpalylib.cpp
+        GLPlayJniCall.cpp
         opengl/OpenGLShader.cpp
         opengl/OpenGLCamera3D.cpp
         opengl/OpenglesFlashLight.cpp

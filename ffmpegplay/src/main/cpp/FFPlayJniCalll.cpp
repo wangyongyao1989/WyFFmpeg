@@ -13,7 +13,7 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 //包名+类名字符串定义：
-const char *mainactivity_class_name = "com/example/myyffmpeg/FFPlayCallJni";
+const char *mainactivity_class_name = "com/example/ffmpegplay/FFPlayCallJni";
 FFmpegManger *fmpegManger = nullptr;
 
 

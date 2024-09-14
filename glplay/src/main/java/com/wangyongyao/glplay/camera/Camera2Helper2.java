@@ -6,7 +6,6 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
-import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -51,10 +50,9 @@ public class Camera2Helper2 {
     private Context context;
     private String mCameraId;
     private String specificCameraId;
-//    private TextureView mTextureView;
     private final int rotation;
     private final Point previewViewSize;
-    private Camera2Listener camera2Listener;
+    private GLCamera2Listener mGLCamera2Listener;
     /**
      * A {@link CameraCaptureSession } for camera preview.
      */
@@ -73,7 +71,7 @@ public class Camera2Helper2 {
 
     private Camera2Helper2(Builder builder) {
         specificCameraId = builder.specificCameraId;
-        camera2Listener = builder.camera2Listener;
+        mGLCamera2Listener = builder.mGLCamera2Listener;
         rotation = builder.rotation;
         rotateDegree = builder.rotateDegree;
         previewViewSize = builder.previewViewSize;
@@ -128,8 +126,8 @@ public class Camera2Helper2 {
             mCameraOpenCloseLock.release();
             mCameraDevice = cameraDevice;
             createCameraPreviewSession();
-            if (camera2Listener != null) {
-                camera2Listener.onCameraOpened(mPreviewSize, getCameraOrientation(rotation, mCameraId));
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraOpened(mPreviewSize, getCameraOrientation(rotation, mCameraId));
             }
         }
 
@@ -139,8 +137,8 @@ public class Camera2Helper2 {
             mCameraOpenCloseLock.release();
             cameraDevice.close();
             mCameraDevice = null;
-            if (camera2Listener != null) {
-                camera2Listener.onCameraClosed();
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraClosed();
             }
         }
 
@@ -151,8 +149,8 @@ public class Camera2Helper2 {
             cameraDevice.close();
             mCameraDevice = null;
 
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(new Exception("error occurred, code is " + error));
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraError(new Exception("error occurred, code is " + error));
             }
         }
 
@@ -183,8 +181,8 @@ public class Camera2Helper2 {
         public void onConfigureFailed(
                 @NonNull CameraCaptureSession cameraCaptureSession) {
 //            Log.i(TAG, "onConfigureFailed: ");
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(new Exception("configureFailed"));
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraError(new Exception("configureFailed"));
             }
         }
     };
@@ -255,8 +253,7 @@ public class Camera2Helper2 {
 
     public void release() {
         stop();
-//        mTextureView = null;
-        camera2Listener = null;
+        mGLCamera2Listener = null;
         context = null;
     }
 
@@ -276,8 +273,8 @@ public class Camera2Helper2 {
             // Currently an NPE is thrown when the Camera2API is used but not supported on the
             // device this code runs.
 
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(e);
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraError(e);
             }
         }
     }
@@ -306,7 +303,6 @@ public class Camera2Helper2 {
     private void openCamera() {
         CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         setUpCameraOutput(cameraManager);
-//        configureTransform(mTextureView.getWidth(), mTextureView.getHeight());
         try {
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
@@ -318,8 +314,8 @@ public class Camera2Helper2 {
 
             cameraManager.openCamera(mCameraId, mDeviceStateCallback, mBackgroundHandler);
         } catch (CameraAccessException | InterruptedException e) {
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(e);
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraError(e);
             }
         }
     }
@@ -342,12 +338,12 @@ public class Camera2Helper2 {
                 mImageReader.close();
                 mImageReader = null;
             }
-            if (camera2Listener != null) {
-                camera2Listener.onCameraClosed();
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraClosed();
             }
         } catch (InterruptedException e) {
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(e);
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraError(e);
             }
         } finally {
             mCameraOpenCloseLock.release();
@@ -399,46 +395,11 @@ public class Camera2Helper2 {
         }
     }
 
-    /**
-     * Configures the necessary {@link Matrix} transformation to `mTextureView`.
-     * This method should be called after the camera preview size is determined in
-     * setUpCameraOutputs and also the size of `mTextureView` is fixed.
-     *
-//     * @param viewWidth  The width of `mTextureView`
-//     * @param viewHeight The height of `mTextureView`
-     */
-    /*private void configureTransform(int viewWidth, int viewHeight) {
-//        if (null == mTextureView || null == mPreviewSize) {
-//            return;
-//        }
-        if (null == mSurfaceTexture || null == mPreviewSize) {
-            return;
-        }
-        Matrix matrix = new Matrix();
-        RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
-        RectF bufferRect = new RectF(0, 0, mPreviewSize.getHeight(), mPreviewSize.getWidth());
-        float centerX = viewRect.centerX();
-        float centerY = viewRect.centerY();
-        if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
-            bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY());
-            matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL);
-            float scale = Math.max(
-                    (float) viewHeight / mPreviewSize.getHeight(),
-                    (float) viewWidth / mPreviewSize.getWidth());
-            matrix.postScale(scale, scale, centerX, centerY);
-            matrix.postRotate((90 * (rotation - 2)) % 360, centerX, centerY);
-        } else if (Surface.ROTATION_180 == rotation) {
-            matrix.postRotate(180, centerX, centerY);
-        }
-        mTextureView.setTransform(matrix);
-
-    }*/
-
     public static final class Builder {
 
         private String specificCameraId;
 
-        private Camera2Listener camera2Listener;
+        private GLCamera2Listener mGLCamera2Listener;
 
         private Point previewViewSize;
 
@@ -472,8 +433,8 @@ public class Camera2Helper2 {
             return this;
         }
 
-        public Builder cameraListener(Camera2Listener val) {
-            camera2Listener = val;
+        public Builder cameraListener(GLCamera2Listener val) {
+            mGLCamera2Listener = val;
             return this;
         }
 
@@ -496,9 +457,9 @@ public class Camera2Helper2 {
         @Override
         public void onImageAvailable(ImageReader reader) {
             Image image = reader.acquireNextImage();
-            if (camera2Listener != null && image.getFormat() == ImageFormat.YUV_420_888) {
+            if (mGLCamera2Listener != null && image.getFormat() == ImageFormat.YUV_420_888) {
                 byte[] yuv420888Data = YUV_420_888_data(image);
-                camera2Listener.onPreviewFrame(yuv420888Data, image.getWidth(), image.getHeight());
+                mGLCamera2Listener.onPreviewFrame(yuv420888Data, image.getWidth(), image.getHeight());
             }
             image.close();
         }

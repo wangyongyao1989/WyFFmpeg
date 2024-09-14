@@ -1,4 +1,4 @@
-package com.example.rtmplive.camera;
+package com.wangyongyao.glplay.camera;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -6,7 +6,6 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
-import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -26,7 +25,8 @@ import android.view.Surface;
 
 import androidx.annotation.NonNull;
 
-import com.example.rtmplive.utils.YUVUtil;
+
+import com.wangyongyao.glplay.utils.OpenGLPlayYUVUtil;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -43,9 +43,9 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 
 @TargetApi(21)
-public class Camera2Helper2 {
+public class GLCamera2Helper1 {
 
-    private static final String TAG = Camera2Helper2.class.getSimpleName();
+    private static final String TAG = GLCamera2Helper1.class.getSimpleName();
 
     public static final String CAMERA_ID_FRONT = "1";
     public static final String CAMERA_ID_BACK = "0";
@@ -56,7 +56,7 @@ public class Camera2Helper2 {
 //    private TextureView mTextureView;
     private final int rotation;
     private final Point previewViewSize;
-    private Camera2Listener camera2Listener;
+    private GLCamera2Listener mGLCamera2Listener;
     /**
      * A {@link CameraCaptureSession } for camera preview.
      */
@@ -71,11 +71,15 @@ public class Camera2Helper2 {
 
     private int rotateDegree = 0;
 
+    private SurfaceTexture mSurfaceTexture;
 
 
-    private Camera2Helper2(Builder builder) {
+    private GLCamera2Helper1(Builder builder) {
+//        mTextureView = builder.previewDisplayView;
+        mSurfaceTexture = builder.surfaceTexture;
+
         specificCameraId = builder.specificCameraId;
-        camera2Listener = builder.camera2Listener;
+        mGLCamera2Listener = builder.mGLCamera2Listener;
         rotation = builder.rotation;
         rotateDegree = builder.rotateDegree;
         previewViewSize = builder.previewViewSize;
@@ -156,8 +160,8 @@ public class Camera2Helper2 {
             mCameraOpenCloseLock.release();
             mCameraDevice = cameraDevice;
             createCameraPreviewSession();
-            if (camera2Listener != null) {
-                camera2Listener.onCameraOpened(mPreviewSize, getCameraOrientation(rotation, mCameraId));
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraOpened(mPreviewSize, getCameraOrientation(rotation, mCameraId));
             }
         }
 
@@ -167,8 +171,8 @@ public class Camera2Helper2 {
             mCameraOpenCloseLock.release();
             cameraDevice.close();
             mCameraDevice = null;
-            if (camera2Listener != null) {
-                camera2Listener.onCameraClosed();
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraClosed();
             }
         }
 
@@ -179,8 +183,8 @@ public class Camera2Helper2 {
             cameraDevice.close();
             mCameraDevice = null;
 
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(new Exception("error occurred, code is " + error));
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraError(new Exception("error occurred, code is " + error));
             }
         }
 
@@ -211,8 +215,8 @@ public class Camera2Helper2 {
         public void onConfigureFailed(
                 @NonNull CameraCaptureSession cameraCaptureSession) {
 //            Log.i(TAG, "onConfigureFailed: ");
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(new Exception("configureFailed"));
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraError(new Exception("configureFailed"));
             }
         }
     };
@@ -266,7 +270,20 @@ public class Camera2Helper2 {
             return;
         }
         startBackgroundThread();
-        openCamera();
+
+        // When the screen is turned off and turned back on, the SurfaceTexture is already
+        // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
+        // a camera and start preview from here (otherwise, we wait until the surface is ready in
+        // the SurfaceTextureListener).
+//        if (mTextureView.isAvailable()) {
+//            openCamera();
+//        } else {
+//            mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+//        }
+
+        if (mSurfaceTexture != null) {
+            openCamera();
+        }
     }
 
     public void updatePreviewDegree(int degree) {
@@ -284,7 +301,8 @@ public class Camera2Helper2 {
     public void release() {
         stop();
 //        mTextureView = null;
-        camera2Listener = null;
+        mSurfaceTexture = null;
+        mGLCamera2Listener = null;
         context = null;
     }
 
@@ -304,8 +322,8 @@ public class Camera2Helper2 {
             // Currently an NPE is thrown when the Camera2API is used but not supported on the
             // device this code runs.
 
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(e);
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraError(e);
             }
         }
     }
@@ -346,8 +364,8 @@ public class Camera2Helper2 {
 
             cameraManager.openCamera(mCameraId, mDeviceStateCallback, mBackgroundHandler);
         } catch (CameraAccessException | InterruptedException e) {
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(e);
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraError(e);
             }
         }
     }
@@ -370,12 +388,12 @@ public class Camera2Helper2 {
                 mImageReader.close();
                 mImageReader = null;
             }
-            if (camera2Listener != null) {
-                camera2Listener.onCameraClosed();
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraClosed();
             }
         } catch (InterruptedException e) {
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(e);
+            if (mGLCamera2Listener != null) {
+                mGLCamera2Listener.onCameraError(e);
             }
         } finally {
             mCameraOpenCloseLock.release();
@@ -410,6 +428,17 @@ public class Camera2Helper2 {
      */
     private void createCameraPreviewSession() {
         try {
+//            SurfaceTexture texture = mTextureView.getSurfaceTexture();
+            SurfaceTexture texture = mSurfaceTexture;
+
+            assert texture != null;
+
+            // We configure the size of default buffer to be the size of camera preview we want.
+            texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+
+            // This is the output Surface we need to start preview.
+            Surface surface = new Surface(texture);
+
             // We set up a CaptureRequest.Builder with the output Surface.
             mPreviewRequestBuilder
                     = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
@@ -417,9 +446,11 @@ public class Camera2Helper2 {
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                     CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
 
+            mPreviewRequestBuilder.addTarget(surface);
             mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
+
             // Here, we create a CameraCaptureSession for camera preview.
-            mCameraDevice.createCaptureSession(Arrays.asList(mImageReader.getSurface()),
+            mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),
                     mCaptureStateCallback, mBackgroundHandler
             );
         } catch (CameraAccessException e) {
@@ -427,46 +458,15 @@ public class Camera2Helper2 {
         }
     }
 
-    /**
-     * Configures the necessary {@link Matrix} transformation to `mTextureView`.
-     * This method should be called after the camera preview size is determined in
-     * setUpCameraOutputs and also the size of `mTextureView` is fixed.
-     *
-//     * @param viewWidth  The width of `mTextureView`
-//     * @param viewHeight The height of `mTextureView`
-     */
-    /*private void configureTransform(int viewWidth, int viewHeight) {
-//        if (null == mTextureView || null == mPreviewSize) {
-//            return;
-//        }
-        if (null == mSurfaceTexture || null == mPreviewSize) {
-            return;
-        }
-        Matrix matrix = new Matrix();
-        RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
-        RectF bufferRect = new RectF(0, 0, mPreviewSize.getHeight(), mPreviewSize.getWidth());
-        float centerX = viewRect.centerX();
-        float centerY = viewRect.centerY();
-        if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
-            bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY());
-            matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL);
-            float scale = Math.max(
-                    (float) viewHeight / mPreviewSize.getHeight(),
-                    (float) viewWidth / mPreviewSize.getWidth());
-            matrix.postScale(scale, scale, centerX, centerY);
-            matrix.postRotate((90 * (rotation - 2)) % 360, centerX, centerY);
-        } else if (Surface.ROTATION_180 == rotation) {
-            matrix.postRotate(180, centerX, centerY);
-        }
-        mTextureView.setTransform(matrix);
-
-    }*/
 
     public static final class Builder {
 
+//        private TextureView previewDisplayView;
+        private SurfaceTexture surfaceTexture;
+
         private String specificCameraId;
 
-        private Camera2Listener camera2Listener;
+        private GLCamera2Listener mGLCamera2Listener;
 
         private Point previewViewSize;
 
@@ -479,6 +479,15 @@ public class Camera2Helper2 {
         public Builder() {
         }
 
+//        public Builder previewOn(TextureView val) {
+//            previewDisplayView = val;
+//            return this;
+//        }
+
+        public Builder setSurfaceTexture(SurfaceTexture val) {
+            surfaceTexture = val;
+            return this;
+        }
 
         public Builder previewViewSize(Point val) {
             previewViewSize = val;
@@ -500,8 +509,8 @@ public class Camera2Helper2 {
             return this;
         }
 
-        public Builder cameraListener(Camera2Listener val) {
-            camera2Listener = val;
+        public Builder cameraListener(GLCamera2Listener val) {
+            mGLCamera2Listener = val;
             return this;
         }
 
@@ -510,8 +519,14 @@ public class Camera2Helper2 {
             return this;
         }
 
-        public Camera2Helper2 build() {
-            return new Camera2Helper2(this);
+        public GLCamera2Helper1 build() {
+//            if (previewDisplayView == null) {
+//                throw new NullPointerException("must preview on a textureView or a surfaceView");
+//            }
+            if (surfaceTexture == null) {
+                throw new NullPointerException("must set SurfaceTexture");
+            }
+            return new GLCamera2Helper1(this);
         }
     }
 
@@ -524,54 +539,65 @@ public class Camera2Helper2 {
         @Override
         public void onImageAvailable(ImageReader reader) {
             Image image = reader.acquireNextImage();
-            if (camera2Listener != null && image.getFormat() == ImageFormat.YUV_420_888) {
-                byte[] yuv420888Data = YUV_420_888_data(image);
-                camera2Listener.onPreviewFrame(yuv420888Data, image.getWidth(), image.getHeight());
+            if (mGLCamera2Listener != null && image.getFormat() == ImageFormat.YUV_420_888) {
+                Image.Plane[] planes = image.getPlanes();
+                lock.lock();
+
+                int offset = 0;
+                int width  = image.getWidth();
+                int height = image.getHeight();
+                int len    = width * height;
+                if (yuvData == null) {
+                    yuvData = new byte[len * 3 / 2];
+                }
+                planes[0].getBuffer().get(yuvData, offset, len);
+                offset += len;
+                for (int i = 1; i < planes.length; i++) {
+                    int srcIndex = 0, dstIndex = 0;
+                    int rowStride = planes[i].getRowStride();
+                    int pixelsStride = planes[i].getPixelStride();
+                    ByteBuffer buffer = planes[i].getBuffer();
+                    if (temp == null || temp.length != buffer.capacity()) {
+                        temp = new byte[buffer.capacity()];
+                    }
+                    buffer.get(temp);
+
+                    for (int j = 0; j < height / 2; j++) {
+                        for (int k = 0; k < width / 2; k++) {
+                            yuvData[offset + dstIndex++] = temp[srcIndex];
+                            srcIndex += pixelsStride;
+                        }
+                        if (pixelsStride == 2) {
+                            srcIndex += rowStride - width;
+                        } else if (pixelsStride == 1) {
+                            srcIndex += rowStride - width / 2;
+                        }
+                    }
+                    offset += len / 4;
+                }
+
+                if (rotateDegree == 90 || rotateDegree == 180) {
+                    if (dstData == null) {
+                        dstData = new byte[len * 3 / 2];
+                    }
+                    if (rotateDegree == 90) {
+                        OpenGLPlayYUVUtil.YUV420pRotate90(dstData, yuvData, width, height);
+                    } else {
+                        OpenGLPlayYUVUtil.YUV420pRotate180(dstData, yuvData, width, height);
+                    }
+                    if (mGLCamera2Listener != null) {
+                        mGLCamera2Listener.onPreviewFrame(dstData, width, height);
+                    }
+                } else {
+                    if (mGLCamera2Listener != null) {
+                        mGLCamera2Listener.onPreviewFrame(yuvData, width, height);
+                    }
+                }
+
+                lock.unlock();
             }
             image.close();
         }
     }
 
-
-    private static byte[] YUV_420_888_data(Image image) {
-        final int imageWidth = image.getWidth();
-        final int imageHeight = image.getHeight();
-        final Image.Plane[] planes = image.getPlanes();
-        byte[] data = new byte[imageWidth * imageHeight *
-                ImageFormat.getBitsPerPixel(ImageFormat.YUV_420_888) / 8];
-        int offset = 0;
-
-        for (int plane = 0; plane < planes.length; ++plane) {
-            final ByteBuffer buffer = planes[plane].getBuffer();
-            final int rowStride = planes[plane].getRowStride();
-            // Experimentally, U and V planes have |pixelStride| = 2, which
-            // essentially means they are packed.
-            final int pixelStride = planes[plane].getPixelStride();
-            final int planeWidth = (plane == 0) ? imageWidth : imageWidth / 2;
-            final int planeHeight = (plane == 0) ? imageHeight : imageHeight / 2;
-            if (pixelStride == 1 && rowStride == planeWidth) {
-                // Copy whole plane from buffer into |data| at once.
-                buffer.get(data, offset, planeWidth * planeHeight);
-                offset += planeWidth * planeHeight;
-            } else {
-                // Copy pixels one by one respecting pixelStride and rowStride.
-                byte[] rowData = new byte[rowStride];
-                for (int row = 0; row < planeHeight - 1; ++row) {
-                    buffer.get(rowData, 0, rowStride);
-                    for (int col = 0; col < planeWidth; ++col) {
-                        data[offset++] = rowData[col * pixelStride];
-                    }
-                }
-                // Last row is special in some devices and may not contain the full
-                // |rowStride| bytes of data.
-                // See http://developer.android.com/reference/android/media/Image.Plane.html#getBuffer()
-                buffer.get(rowData, 0, Math.min(rowStride, buffer.remaining()));
-                for (int col = 0; col < planeWidth; ++col) {
-                    data[offset++] = rowData[col * pixelStride];
-                }
-            }
-        }
-
-        return data;
-    }
 }

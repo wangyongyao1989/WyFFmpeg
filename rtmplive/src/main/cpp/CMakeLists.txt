@@ -33,7 +33,7 @@ set_target_properties(x264
 add_library(
         rtmplive
         SHARED
-        rtmplivelib.cpp
+        RtmpLiveJniCall.cpp
         RtmpPusherManger.cpp
         RtmpInit.cpp
         VideoStreamPacket.cpp

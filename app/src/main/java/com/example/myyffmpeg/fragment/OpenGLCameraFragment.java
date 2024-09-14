@@ -1,6 +1,5 @@
 package com.example.myyffmpeg.fragment;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,9 +14,7 @@ import androidx.lifecycle.ViewModelProviders;
 import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentOpenglCameraLayoutBinding;
 import com.wangyongyao.glplay.OpenGLPlayCallJni;
-import com.wangyongyao.glplay.test.GLActivity;
-import com.wangyongyao.glplay.view.CameraPreView;
-import com.wangyongyao.glplay.view.GLCameraView;
+import com.wangyongyao.glplay.view.GLCameraPreView;
 import com.wangyongyao.glplay.view.GLFlashLightView;
 import com.wangyongyao.glplay.view.GLTextureCPlusVideoPlayerView;
 
@@ -29,7 +26,7 @@ public class OpenGLCameraFragment extends BaseFragment {
     private FFViewModel mFfViewModel;
     private FrameLayout mGlShow;
     private OpenGLPlayCallJni mFFPlayCallJni;
-    private CameraPreView mCameraPreView;
+    private GLCameraPreView mCameraPreView;
     private Button mBtnCameraPre;
     private Button mBtnGlCamera1;
     private Button mBtnGlCamera2;
@@ -73,7 +70,7 @@ public class OpenGLCameraFragment extends BaseFragment {
         mBtnCameraPre.setOnClickListener(view -> {
             mGlShow.removeAllViews();
             if (mCameraPreView == null) {
-                mCameraPreView = new CameraPreView(getContext());
+                mCameraPreView = new GLCameraPreView(getContext());
             }
             mGlShow.addView(mCameraPreView);
         });
