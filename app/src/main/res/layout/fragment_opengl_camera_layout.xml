@@ -56,6 +56,16 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="HardcodedText" />
 
+    <Button
+        android:id="@+id/btn_gl_filter_c"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:text="GL滤镜切换"
+        app:layout_constraintStart_toEndOf="@id/btn_gl_filter"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="HardcodedText" />
+
     <FrameLayout
         android:id="@+id/gl_show"
         android:layout_width="match_parent"

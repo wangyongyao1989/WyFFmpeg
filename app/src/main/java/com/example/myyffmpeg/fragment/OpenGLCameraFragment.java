@@ -32,9 +32,11 @@ public class OpenGLCameraFragment extends BaseFragment {
     private Button mBtnGlCamera1;
     private Button mBtnGlCamera2;
     private GLTextureCPlusVideoPlayerView mGLTextureVideoPlayerView;
-    private GLTextureFilterPlayerView mGLTextureFilterPlayerView ;
+    private GLTextureFilterPlayerView mGLTextureFilterPlayerView;
 
     private Button mBtnGlFilter;
+    private int type;
+    private Button mBtnGlFilterC;
 
     @Override
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
@@ -51,6 +53,7 @@ public class OpenGLCameraFragment extends BaseFragment {
         mBtnGlCamera1 = mBinding.btnGlCamera1;
         mBtnGlCamera2 = mBinding.btnGlCamera2;
         mBtnGlFilter = mBinding.btnGlFilter;
+        mBtnGlFilterC = mBinding.btnGlFilterC;
         mGlShow = mBinding.glShow;
     }
 
@@ -73,6 +76,7 @@ public class OpenGLCameraFragment extends BaseFragment {
         });
 
         mBtnCameraPre.setOnClickListener(view -> {
+            onDestroyGLView();
             mGlShow.removeAllViews();
             if (mCameraPreView == null) {
                 mCameraPreView = new GLCameraPreView(getContext());
@@ -81,6 +85,7 @@ public class OpenGLCameraFragment extends BaseFragment {
         });
 
         mBtnGlCamera1.setOnClickListener(view -> {
+            onDestroyGLView();
             mGlShow.removeAllViews();
             GLFlashLightView glFlashLight
                     = new GLFlashLightView(getActivity(), mFFPlayCallJni);
@@ -88,6 +93,7 @@ public class OpenGLCameraFragment extends BaseFragment {
         });
 
         mBtnGlCamera2.setOnClickListener(view -> {
+            onDestroyGLView();
             mGlShow.removeAllViews();
             mGLTextureVideoPlayerView = new GLTextureCPlusVideoPlayerView(getActivity()
                     , mFFPlayCallJni);
@@ -95,12 +101,32 @@ public class OpenGLCameraFragment extends BaseFragment {
         });
 
         mBtnGlFilter.setOnClickListener(view -> {
+            onDestroyGLView();
             mGlShow.removeAllViews();
-            mGLTextureFilterPlayerView = new GLTextureFilterPlayerView(getActivity()
-                    , mFFPlayCallJni);
+            if (mGLTextureFilterPlayerView == null) {
+                mGLTextureFilterPlayerView = new GLTextureFilterPlayerView(getActivity()
+                        , mFFPlayCallJni);
+            }
             mGlShow.addView(mGLTextureFilterPlayerView);
         });
 
+        mBtnGlFilterC.setOnClickListener(view -> {
+            type++;
+            if (mGLTextureFilterPlayerView != null)
+                mGLTextureFilterPlayerView.setFilterType(type);
+        });
+
+    }
+
+    private void onDestroyGLView() {
+        if (mGLTextureVideoPlayerView != null) {
+            mGLTextureVideoPlayerView.destroyRender();
+            mGLTextureVideoPlayerView = null;
+        }
+        if (mGLTextureFilterPlayerView != null) {
+            mGLTextureFilterPlayerView.destroyRender();
+            mGLTextureFilterPlayerView = null;
+        }
     }
 
 
@@ -112,7 +138,10 @@ public class OpenGLCameraFragment extends BaseFragment {
         if (mGLTextureVideoPlayerView != null) {
             mGLTextureVideoPlayerView.destroyRender();
         }
-
+        if (mGLTextureFilterPlayerView != null) {
+            mGLTextureFilterPlayerView.destroyRender();
+            mGLTextureFilterPlayerView = null;
+        }
         super.onDestroy();
     }
 

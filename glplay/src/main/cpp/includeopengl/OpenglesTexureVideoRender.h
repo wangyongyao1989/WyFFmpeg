@@ -66,6 +66,13 @@ public:
 
     bool setSharderStringPath(string vertexPath, string fragmentPath);
 
+    bool isProgramChanged = true;
+
+    void delete_program(GLuint &program);
+
+    GLuint m_program = 0;
+
+
 private:
 
     bool createTextures();
@@ -74,7 +81,6 @@ private:
 
     void deleteTextures();
 
-    void delete_program(GLuint &program);
 
     GLuint useProgram();
 
@@ -82,7 +88,6 @@ private:
 
     void checkGlError(const char *op);
 
-    GLuint m_program = 0;
     GLuint m_vertexShader = 0;
     GLuint m_pixelShader = 0;
 
@@ -114,7 +119,6 @@ private:
     float m_rotation = 0;
 
     bool isDirty;
-    bool isProgramChanged = true;
 
     OpenGLShader *openGlShader;
 };

@@ -28,7 +28,8 @@ private:
     size_t m_filter = 0;
     size_t m_prevFilter = 0;
 
-    vector<string> m_fragmentShader;
+    string m_vertexStringPath;
+    vector<string> m_fragmentStringPathes;
 };
 
 

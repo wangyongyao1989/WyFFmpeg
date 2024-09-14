@@ -57,6 +57,12 @@ public class GLTextureFilterPlayerView extends GLSurfaceView implements GLSurfac
 
     }
 
+    public void setFilterType(int type) {
+        int typeVaule = type % 2;
+        if (mJniCall != null) {
+            mJniCall.glTextureFilterPlayerSetParameters(typeVaule);
+        }
+    }
 
     private void stopCameraPreview() {
         if (camera2Helper != null) {
