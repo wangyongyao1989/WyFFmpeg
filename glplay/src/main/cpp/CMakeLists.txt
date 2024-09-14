@@ -22,16 +22,7 @@ add_library(
         opengl/OpenglesCameraPre.cpp
         opengl/GLCommonUtils.cpp
         opengl/OpenglesTexureVideoRender.cpp
-
-        #        test
-        test/CommonUtils.cpp
-        test/GLUtils.cpp
-        test/GLVideoRendererYUV420.cpp
-        test/GLVideoRendererYUV420Filter.cpp
-        test/VideoRenderer.cpp
-        test/VideoRendererContext.cpp
-        test/VKUtils.cpp
-        test/VKVideoRendererYUV420.cpp
+        opengl/GLUtils.cpp
 
 
 )

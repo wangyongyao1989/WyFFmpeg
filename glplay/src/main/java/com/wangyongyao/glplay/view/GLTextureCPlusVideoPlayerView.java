@@ -21,19 +21,13 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSurfaceView.Renderer
          , GLCamera2Listener {
-
-
     private static String TAG = GLTextureCPlusVideoPlayerView.class.getSimpleName();
     private OpenGLPlayCallJni mJniCall;
     private Context mContext;
 
-
     private int mWidth;
     private int mHeight;
-//    private CameraDataHelper mCameraHelper;
     private Camera2Helper2 camera2Helper;
-
-
 
     public GLTextureCPlusVideoPlayerView(Context context, OpenGLPlayCallJni jniCall) {
         super(context);
@@ -54,14 +48,6 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
         setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         String fragPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "texture_video_play_frament.glsl");
         String vertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "texture_video_play_vert.glsl");
-        String picSrc1 = OpenGLPlayFileUtils.getModelFilePath(mContext, "wall.jpg");
-//        mCameraHelper = new CameraDataHelper(getContext(), this);
-//        mCameraHelper.startCamera();
-
-//        if (mJniCall != null) {
-//            mJniCall.setTextureVieoPlayGLSLPath(fragPath, vertexPath);
-//        }
-
         mJniCall.glTextureVideoPlayCreate(0, vertexPath, fragPath);
 
         setRenderer(this);
@@ -71,7 +57,6 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
 
 
     private void stopCameraPreview() {
-//        mCameraHelper.destroy();
         if (camera2Helper != null) {
             camera2Helper.stop();
         }
@@ -92,7 +77,6 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
         }
         mWidth = width;
         mHeight = height;
-//        mCameraHelper.initialize(width, height);
         startCameraPreview(width,height);
 
     }
@@ -143,7 +127,6 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
         Log.e(TAG, "onCameraError:" + e.toString());
 
     }
-
 
     public void destroyRender() {
         mJniCall.glTextureVideoPlayDestroy();
