@@ -51,7 +51,6 @@ public class Camera2Helper2 {
     private Context context;
     private String mCameraId;
     private String specificCameraId;
-//    private TextureView mTextureView;
     private final int rotation;
     private final Point previewViewSize;
     private Camera2Listener camera2Listener;
@@ -255,7 +254,6 @@ public class Camera2Helper2 {
 
     public void release() {
         stop();
-//        mTextureView = null;
         camera2Listener = null;
         context = null;
     }
@@ -306,7 +304,6 @@ public class Camera2Helper2 {
     private void openCamera() {
         CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         setUpCameraOutput(cameraManager);
-//        configureTransform(mTextureView.getWidth(), mTextureView.getHeight());
         try {
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
@@ -398,41 +395,6 @@ public class Camera2Helper2 {
             e.printStackTrace();
         }
     }
-
-    /**
-     * Configures the necessary {@link Matrix} transformation to `mTextureView`.
-     * This method should be called after the camera preview size is determined in
-     * setUpCameraOutputs and also the size of `mTextureView` is fixed.
-     *
-//     * @param viewWidth  The width of `mTextureView`
-//     * @param viewHeight The height of `mTextureView`
-     */
-    /*private void configureTransform(int viewWidth, int viewHeight) {
-//        if (null == mTextureView || null == mPreviewSize) {
-//            return;
-//        }
-        if (null == mSurfaceTexture || null == mPreviewSize) {
-            return;
-        }
-        Matrix matrix = new Matrix();
-        RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
-        RectF bufferRect = new RectF(0, 0, mPreviewSize.getHeight(), mPreviewSize.getWidth());
-        float centerX = viewRect.centerX();
-        float centerY = viewRect.centerY();
-        if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
-            bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY());
-            matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL);
-            float scale = Math.max(
-                    (float) viewHeight / mPreviewSize.getHeight(),
-                    (float) viewWidth / mPreviewSize.getWidth());
-            matrix.postScale(scale, scale, centerX, centerY);
-            matrix.postRotate((90 * (rotation - 2)) % 360, centerX, centerY);
-        } else if (Surface.ROTATION_180 == rotation) {
-            matrix.postRotate(180, centerX, centerY);
-        }
-        mTextureView.setTransform(matrix);
-
-    }*/
 
     public static final class Builder {
 
