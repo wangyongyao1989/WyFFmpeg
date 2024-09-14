@@ -271,8 +271,14 @@ cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
         filterRender = new OpenglesTextureFilterRender();
     string sVertexPath(vertexPath);
     string sFragPath1(fragPath1);
+    string sFragPath2(fragPath2);
 
-    filterRender->setSharderStringPath(sVertexPath, sFragPath1);
+    vector<string> sFragPathes;
+    sFragPathes.push_back(sFragPath1);
+    sFragPathes.push_back(sFragPath2);
+
+//    filterRender->setSharderStringPath(sVertexPath, sFragPath1);
+    filterRender->setSharderStringPathes(sVertexPath, sFragPathes);
 
     env->ReleaseStringUTFChars(vertex, vertexPath);
     env->ReleaseStringUTFChars(frag1, fragPath1);

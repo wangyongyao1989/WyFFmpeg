@@ -26,7 +26,12 @@ uint32_t OpenglesTextureFilterRender::getParameters() {
     return OpenglesTexureVideoRender::getParameters();
 }
 
-bool OpenglesTextureFilterRender::setSharderPath(string vertexPath, string fragmentPath) {
+bool OpenglesTextureFilterRender::setSharderStringPath(string vertexPath, string fragmentPath) {
 
     return OpenglesTexureVideoRender::setSharderStringPath(vertexPath, fragmentPath);
+}
+
+bool OpenglesTextureFilterRender::setSharderStringPathes(string vertexPath, vector<string> fragmentPathes) {
+    m_fragmentShader = fragmentPathes;
+    return OpenglesTexureVideoRender::setSharderStringPath(vertexPath, m_fragmentShader.front());
 }

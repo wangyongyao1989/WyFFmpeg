@@ -16,7 +16,9 @@ public:
 
     void render();
 
-    bool setSharderPath(string vertexPath, string fragmentPath);
+    bool setSharderStringPath(string vertexPath, string fragmentPath);
+
+    bool setSharderStringPathes(string vertexPath, vector<string> fragmentPathes);
 
     void setParameters(uint32_t params);
 
@@ -26,7 +28,7 @@ private:
     size_t m_filter = 0;
     size_t m_prevFilter = 0;
 
-    std::vector<const char *> m_fragmentShader;
+    vector<string> m_fragmentShader;
 };
 
 
