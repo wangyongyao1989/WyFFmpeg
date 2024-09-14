@@ -14,7 +14,7 @@
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
-
+using namespace std;
 //包名+类名字符串定义：
 const char *rtmp_class_name = "com/wangyongyao/glplay/OpenGLPlayCallJni";
 
@@ -22,6 +22,8 @@ OpenglesFlashLight *flashLight;
 OpenglesCameraPre *cameraPre;
 OpenglesTexureVideoRender *textureVideoRender;
 OpenglesTextureFilterRender *filterRender;
+
+
 
 
 /*********************** GL 聚光手电筒********************/
@@ -260,17 +262,24 @@ extern "C"
 JNIEXPORT void JNICALL
 cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
                                 jstring vertex,
-                                jstring frag) {
+                                jstring frag1, jstring frag2) {
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
-    const char *fragPath = env->GetStringUTFChars(frag, nullptr);
+    const char *fragPath1 = env->GetStringUTFChars(frag1, nullptr);
+    const char *fragPath2 = env->GetStringUTFChars(frag2, nullptr);
+
     if (filterRender == nullptr)
         filterRender = new OpenglesTextureFilterRender();
+    string sVertexPath(vertexPath);
+    string sFragPath1(fragPath1);
 
-    filterRender->setSharderPath(vertexPath, fragPath);
+    filterRender->setSharderStringPath(sVertexPath, sFragPath1);
 
     env->ReleaseStringUTFChars(vertex, vertexPath);
-    env->ReleaseStringUTFChars(frag, fragPath);
+    env->ReleaseStringUTFChars(frag1, fragPath1);
+    env->ReleaseStringUTFChars(frag2, fragPath2);
+
 }
+
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -310,8 +319,8 @@ cpp_texture_filter_player_draw(JNIEnv *env, jobject obj, jbyteArray data, jint w
     if (filterRender != nullptr) {
 
         filterRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
-                                 (size_t) height,
-                                 rotation);
+                           (size_t) height,
+                           rotation);
     }
 
     env->ReleaseByteArrayElements(data, bufferPtr, 0);
@@ -377,7 +386,9 @@ static const JNINativeMethod methods[] = {
         /*********************** OpenGL Texture显示滤镜视频********************/
         {"native_texture_filter_player_create",         "(I"
                                                         "Ljava/lang/String;"
-                                                        "Ljava/lang/String;)V",  (void *) cpp_texture_filter_player_creat},
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        ")V",                    (void *) cpp_texture_filter_player_creat},
         {"native_texture_filter_player_destroy",        "()V",                   (void *) cpp_texture_filter_player_destroy},
         {"native_texture_filter_player_init",           "(Landroid/view/Surface;"
                                                         "Landroid/content/res"

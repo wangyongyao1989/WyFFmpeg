@@ -193,9 +193,9 @@ bool OpenglesTexureVideoRender::updateTextures() {
 int
 OpenglesTexureVideoRender::createProgram() {
 
-    m_program = lightColorShader->createProgram();
-    m_vertexShader = lightColorShader->vertexShader;
-    m_pixelShader = lightColorShader->fraShader;
+    m_program = openGlShader->createProgram();
+    m_vertexShader = openGlShader->vertexShader;
+    m_pixelShader = openGlShader->fraShader;
     LOGI("OpenglesTexureVideoRender createProgram m_program:%d", m_program);
 
     if (!m_program) {
@@ -236,12 +236,17 @@ GLuint OpenglesTexureVideoRender::useProgram() {
 }
 
 bool OpenglesTexureVideoRender::setSharderPath(const char *vertexPath, const char *fragmentPath) {
-    lightColorShader->getSharderPath(vertexPath, fragmentPath);
+    openGlShader->getSharderPath(vertexPath, fragmentPath);
+    return 0;
+}
+
+bool OpenglesTexureVideoRender::setSharderStringPath(string vertexPath, string fragmentPath) {
+    openGlShader->getSharderStringPath(vertexPath, fragmentPath);
     return 0;
 }
 
 OpenglesTexureVideoRender::OpenglesTexureVideoRender() {
-    lightColorShader = new OpenGLShader();
+    openGlShader = new OpenGLShader();
 }
 
 OpenglesTexureVideoRender::~OpenglesTexureVideoRender() {

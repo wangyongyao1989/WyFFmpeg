@@ -19,7 +19,7 @@ import javax.microedition.khronos.opengles.GL10;
  *
  */
 public class GLTextureFilterPlayerView extends GLSurfaceView implements GLSurfaceView.Renderer
-         , GLCamera2Listener {
+        , GLCamera2Listener {
     private static String TAG = GLTextureFilterPlayerView.class.getSimpleName();
     private OpenGLPlayCallJni mJniCall;
     private Context mContext;
@@ -45,9 +45,12 @@ public class GLTextureFilterPlayerView extends GLSurfaceView implements GLSurfac
         getHolder().addCallback(this);
         setEGLContextClientVersion(3);
         setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        String fragPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "texture_video_play_frament.glsl");
+        String fragPath1 = OpenGLPlayFileUtils.getModelFilePath(mContext, "texture_video_play_frament.glsl");
+        String fragPath2 = OpenGLPlayFileUtils.getModelFilePath(mContext, "texture_filter1_play_frament.glsl");
+
+
         String vertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "texture_video_play_vert.glsl");
-        mJniCall.glTextureFilterPlayerCreate(0, vertexPath, fragPath);
+        mJniCall.glTextureFilterPlayerCreate(0, vertexPath, fragPath1, fragPath2);
 
         setRenderer(this);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
@@ -76,7 +79,7 @@ public class GLTextureFilterPlayerView extends GLSurfaceView implements GLSurfac
         }
         mWidth = width;
         mHeight = height;
-        startCameraPreview(width,height);
+        startCameraPreview(width, height);
 
     }
 
@@ -88,7 +91,7 @@ public class GLTextureFilterPlayerView extends GLSurfaceView implements GLSurfac
 
     }
 
-    private void startCameraPreview(int width,int height) {
+    private void startCameraPreview(int width, int height) {
         if (camera2Helper == null) {
             camera2Helper = new Camera2Helper2.Builder()
                     .cameraListener(this)

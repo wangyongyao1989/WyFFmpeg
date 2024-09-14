@@ -25,3 +25,8 @@ void OpenglesTextureFilterRender::setParameters(uint32_t params) {
 uint32_t OpenglesTextureFilterRender::getParameters() {
     return OpenglesTexureVideoRender::getParameters();
 }
+
+bool OpenglesTextureFilterRender::setSharderPath(string vertexPath, string fragmentPath) {
+
+    return OpenglesTexureVideoRender::setSharderStringPath(vertexPath, fragmentPath);
+}

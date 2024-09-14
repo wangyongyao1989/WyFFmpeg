@@ -16,6 +16,8 @@ public:
 
     void render();
 
+    bool setSharderPath(string vertexPath, string fragmentPath);
+
     void setParameters(uint32_t params);
 
     uint32_t getParameters();

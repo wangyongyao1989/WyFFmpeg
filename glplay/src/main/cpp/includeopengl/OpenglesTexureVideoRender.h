@@ -64,6 +64,8 @@ public:
 
     bool setSharderPath(const char *vertexPath, const char *fragmentPath);
 
+    bool setSharderStringPath(string vertexPath, string fragmentPath);
+
 private:
 
     bool createTextures();
@@ -114,5 +116,5 @@ private:
     bool isDirty;
     bool isProgramChanged = true;
 
-    OpenGLShader *lightColorShader;
+    OpenGLShader *openGlShader;
 };

@@ -83,6 +83,39 @@ GLuint OpenGLShader::loadShader(GLenum shaderType, const char *pSource) {
 bool OpenGLShader::getSharderPath(const char *vertexPath, const char *fragmentPath) {
     ifstream vShaderFile;
     ifstream fShaderFile;
+    // ensure ifstream objects can throw exceptions:
+    vShaderFile.exceptions(ifstream::failbit | ifstream::badbit);
+    fShaderFile.exceptions(ifstream::failbit | ifstream::badbit);
+    try {
+        // open files
+        vShaderFile.open(vertexPath);
+        fShaderFile.open(fragmentPath);
+        stringstream vShaderStream, fShaderStream;
+        // read file's buffer contents into streams
+        vShaderStream << vShaderFile.rdbuf();
+        fShaderStream << fShaderFile.rdbuf();
+        // close file handlers
+        vShaderFile.close();
+        fShaderFile.close();
+        // convert stream into string
+        vertexCode = vShaderStream.str();
+        fragmentCode = fShaderStream.str();
+    }
+    catch (ifstream::failure &e) {
+        LOGE("Could not getSharderPath error :%s", e.what());
+        return false;
+    }
+    gVertexShaderCode = vertexCode.c_str();
+    gFragmentShaderCode = fragmentCode.c_str();
+
+    return true;
+}
+
+bool OpenGLShader::getSharderStringPath(string vertexPath, string fragmentPath) {
+    ifstream vShaderFile;
+    ifstream fShaderFile;
+    const char *cVertexPath = vertexPath.c_str();
+    const char *cFragmentPath = fragmentPath.c_str();
 
     // ensure ifstream objects can throw exceptions:
     vShaderFile.exceptions(ifstream::failbit | ifstream::badbit);
