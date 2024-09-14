@@ -1,4 +1,4 @@
-package com.wangyongyao.glplay.camera;
+package com.example.rtmplive.camera;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -29,7 +29,7 @@ import android.view.TextureView;
 import androidx.annotation.NonNull;
 
 
-import com.wangyongyao.glplay.utils.OpenGLPlayYUVUtil;
+import com.example.rtmplive.utils.YUVUtil;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -43,9 +43,9 @@ import java.util.concurrent.locks.ReentrantLock;
  * Camera2: open, preview and close
  */
 @TargetApi(21)
-public class Camera2Helper {
+public class RtmpCamera2Helper {
 
-    private static final String TAG = Camera2Helper.class.getSimpleName();
+    private static final String TAG = RtmpCamera2Helper.class.getSimpleName();
 
     public static final String CAMERA_ID_FRONT = "1";
     public static final String CAMERA_ID_BACK = "0";
@@ -56,7 +56,7 @@ public class Camera2Helper {
     private TextureView mTextureView;
     private final int rotation;
     private final Point previewViewSize;
-    private Camera2Listener camera2Listener;
+    private RtmpCamera2Listener mRtmpCamera2Listener;
     /**
      * A {@link CameraCaptureSession } for camera preview.
      */
@@ -71,10 +71,10 @@ public class Camera2Helper {
 
     private int rotateDegree = 0;
 
-    private Camera2Helper(Builder builder) {
+    private RtmpCamera2Helper(Builder builder) {
         mTextureView = builder.previewDisplayView;
         specificCameraId = builder.specificCameraId;
-        camera2Listener = builder.camera2Listener;
+        mRtmpCamera2Listener = builder.mRtmpCamera2Listener;
         rotation = builder.rotation;
         rotateDegree = builder.rotateDegree;
         previewViewSize = builder.previewViewSize;
@@ -155,8 +155,8 @@ public class Camera2Helper {
             mCameraOpenCloseLock.release();
             mCameraDevice = cameraDevice;
             createCameraPreviewSession();
-            if (camera2Listener != null) {
-                camera2Listener.onCameraOpened(mPreviewSize, getCameraOrientation(rotation, mCameraId));
+            if (mRtmpCamera2Listener != null) {
+                mRtmpCamera2Listener.onCameraOpened(mPreviewSize, getCameraOrientation(rotation, mCameraId));
             }
         }
 
@@ -166,8 +166,8 @@ public class Camera2Helper {
             mCameraOpenCloseLock.release();
             cameraDevice.close();
             mCameraDevice = null;
-            if (camera2Listener != null) {
-                camera2Listener.onCameraClosed();
+            if (mRtmpCamera2Listener != null) {
+                mRtmpCamera2Listener.onCameraClosed();
             }
         }
 
@@ -178,8 +178,8 @@ public class Camera2Helper {
             cameraDevice.close();
             mCameraDevice = null;
 
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(new Exception("error occurred, code is " + error));
+            if (mRtmpCamera2Listener != null) {
+                mRtmpCamera2Listener.onCameraError(new Exception("error occurred, code is " + error));
             }
         }
 
@@ -210,8 +210,8 @@ public class Camera2Helper {
         public void onConfigureFailed(
                 @NonNull CameraCaptureSession cameraCaptureSession) {
 //            Log.i(TAG, "onConfigureFailed: ");
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(new Exception("configureFailed"));
+            if (mRtmpCamera2Listener != null) {
+                mRtmpCamera2Listener.onCameraError(new Exception("configureFailed"));
             }
         }
     };
@@ -292,7 +292,7 @@ public class Camera2Helper {
     public void release() {
         stop();
         mTextureView = null;
-        camera2Listener = null;
+        mRtmpCamera2Listener = null;
         context = null;
     }
 
@@ -312,8 +312,8 @@ public class Camera2Helper {
             // Currently an NPE is thrown when the Camera2API is used but not supported on the
             // device this code runs.
 
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(e);
+            if (mRtmpCamera2Listener != null) {
+                mRtmpCamera2Listener.onCameraError(e);
             }
         }
     }
@@ -354,8 +354,8 @@ public class Camera2Helper {
 
             cameraManager.openCamera(mCameraId, mDeviceStateCallback, mBackgroundHandler);
         } catch (CameraAccessException | InterruptedException e) {
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(e);
+            if (mRtmpCamera2Listener != null) {
+                mRtmpCamera2Listener.onCameraError(e);
             }
         }
     }
@@ -378,12 +378,12 @@ public class Camera2Helper {
                 mImageReader.close();
                 mImageReader = null;
             }
-            if (camera2Listener != null) {
-                camera2Listener.onCameraClosed();
+            if (mRtmpCamera2Listener != null) {
+                mRtmpCamera2Listener.onCameraClosed();
             }
         } catch (InterruptedException e) {
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(e);
+            if (mRtmpCamera2Listener != null) {
+                mRtmpCamera2Listener.onCameraError(e);
             }
         } finally {
             mCameraOpenCloseLock.release();
@@ -483,7 +483,7 @@ public class Camera2Helper {
 
         private String specificCameraId;
 
-        private Camera2Listener camera2Listener;
+        private RtmpCamera2Listener mRtmpCamera2Listener;
 
         private Point previewViewSize;
 
@@ -521,8 +521,8 @@ public class Camera2Helper {
             return this;
         }
 
-        public Builder cameraListener(Camera2Listener val) {
-            camera2Listener = val;
+        public Builder cameraListener(RtmpCamera2Listener val) {
+            mRtmpCamera2Listener = val;
             return this;
         }
 
@@ -531,11 +531,11 @@ public class Camera2Helper {
             return this;
         }
 
-        public Camera2Helper build() {
+        public RtmpCamera2Helper build() {
             if (previewDisplayView == null) {
                 throw new NullPointerException("must preview on a textureView or a surfaceView");
             }
-            return new Camera2Helper(this);
+            return new RtmpCamera2Helper(this);
         }
     }
 
@@ -548,7 +548,7 @@ public class Camera2Helper {
         @Override
         public void onImageAvailable(ImageReader reader) {
             Image image = reader.acquireNextImage();
-            if (camera2Listener != null && image.getFormat() == ImageFormat.YUV_420_888) {
+            if (mRtmpCamera2Listener != null && image.getFormat() == ImageFormat.YUV_420_888) {
                 Image.Plane[] planes = image.getPlanes();
                 lock.lock();
 
@@ -590,16 +590,16 @@ public class Camera2Helper {
                         dstData = new byte[len * 3 / 2];
                     }
                     if (rotateDegree == 90) {
-                        OpenGLPlayYUVUtil.YUV420pRotate90(dstData, yuvData, width, height);
+                        YUVUtil.YUV420pRotate90(dstData, yuvData, width, height);
                     } else {
-                        OpenGLPlayYUVUtil.YUV420pRotate180(dstData, yuvData, width, height);
+                        YUVUtil.YUV420pRotate180(dstData, yuvData, width, height);
                     }
-                    if (camera2Listener != null) {
-                        camera2Listener.onPreviewFrame(dstData, width, height);
+                    if (mRtmpCamera2Listener != null) {
+                        mRtmpCamera2Listener.onPreviewFrame(dstData, width, height);
                     }
                 } else {
-                    if (camera2Listener != null) {
-                        camera2Listener.onPreviewFrame(yuvData, width, height);
+                    if (mRtmpCamera2Listener != null) {
+                        mRtmpCamera2Listener.onPreviewFrame(yuvData, width, height);
                     }
                 }
 

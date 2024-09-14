@@ -17,7 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProviders;
 
-import com.example.myyffmpeg.FFPlayCallJni;
+import com.example.ffmpegplay.FFPlayCallJni;
 import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentPlayLayoutBinding;
 import com.example.myyffmpeg.utils.DirectoryPath;

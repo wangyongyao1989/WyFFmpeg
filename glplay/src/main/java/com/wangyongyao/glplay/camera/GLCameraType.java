@@ -1,6 +1,6 @@
 package com.wangyongyao.glplay.camera;
 
-public enum CameraType {
+public enum GLCameraType {
     CAMERA1,
     CAMERA2
 }

@@ -3,7 +3,7 @@ package com.example.rtmplive.camera;
 
 import android.util.Size;
 
-public interface Camera2Listener {
+public interface RtmpCamera2Listener {
 
     void onCameraOpened(Size previewSize, int displayOrientation);
 

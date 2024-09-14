@@ -9,12 +9,8 @@ import android.util.Size;
 
 
 import com.wangyongyao.glplay.OpenGLPlayCallJni;
-import com.wangyongyao.glplay.camera.Camera2Helper;
-import com.wangyongyao.glplay.camera.Camera2Helper1;
 import com.wangyongyao.glplay.camera.Camera2Helper2;
-import com.wangyongyao.glplay.camera.Camera2Listener;
-import com.wangyongyao.glplay.camerahelper.camerahelper.CameraDataHelper;
-import com.wangyongyao.glplay.camerahelper.camerahelper.CameraDataListener;
+import com.wangyongyao.glplay.camera.GLCamera2Listener;
 import com.wangyongyao.glplay.utils.OpenGLPlayFileUtils;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -24,7 +20,7 @@ import javax.microedition.khronos.opengles.GL10;
  *
  */
 public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSurfaceView.Renderer
-         ,Camera2Listener{
+         , GLCamera2Listener {
 
 
     private static String TAG = GLTextureCPlusVideoPlayerView.class.getSimpleName();

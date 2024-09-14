@@ -10,37 +10,37 @@ import android.util.Size;
 
 
 import com.wangyongyao.glplay.OpenGLPlayCallJni;
-import com.wangyongyao.glplay.camera.Camera2Helper1;
-import com.wangyongyao.glplay.camera.Camera2Listener;
+import com.wangyongyao.glplay.camera.GLCamera2Helper1;
+import com.wangyongyao.glplay.camera.GLCamera2Listener;
 import com.wangyongyao.glplay.utils.OpenGLPlayFileUtils;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Renderer
-        , SurfaceTexture.OnFrameAvailableListener, Camera2Listener {
+public class GLGLCameraView extends GLSurfaceView implements GLSurfaceView.Renderer
+        , SurfaceTexture.OnFrameAvailableListener, GLCamera2Listener {
 
 
-    private static String TAG = GLCameraView.class.getSimpleName();
+    private static String TAG = GLGLCameraView.class.getSimpleName();
     private OpenGLPlayCallJni mJniCall;
     private Context mContext;
 
     private SurfaceTexture surfaceTexture;
     private int mTextureId = 0;
 
-    private Camera2Helper1 camera2Helper;
+    private GLCamera2Helper1 camera2Helper;
     private int mWidth;
     private int mHeight;
 
 
-    public GLCameraView(Context context, OpenGLPlayCallJni jniCall) {
+    public GLGLCameraView(Context context, OpenGLPlayCallJni jniCall) {
         super(context);
         mContext = context;
         mJniCall = jniCall;
         init();
     }
 
-    public GLCameraView(Context context, AttributeSet attrs) {
+    public GLGLCameraView(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
         init();
@@ -65,7 +65,7 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
 
     private void startCameraPreview(SurfaceTexture surfaceTexture, int width, int height) {
         if (camera2Helper == null) {
-            camera2Helper = new Camera2Helper1.Builder()
+            camera2Helper = new GLCamera2Helper1.Builder()
                     .cameraListener(this)
 //                    .specificCameraId(Camera2Helper.CAMERA_ID_BACK)
                     .context(mContext)

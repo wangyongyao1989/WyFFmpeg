@@ -3,7 +3,7 @@ package com.wangyongyao.glplay.camera;
 
 import android.util.Size;
 
-public interface Camera2Listener {
+public interface GLCamera2Listener {
 
     void onCameraOpened(Size previewSize, int displayOrientation);
 

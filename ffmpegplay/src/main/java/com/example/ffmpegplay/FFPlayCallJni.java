@@ -1,6 +1,5 @@
-package com.example.myyffmpeg;
+package com.example.ffmpegplay;
 
-import android.content.res.AssetManager;
 import android.util.Log;
 import android.view.Surface;
 
@@ -9,7 +8,7 @@ public class FFPlayCallJni {
     private static final String TAG = FFPlayCallJni.class.getSimpleName();
 
     static {
-        System.loadLibrary("myyffmpeg");
+        System.loadLibrary("ffmpegplay");
     }
 
     public void initCallBackListener() {

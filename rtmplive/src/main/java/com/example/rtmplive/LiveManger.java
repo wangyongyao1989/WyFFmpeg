@@ -17,20 +17,20 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.LifecycleOwner;
 
-import com.example.rtmplive.camera.Camera2Helper;
-import com.example.rtmplive.camera.Camera2Listener;
+import com.example.rtmplive.camera.RtmpCamera2Helper;
+import com.example.rtmplive.camera.RtmpCamera2Listener;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class LiveManger implements TextureView.SurfaceTextureListener, Camera2Listener {
+public class LiveManger implements TextureView.SurfaceTextureListener, RtmpCamera2Listener {
 
     private static final String TAG = LiveManger.class.getSimpleName();
 
     private final TextureView mTextureView;
     private Context mContext;
     private int rotation = 0;
-    private Camera2Helper camera2Helper;
+    private RtmpCamera2Helper mRtmpCamera2Helper;
     private RtmpLivePusher mRtmpLivePusher;
     private LifecycleOwner mLifecycleOwner;
     private int width = 640;
@@ -111,29 +111,29 @@ public class LiveManger implements TextureView.SurfaceTextureListener, Camera2Li
         if (mContext instanceof Activity) {
             rotation = ((Activity) mContext).getWindowManager().getDefaultDisplay().getRotation();
         }
-        camera2Helper = new Camera2Helper.Builder()
+        mRtmpCamera2Helper = new RtmpCamera2Helper.Builder()
                 .cameraListener(this)
-                .specificCameraId(Camera2Helper.CAMERA_ID_BACK)
+                .specificCameraId(RtmpCamera2Helper.CAMERA_ID_BACK)
                 .context(mContext.getApplicationContext())
                 .previewOn(mTextureView)
                 .previewViewSize(new Point(width, height))
                 .rotation(rotation)
                 .build();
-        camera2Helper.start();
+        mRtmpCamera2Helper.start();
     }
 
 
     public void release() {
-        if (camera2Helper != null) {
-            camera2Helper.stop();
-            camera2Helper.release();
-            camera2Helper = null;
+        if (mRtmpCamera2Helper != null) {
+            mRtmpCamera2Helper.stop();
+            mRtmpCamera2Helper.release();
+            mRtmpCamera2Helper = null;
         }
     }
 
     private void stopCameraPreview() {
-        if (camera2Helper != null) {
-            camera2Helper.stop();
+        if (mRtmpCamera2Helper != null) {
+            mRtmpCamera2Helper.stop();
         }
     }
 
@@ -190,7 +190,7 @@ public class LiveManger implements TextureView.SurfaceTextureListener, Camera2Li
 
 
     private void updateVideoCodecInfo(int degree) {
-        camera2Helper.updatePreviewDegree(degree);
+        mRtmpCamera2Helper.updatePreviewDegree(degree);
         if (mRtmpLivePusher != null) {
             int width = previewSize.getWidth();
             int height = previewSize.getHeight();

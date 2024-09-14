@@ -1,4 +1,4 @@
-package com.example.rtmplive.camera;
+package com.wangyongyao.glplay.camera;
 
 import android.app.Activity;
 import android.graphics.ImageFormat;
@@ -8,7 +8,7 @@ import android.view.SurfaceHolder;
 
 import java.util.List;
 
-public class CameraHelper implements SurfaceHolder.Callback, Camera.PreviewCallback {
+public class GLCameraHelper implements SurfaceHolder.Callback, Camera.PreviewCallback {
 
     private final Activity mActivity;
     private int mHeight;
@@ -22,7 +22,7 @@ public class CameraHelper implements SurfaceHolder.Callback, Camera.PreviewCallb
     private OnChangedSizeListener mOnChangedSizeListener;
     private byte[] bytes;
 
-    public CameraHelper(Activity activity, int cameraId, int width, int height) {
+    public GLCameraHelper(Activity activity, int cameraId, int width, int height) {
         mActivity = activity;
         mCameraId = cameraId;
         mWidth = width;
