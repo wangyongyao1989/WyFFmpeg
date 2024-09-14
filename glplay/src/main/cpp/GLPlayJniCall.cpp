@@ -254,6 +254,88 @@ cpp_texture_video_play_getParameters(JNIEnv *env, jobject thiz) {
 
 }
 
+/*********************** OpenGL Texture预览Camera滤镜视频********************/
+extern "C"
+JNIEXPORT void JNICALL
+cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
+                             jstring vertex,
+                             jstring frag) {
+    const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
+    const char *fragPath = env->GetStringUTFChars(frag, nullptr);
+    if (textureVideoRender == nullptr)
+        textureVideoRender = new OpenglesTexureVideoRender();
+
+    textureVideoRender->setSharderPath(vertexPath, fragPath);
+
+    env->ReleaseStringUTFChars(vertex, vertexPath);
+    env->ReleaseStringUTFChars(frag, fragPath);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_texture_filter_player_destroy(JNIEnv *env, jobject thiz) {
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_texture_filter_player_init(JNIEnv *env, jobject thiz,
+                            jobject surface,
+                            jobject assetManager,
+                            jint width,
+                            jint height) {
+    if (textureVideoRender != nullptr) {
+        ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
+        auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
+        textureVideoRender->init(window, aAssetManager, (size_t) width, (size_t) height);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_texture_filter_player_render(JNIEnv *env, jobject thiz) {
+    if (textureVideoRender != nullptr) {
+        textureVideoRender->render();
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_texture_filter_player_draw(JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height,
+                            jint rotation) {
+    jbyte *bufferPtr = env->GetByteArrayElements(data, nullptr);
+    jsize arrayLength = env->GetArrayLength(data);
+
+    if (textureVideoRender != nullptr) {
+
+        textureVideoRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
+                                 (size_t) height,
+                                 rotation);
+    }
+
+    env->ReleaseByteArrayElements(data, bufferPtr, 0);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_texture_filter_player_setParameters(JNIEnv *env, jobject thiz, jint p) {
+
+    if (textureVideoRender != nullptr) {
+        textureVideoRender->setParameters((uint32_t) p);
+    }
+
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+cpp_texture_filter_player_getParameters(JNIEnv *env, jobject thiz) {
+    if (textureVideoRender != nullptr) {
+        textureVideoRender->getParameters();
+    }
+    return 0;
+
+}
+
 
 static const JNINativeMethod methods[] = {
         //GLCameraPre
@@ -291,7 +373,18 @@ static const JNINativeMethod methods[] = {
         {"native_texture_video_play_set_parameters", "(I)V",                  (void *) cpp_texture_video_play_setParameters},
         {"native_texture_video_play_get_parameters", "()I",                   (void *) cpp_texture_video_play_getParameters},
 
-
+        /*********************** OpenGL Texture显示滤镜视频********************/
+        {"native_texture_filter_player_create",         "(I"
+                                                     "Ljava/lang/String;"
+                                                     "Ljava/lang/String;)V",  (void *) cpp_texture_filter_player_creat},
+        {"native_texture_filter_player_destroy",        "()V",                   (void *) cpp_texture_filter_player_destroy},
+        {"native_texture_filter_player_init",           "(Landroid/view/Surface;"
+                                                     "Landroid/content/res"
+                                                     "/AssetManager;II)V",    (void *) cpp_texture_filter_player_init},
+        {"native_texture_filter_player_render",         "()V",                   (void *) cpp_texture_filter_player_render},
+        {"native_texture_filter_player_draw",           "([BIII)V",              (void *) cpp_texture_filter_player_draw},
+        {"native_texture_filter_player_set_parameters", "(I)V",                  (void *) cpp_texture_filter_player_setParameters},
+        {"native_texture_filter_player_get_parameters", "()I",                   (void *) cpp_texture_filter_player_getParameters},
 };
 
 // 定义注册方法

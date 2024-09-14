@@ -136,4 +136,47 @@ public class OpenGLPlayCallJni {
     private native int native_texture_video_play_get_parameters();
 
 
+    /*********************** OpenGL Texture显示滤镜视频********************/
+    public void glTextureFilterPlayerCreate(int type, String vertexPath, String fragPath) {
+        native_texture_filter_player_create(type, vertexPath, fragPath);
+    }
+
+    public void glTextureFilterPlayerDestroy() {
+        native_texture_filter_player_destroy();
+    }
+
+    public void glTextureFilterPlayerInit(Surface surface, AssetManager assetManager, int width, int height) {
+        native_texture_filter_player_init(surface, assetManager, width, height);
+    }
+
+    public void glTextureFilterPlayerRender() {
+        native_texture_filter_player_render();
+    }
+
+    public void glTextureFilterPlayerDraw(byte[] data, int width, int height, int rotation) {
+        native_texture_filter_player_draw(data, width, height, rotation);
+    }
+
+    public void glTextureFilterPlayerSetParameters(int params) {
+        native_texture_filter_player_set_parameters(params);
+    }
+
+    public int glTextureFilterPlayerGetParameters() {
+        return native_texture_filter_player_get_parameters();
+    }
+
+    private native void native_texture_filter_player_create(int type, String vertexPath, String fragPath);
+
+    private native void native_texture_filter_player_destroy();
+
+    private native void native_texture_filter_player_init(Surface surface, AssetManager assetManager, int width, int height);
+
+    private native void native_texture_filter_player_render();
+
+    private native void native_texture_filter_player_draw(byte[] data, int width, int height, int rotation);
+
+    private native void native_texture_filter_player_set_parameters(int params);
+
+    private native int native_texture_filter_player_get_parameters();
+
 }

@@ -17,6 +17,7 @@ import com.wangyongyao.glplay.OpenGLPlayCallJni;
 import com.wangyongyao.glplay.view.GLCameraPreView;
 import com.wangyongyao.glplay.view.GLFlashLightView;
 import com.wangyongyao.glplay.view.GLTextureCPlusVideoPlayerView;
+import com.wangyongyao.glplay.view.GLTextureFilterPlayerView;
 
 public class OpenGLCameraFragment extends BaseFragment {
 
@@ -31,6 +32,9 @@ public class OpenGLCameraFragment extends BaseFragment {
     private Button mBtnGlCamera1;
     private Button mBtnGlCamera2;
     private GLTextureCPlusVideoPlayerView mGLTextureVideoPlayerView;
+    private GLTextureFilterPlayerView mGLTextureFilterPlayerView ;
+
+    private Button mBtnGlFilter;
 
     @Override
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
@@ -46,6 +50,7 @@ public class OpenGLCameraFragment extends BaseFragment {
         mBtnCameraPre = mBinding.btnCameraPre;
         mBtnGlCamera1 = mBinding.btnGlCamera1;
         mBtnGlCamera2 = mBinding.btnGlCamera2;
+        mBtnGlFilter = mBinding.btnGlFilter;
         mGlShow = mBinding.glShow;
     }
 
@@ -87,8 +92,13 @@ public class OpenGLCameraFragment extends BaseFragment {
             mGLTextureVideoPlayerView = new GLTextureCPlusVideoPlayerView(getActivity()
                     , mFFPlayCallJni);
             mGlShow.addView(mGLTextureVideoPlayerView);
-//            Intent intent = new Intent(getActivity(), GLActivity.class);
-//            startActivity(intent);
+        });
+
+        mBtnGlFilter.setOnClickListener(view -> {
+            mGlShow.removeAllViews();
+            mGLTextureFilterPlayerView = new GLTextureFilterPlayerView(getActivity()
+                    , mFFPlayCallJni);
+            mGlShow.addView(mGLTextureFilterPlayerView);
         });
 
     }
