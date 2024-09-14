@@ -11,9 +11,7 @@
 #include <memory>
 #include <android/native_window.h>
 #include <android/asset_manager.h>
-#include "GLUtils.h"
 #include "OpenGLShader.h"
-
 
 
 struct video_frame {
@@ -74,7 +72,13 @@ private:
 
     void deleteTextures();
 
+    void delete_program(GLuint &program);
+
     GLuint useProgram();
+
+    void printGLString(const char *name, GLenum s);
+
+    void checkGlError(const char *op);
 
     GLuint m_program = 0;
     GLuint m_vertexShader = 0;

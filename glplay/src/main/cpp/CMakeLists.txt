@@ -22,7 +22,7 @@ add_library(
         opengl/OpenglesCameraPre.cpp
         opengl/GLCommonUtils.cpp
         opengl/OpenglesTexureVideoRender.cpp
-        opengl/GLUtils.cpp
+        opengl/OpenglesTextureFilterRender.cpp
 
 
 )

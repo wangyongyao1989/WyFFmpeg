@@ -117,7 +117,7 @@ bool OpenglesTexureVideoRender::createTextures() {
                  nullptr);
 
     if (!m_textureIdY) {
-//        check_gl_error("Create Y texture");
+        LOGE("OpenGL Error Create Y texture");
         return false;
     }
 
@@ -135,7 +135,7 @@ bool OpenglesTexureVideoRender::createTextures() {
                  nullptr);
 
     if (!m_textureIdU) {
-//        check_gl_error("Create U texture");
+        LOGE("OpenGL Error Create U texture");
         return false;
     }
 
@@ -153,7 +153,7 @@ bool OpenglesTexureVideoRender::createTextures() {
                  nullptr);
 
     if (!m_textureIdV) {
-//        check_gl_error("Create V texture");
+        LOGE("OpenGL Error Create V texture");
         return false;
     }
 
@@ -162,7 +162,7 @@ bool OpenglesTexureVideoRender::createTextures() {
 
 bool OpenglesTexureVideoRender::updateTextures() {
     if (!m_textureIdY && !m_textureIdU && !m_textureIdV && !createTextures()) return false;
-//    LOGI("OpenglesTexureVideoRender updateTextures");
+    LOGI("OpenglesTexureVideoRender updateTextures");
 
     if (isDirty) {
         glActiveTexture(GL_TEXTURE0);
@@ -188,32 +188,6 @@ bool OpenglesTexureVideoRender::updateTextures() {
     }
 
     return false;
-}
-
-void OpenglesTexureVideoRender::deleteTextures() {
-    if (m_textureIdY) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glDeleteTextures(1, &m_textureIdY);
-
-        m_textureIdY = 0;
-    }
-
-    if (m_textureIdU) {
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glDeleteTextures(1, &m_textureIdU);
-
-        m_textureIdU = 0;
-    }
-
-    if (m_textureIdV) {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glDeleteTextures(1, &m_textureIdV);
-
-        m_textureIdV = 0;
-    }
 }
 
 int
@@ -273,4 +247,49 @@ OpenglesTexureVideoRender::OpenglesTexureVideoRender() {
 OpenglesTexureVideoRender::~OpenglesTexureVideoRender() {
     deleteTextures();
     delete_program(m_program);
+}
+
+void OpenglesTexureVideoRender::delete_program(GLuint &program) {
+    if (program) {
+        glUseProgram(0);
+        glDeleteProgram(program);
+        program = 0;
+    }
+}
+
+void OpenglesTexureVideoRender::deleteTextures() {
+    if (m_textureIdY) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDeleteTextures(1, &m_textureIdY);
+
+        m_textureIdY = 0;
+    }
+
+    if (m_textureIdU) {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDeleteTextures(1, &m_textureIdU);
+
+        m_textureIdU = 0;
+    }
+
+    if (m_textureIdV) {
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDeleteTextures(1, &m_textureIdV);
+
+        m_textureIdV = 0;
+    }
+}
+
+void OpenglesTexureVideoRender::printGLString(const char *name, GLenum s) {
+    const char *v = (const char *) glGetString(s);
+    LOGI("OpenGL %s = %s\n", name, v);
+}
+
+void OpenglesTexureVideoRender::checkGlError(const char *op) {
+    for (GLint error = glGetError(); error; error = glGetError()) {
+        LOGI("after %s() glError (0x%x)\n", op, error);
+    }
 }
