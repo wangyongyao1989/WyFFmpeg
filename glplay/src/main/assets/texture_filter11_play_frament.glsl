@@ -31,7 +31,7 @@ void main() {
                vec2 onePixel = vec2(1.0 / texSize.x, 1.0 / texSize.y);
                color -= YuvToRgb(v_texcoord - onePixel) * 5.0;
                color += YuvToRgb(v_texcoord + onePixel) * 5.0;
-               color.rgb = vec3((color.r + color.g + color.b) / 3.0);\
+               color.rgb = vec3((color.r + color.g + color.b) / 3.0);
                FragColor = vec4(color.rgb, 1.0);
 
 }

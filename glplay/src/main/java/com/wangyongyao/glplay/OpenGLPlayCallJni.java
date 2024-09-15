@@ -150,6 +150,7 @@ public class OpenGLPlayCallJni {
             , String fragPath9
             , String fragPath10
             , String fragPath11
+            , String fragPath12
 
 
     ) {
@@ -166,6 +167,7 @@ public class OpenGLPlayCallJni {
                 , fragPath9
                 , fragPath10
                 , fragPath11
+                , fragPath12
 
         );
     }
@@ -207,6 +209,7 @@ public class OpenGLPlayCallJni {
             , String fragPath9
             , String fragPath10
             , String fragPath11
+            , String fragPath12
 
     );
 
