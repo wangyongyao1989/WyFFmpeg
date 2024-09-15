@@ -53,6 +53,9 @@ public class GLTextureFilterPlayerView extends GLSurfaceView implements GLSurfac
                 .getModelFilePath(mContext, "texture_filter2_play_frament.glsl");
         String fragPath3 = OpenGLPlayFileUtils
                 .getModelFilePath(mContext, "texture_filter3_play_frament.glsl");
+        String fragPath4 = OpenGLPlayFileUtils
+                .getModelFilePath(mContext, "texture_filter4_play_frament.glsl");
+
 
         String vertexPath = OpenGLPlayFileUtils
                 .getModelFilePath(mContext, "texture_video_play_vert.glsl");
@@ -61,6 +64,7 @@ public class GLTextureFilterPlayerView extends GLSurfaceView implements GLSurfac
                 , fragPath1
                 , fragPath2
                 , fragPath3
+                , fragPath4
         );
 
         setRenderer(this);
@@ -69,7 +73,7 @@ public class GLTextureFilterPlayerView extends GLSurfaceView implements GLSurfac
     }
 
     public void setFilterType(int type) {
-        int typeVaule = type % 4;
+        int typeVaule = type % 5;
         if (mJniCall != null) {
             mJniCall.glTextureFilterPlayerSetParameters(typeVaule);
         }
