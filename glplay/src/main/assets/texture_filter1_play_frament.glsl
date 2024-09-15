@@ -22,7 +22,7 @@ vec4 YuvToRgb(vec2 uv) {
         b = y + 1.770 * u;
         return vec4(r, g, b, 1.0);
     }
-
+//模糊滤镜
 void main() {
      vec4 sample0, sample1, sample2, sample3;
      float blurStep = 0.5;

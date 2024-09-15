@@ -138,8 +138,17 @@ public class OpenGLPlayCallJni {
 
     /*********************** OpenGL Texture显示滤镜视频********************/
     public void glTextureFilterPlayerCreate(int type, String vertexPath
-            , String fragPath1, String fragPath2) {
-        native_texture_filter_player_create(type, vertexPath, fragPath1, fragPath2);
+            , String fragPath
+            , String fragPath1
+            , String fragPath2
+
+    ) {
+        native_texture_filter_player_create(type, vertexPath
+                , fragPath
+                , fragPath1
+                , fragPath2
+
+        );
     }
 
     public void glTextureFilterPlayerDestroy() {
@@ -166,8 +175,12 @@ public class OpenGLPlayCallJni {
         return native_texture_filter_player_get_parameters();
     }
 
-    private native void native_texture_filter_player_create(int type, String vertexPath, String fragPath1
-            , String fragPath12);
+    private native void native_texture_filter_player_create(int type, String vertexPath
+            , String fragPath
+            , String fragPath1
+            , String fragPath2
+
+    );
 
     private native void native_texture_filter_player_destroy();
 

@@ -162,7 +162,7 @@ bool OpenglesTexureVideoRender::createTextures() {
 
 bool OpenglesTexureVideoRender::updateTextures() {
     if (!m_textureIdY && !m_textureIdU && !m_textureIdV && !createTextures()) return false;
-    LOGI("OpenglesTexureVideoRender updateTextures");
+//    LOGI("OpenglesTexureVideoRender updateTextures");
 
     if (isDirty) {
         glActiveTexture(GL_TEXTURE0);

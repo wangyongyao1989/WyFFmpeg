@@ -1,5 +1,6 @@
 package com.example.myyffmpeg.fragment;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -114,7 +115,31 @@ public class OpenGLCameraFragment extends BaseFragment {
             type++;
             if (mGLTextureFilterPlayerView != null)
                 mGLTextureFilterPlayerView.setFilterType(type);
+            switchFilter();
         });
+
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void switchFilter() {
+        int type = 0;
+        if (mGLTextureFilterPlayerView != null) {
+           type = mGLTextureFilterPlayerView.getFilterType();
+        }
+        switch (type) {
+            case 0:{
+                mBtnGlFilterC.setText("GL滤镜切换");
+            }
+            break;
+            case 1:{
+                mBtnGlFilterC.setText("模糊滤镜");
+            }
+            break;
+            case 2:{
+                mBtnGlFilterC.setText("鱼眼滤镜");
+            }
+            break;
+        }
 
     }
 

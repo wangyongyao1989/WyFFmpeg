@@ -45,12 +45,20 @@ public class GLTextureFilterPlayerView extends GLSurfaceView implements GLSurfac
         getHolder().addCallback(this);
         setEGLContextClientVersion(3);
         setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        String fragPath1 = OpenGLPlayFileUtils.getModelFilePath(mContext, "texture_video_play_frament.glsl");
-        String fragPath2 = OpenGLPlayFileUtils.getModelFilePath(mContext, "texture_filter1_play_frament.glsl");
+        String fragPath = OpenGLPlayFileUtils
+                .getModelFilePath(mContext, "texture_video_play_frament.glsl");
+        String fragPath1 = OpenGLPlayFileUtils
+                .getModelFilePath(mContext, "texture_filter1_play_frament.glsl");
+        String fragPath2 = OpenGLPlayFileUtils
+                .getModelFilePath(mContext, "texture_filter2_play_frament.glsl");
 
 
         String vertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "texture_video_play_vert.glsl");
-        mJniCall.glTextureFilterPlayerCreate(0, vertexPath, fragPath1, fragPath2);
+        mJniCall.glTextureFilterPlayerCreate(0, vertexPath
+                , fragPath
+                , fragPath1
+                , fragPath2
+        );
 
         setRenderer(this);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
@@ -58,12 +66,19 @@ public class GLTextureFilterPlayerView extends GLSurfaceView implements GLSurfac
     }
 
     public void setFilterType(int type) {
-        int typeVaule = type % 2;
+        int typeVaule = type % 3;
         if (mJniCall != null) {
             mJniCall.glTextureFilterPlayerSetParameters(typeVaule);
         }
     }
 
+    public int getFilterType() {
+        int type = 0;
+        if (mJniCall != null) {
+           type = mJniCall.glTextureFilterPlayerGetParameters();
+        }
+        return type;
+    }
     private void stopCameraPreview() {
         if (camera2Helper != null) {
             camera2Helper.stop();

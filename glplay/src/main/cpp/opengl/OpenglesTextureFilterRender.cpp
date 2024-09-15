@@ -10,7 +10,9 @@ void OpenglesTextureFilterRender::render() {
         if (m_filter >= 0 && m_filter < m_fragmentStringPathes.size()) {
             isProgramChanged = true;
             delete_program(m_program);
-            setSharderStringPath(m_vertexStringPath, m_fragmentStringPathes.at(m_filter));
+            LOGI("render---m_filter：%d", m_filter);
+            setSharderStringPath(m_vertexStringPath
+                                 , m_fragmentStringPathes.at(m_filter));
             createProgram();
         }
     }
