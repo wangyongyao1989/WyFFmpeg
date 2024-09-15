@@ -163,6 +163,11 @@ public class OpenGLCameraFragment extends BaseFragment {
                 mBtnGlFilterC.setText("交叉缝合过滤器");
             }
             break;
+            case 9:{
+                mBtnGlFilterC.setText("Toonify过滤器");
+            }
+            break;
+
         }
 
     }
