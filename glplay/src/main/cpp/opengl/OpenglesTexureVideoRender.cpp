@@ -209,6 +209,7 @@ OpenglesTexureVideoRender::createProgram() {
     m_textureULoc = glGetUniformLocation(m_program, "s_textureU");
     m_textureVLoc = glGetUniformLocation(m_program, "s_textureV");
     m_textureLoc = (GLuint) glGetAttribLocation(m_program, "texcoord");
+    m_textureSize = glGetUniformLocation(m_program, "texSize");
 
     return m_program;
 }
@@ -229,6 +230,14 @@ GLuint OpenglesTexureVideoRender::useProgram() {
         glUniform1i(m_textureVLoc, 2);
         glVertexAttribPointer(m_textureLoc, 2, GL_FLOAT, GL_FALSE, 0, kTextureCoordk);
         glEnableVertexAttribArray(m_textureLoc);
+
+        if (m_textureSize >= 0) {
+            GLfloat size[2];
+            size[0] = m_width;
+            size[1] = m_height;
+            glUniform2fv(m_textureSize, 1, &size[0]);
+        }
+
         isProgramChanged = false;
     }
 

@@ -110,6 +110,7 @@ private:
     GLint m_textureYLoc = 0;
     GLint m_textureULoc = 0;
     GLint m_textureVLoc = 0;
+    GLint m_textureSize = 0;
 
     size_t m_width = 0;
     size_t m_height = 0;

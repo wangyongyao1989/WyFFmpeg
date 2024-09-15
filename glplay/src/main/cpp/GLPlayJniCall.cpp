@@ -265,12 +265,14 @@ cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
                                 ,jstring frag
                                 ,jstring frag1
                                 ,jstring frag2
+                                ,jstring frag3
 
                                 ) {
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
     const char *fragPath = env->GetStringUTFChars(frag, nullptr);
     const char *fragPath1 = env->GetStringUTFChars(frag1, nullptr);
     const char *fragPath2 = env->GetStringUTFChars(frag2, nullptr);
+    const char *fragPath3 = env->GetStringUTFChars(frag3, nullptr);
 
     if (filterRender == nullptr)
         filterRender = new OpenglesTextureFilterRender();
@@ -278,11 +280,13 @@ cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
     string sFragPath(fragPath);
     string sFragPath1(fragPath1);
     string sFragPath2(fragPath2);
+    string sFragPath3(fragPath3);
 
     vector<string> sFragPathes;
     sFragPathes.push_back(sFragPath);
     sFragPathes.push_back(sFragPath1);
     sFragPathes.push_back(sFragPath2);
+    sFragPathes.push_back(sFragPath3);
 
 //    filterRender->setSharderStringPath(sVertexPath, sFragPath1);
     filterRender->setSharderStringPathes(sVertexPath, sFragPathes);
@@ -291,6 +295,7 @@ cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
     env->ReleaseStringUTFChars(frag, fragPath);
     env->ReleaseStringUTFChars(frag1, fragPath1);
     env->ReleaseStringUTFChars(frag2, fragPath2);
+    env->ReleaseStringUTFChars(frag3, fragPath3);
 
 }
 
@@ -399,6 +404,7 @@ static const JNINativeMethod methods[] = {
 
         /*********************** OpenGL Texture显示滤镜视频********************/
         {"native_texture_filter_player_create",         "(I"
+                                                        "Ljava/lang/String;"
                                                         "Ljava/lang/String;"
                                                         "Ljava/lang/String;"
                                                         "Ljava/lang/String;"
