@@ -136,4 +136,93 @@ public class OpenGLPlayCallJni {
     private native int native_texture_video_play_get_parameters();
 
 
+    /*********************** OpenGL Texture显示滤镜视频********************/
+    public void glTextureFilterPlayerCreate(int type, String vertexPath
+            , String fragPath
+            , String fragPath1
+            , String fragPath2
+            , String fragPath3
+            , String fragPath4
+            , String fragPath5
+            , String fragPath6
+            , String fragPath7
+            , String fragPath8
+            , String fragPath9
+            , String fragPath10
+            , String fragPath11
+            , String fragPath12
+
+
+    ) {
+        native_texture_filter_player_create(type, vertexPath
+                , fragPath
+                , fragPath1
+                , fragPath2
+                , fragPath3
+                , fragPath4
+                , fragPath5
+                , fragPath6
+                , fragPath7
+                , fragPath8
+                , fragPath9
+                , fragPath10
+                , fragPath11
+                , fragPath12
+
+        );
+    }
+
+    public void glTextureFilterPlayerDestroy() {
+        native_texture_filter_player_destroy();
+    }
+
+    public void glTextureFilterPlayerInit(Surface surface, AssetManager assetManager, int width, int height) {
+        native_texture_filter_player_init(surface, assetManager, width, height);
+    }
+
+    public void glTextureFilterPlayerRender() {
+        native_texture_filter_player_render();
+    }
+
+    public void glTextureFilterPlayerDraw(byte[] data, int width, int height, int rotation) {
+        native_texture_filter_player_draw(data, width, height, rotation);
+    }
+
+    public void glTextureFilterPlayerSetParameters(int params) {
+        native_texture_filter_player_set_parameters(params);
+    }
+
+    public int glTextureFilterPlayerGetParameters() {
+        return native_texture_filter_player_get_parameters();
+    }
+
+    private native void native_texture_filter_player_create(int type, String vertexPath
+            , String fragPath
+            , String fragPath1
+            , String fragPath2
+            , String fragPath3
+            , String fragPath4
+            , String fragPath5
+            , String fragPath6
+            , String fragPath7
+            , String fragPath8
+            , String fragPath9
+            , String fragPath10
+            , String fragPath11
+            , String fragPath12
+
+    );
+
+    private native void native_texture_filter_player_destroy();
+
+    private native void native_texture_filter_player_init(Surface surface, AssetManager assetManager, int width, int height);
+
+    private native void native_texture_filter_player_render();
+
+    private native void native_texture_filter_player_draw(byte[] data, int width, int height, int rotation);
+
+    private native void native_texture_filter_player_set_parameters(int params);
+
+    private native int native_texture_filter_player_get_parameters();
+
 }

@@ -1,5 +1,6 @@
 package com.example.myyffmpeg.fragment;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import com.wangyongyao.glplay.OpenGLPlayCallJni;
 import com.wangyongyao.glplay.view.GLCameraPreView;
 import com.wangyongyao.glplay.view.GLFlashLightView;
 import com.wangyongyao.glplay.view.GLTextureCPlusVideoPlayerView;
+import com.wangyongyao.glplay.view.GLTextureFilterPlayerView;
 
 public class OpenGLCameraFragment extends BaseFragment {
 
@@ -31,6 +33,11 @@ public class OpenGLCameraFragment extends BaseFragment {
     private Button mBtnGlCamera1;
     private Button mBtnGlCamera2;
     private GLTextureCPlusVideoPlayerView mGLTextureVideoPlayerView;
+    private GLTextureFilterPlayerView mGLTextureFilterPlayerView;
+
+    private Button mBtnGlFilter;
+    private int type;
+    private Button mBtnGlFilterC;
 
     @Override
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
@@ -46,6 +53,8 @@ public class OpenGLCameraFragment extends BaseFragment {
         mBtnCameraPre = mBinding.btnCameraPre;
         mBtnGlCamera1 = mBinding.btnGlCamera1;
         mBtnGlCamera2 = mBinding.btnGlCamera2;
+        mBtnGlFilter = mBinding.btnGlFilter;
+        mBtnGlFilterC = mBinding.btnGlFilterC;
         mGlShow = mBinding.glShow;
     }
 
@@ -68,6 +77,7 @@ public class OpenGLCameraFragment extends BaseFragment {
         });
 
         mBtnCameraPre.setOnClickListener(view -> {
+            onDestroyGLView();
             mGlShow.removeAllViews();
             if (mCameraPreView == null) {
                 mCameraPreView = new GLCameraPreView(getContext());
@@ -76,6 +86,7 @@ public class OpenGLCameraFragment extends BaseFragment {
         });
 
         mBtnGlCamera1.setOnClickListener(view -> {
+            onDestroyGLView();
             mGlShow.removeAllViews();
             GLFlashLightView glFlashLight
                     = new GLFlashLightView(getActivity(), mFFPlayCallJni);
@@ -83,14 +94,105 @@ public class OpenGLCameraFragment extends BaseFragment {
         });
 
         mBtnGlCamera2.setOnClickListener(view -> {
+            onDestroyGLView();
             mGlShow.removeAllViews();
             mGLTextureVideoPlayerView = new GLTextureCPlusVideoPlayerView(getActivity()
                     , mFFPlayCallJni);
             mGlShow.addView(mGLTextureVideoPlayerView);
-//            Intent intent = new Intent(getActivity(), GLActivity.class);
-//            startActivity(intent);
         });
 
+        mBtnGlFilter.setOnClickListener(view -> {
+            onDestroyGLView();
+            mGlShow.removeAllViews();
+            if (mGLTextureFilterPlayerView == null) {
+                mGLTextureFilterPlayerView = new GLTextureFilterPlayerView(getActivity()
+                        , mFFPlayCallJni);
+            }
+            mGlShow.addView(mGLTextureFilterPlayerView);
+        });
+
+        mBtnGlFilterC.setOnClickListener(view -> {
+            type++;
+            if (mGLTextureFilterPlayerView != null)
+                mGLTextureFilterPlayerView.setFilterType(type);
+            switchFilter();
+        });
+
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void switchFilter() {
+        int type = 0;
+        if (mGLTextureFilterPlayerView != null) {
+           type = mGLTextureFilterPlayerView.getFilterType();
+        }
+        switch (type) {
+            case 0:{
+                mBtnGlFilterC.setText("GL滤镜切换");
+            }
+            break;
+            case 1:{
+                mBtnGlFilterC.setText("模糊滤镜");
+            }
+            break;
+            case 2:{
+                mBtnGlFilterC.setText("鱼眼滤镜");
+            }
+            break;
+            case 3:{
+                mBtnGlFilterC.setText("旋流过滤器");
+            }
+            break;
+            case 4:{
+                mBtnGlFilterC.setText("放大镜滤光片");
+            }
+            break;
+            case 5:{
+                mBtnGlFilterC.setText("利希滕斯坦式过滤器");
+            }
+            break;
+            case 6:{
+                mBtnGlFilterC.setText("三角形马赛克滤镜");
+            }
+            break;
+            case 7:{
+                mBtnGlFilterC.setText("像素过滤器");
+            }
+            break;
+            case 8:{
+                mBtnGlFilterC.setText("交叉缝合过滤器");
+            }
+            break;
+            case 9:{
+                mBtnGlFilterC.setText("Toonify过滤器");
+            }
+            break;
+            case 10:{
+                mBtnGlFilterC.setText("捕食者热视觉滤镜");
+            }
+            break;
+            case 11:{
+                mBtnGlFilterC.setText("压花过滤器");
+            }
+            break;
+            case 12:{
+                mBtnGlFilterC.setText("边缘检测滤波器");
+            }
+            break;
+
+        }
+
+    }
+
+    private void onDestroyGLView() {
+        if (mGLTextureVideoPlayerView != null) {
+            mGLTextureVideoPlayerView.destroyRender();
+            mGLTextureVideoPlayerView = null;
+        }
+        if (mGLTextureFilterPlayerView != null) {
+            mGLTextureFilterPlayerView.destroyRender();
+            mGLTextureFilterPlayerView = null;
+        }
     }
 
 
@@ -102,7 +204,10 @@ public class OpenGLCameraFragment extends BaseFragment {
         if (mGLTextureVideoPlayerView != null) {
             mGLTextureVideoPlayerView.destroyRender();
         }
-
+        if (mGLTextureFilterPlayerView != null) {
+            mGLTextureFilterPlayerView.destroyRender();
+            mGLTextureFilterPlayerView = null;
+        }
         super.onDestroy();
     }
 

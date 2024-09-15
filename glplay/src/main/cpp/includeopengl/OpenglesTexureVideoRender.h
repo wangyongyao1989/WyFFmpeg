@@ -11,9 +11,7 @@
 #include <memory>
 #include <android/native_window.h>
 #include <android/asset_manager.h>
-#include "GLUtils.h"
 #include "OpenGLShader.h"
-
 
 
 struct video_frame {
@@ -66,6 +64,15 @@ public:
 
     bool setSharderPath(const char *vertexPath, const char *fragmentPath);
 
+    bool setSharderStringPath(string vertexPath, string fragmentPath);
+
+    bool isProgramChanged = true;
+
+    void delete_program(GLuint &program);
+
+    GLuint m_program = 0;
+
+
 private:
 
     bool createTextures();
@@ -74,9 +81,13 @@ private:
 
     void deleteTextures();
 
+
     GLuint useProgram();
 
-    GLuint m_program = 0;
+    void printGLString(const char *name, GLenum s);
+
+    void checkGlError(const char *op);
+
     GLuint m_vertexShader = 0;
     GLuint m_pixelShader = 0;
 
@@ -99,6 +110,7 @@ private:
     GLint m_textureYLoc = 0;
     GLint m_textureULoc = 0;
     GLint m_textureVLoc = 0;
+    GLint m_textureSize = 0;
 
     size_t m_width = 0;
     size_t m_height = 0;
@@ -108,7 +120,6 @@ private:
     float m_rotation = 0;
 
     bool isDirty;
-    bool isProgramChanged = true;
 
-    OpenGLShader *lightColorShader;
+    OpenGLShader *openGlShader;
 };

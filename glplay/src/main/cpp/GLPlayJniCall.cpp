@@ -7,20 +7,23 @@
 #include "includeopengl/OpenGLCamera3D.h"
 #include <android/native_window_jni.h>
 #include <android/asset_manager_jni.h>
-#include "OpenglesTexureVideoRender.h"
+#include "OpenglesTextureFilterRender.h"
 
 #define LOG_TAG "wy"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
-
+using namespace std;
 //包名+类名字符串定义：
 const char *rtmp_class_name = "com/wangyongyao/glplay/OpenGLPlayCallJni";
 
 OpenglesFlashLight *flashLight;
 OpenglesCameraPre *cameraPre;
 OpenglesTexureVideoRender *textureVideoRender;
+OpenglesTextureFilterRender *filterRender;
+
+
 
 
 /*********************** GL 聚光手电筒********************/
@@ -254,44 +257,223 @@ cpp_texture_video_play_getParameters(JNIEnv *env, jobject thiz) {
 
 }
 
+/*********************** OpenGL Texture预览Camera滤镜视频********************/
+extern "C"
+JNIEXPORT void JNICALL
+cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
+                                jstring vertex
+                                ,jstring frag
+                                ,jstring frag1
+                                ,jstring frag2
+                                ,jstring frag3
+                                ,jstring frag4
+                                ,jstring frag5
+                                ,jstring frag6
+                                ,jstring frag7
+                                ,jstring frag8
+                                ,jstring frag9
+                                ,jstring frag10
+                                ,jstring frag11
+                                ,jstring frag12
+
+                                ) {
+    const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
+    const char *fragPath = env->GetStringUTFChars(frag, nullptr);
+    const char *fragPath1 = env->GetStringUTFChars(frag1, nullptr);
+    const char *fragPath2 = env->GetStringUTFChars(frag2, nullptr);
+    const char *fragPath3 = env->GetStringUTFChars(frag3, nullptr);
+    const char *fragPath4 = env->GetStringUTFChars(frag4, nullptr);
+    const char *fragPath5 = env->GetStringUTFChars(frag5, nullptr);
+    const char *fragPath6 = env->GetStringUTFChars(frag6, nullptr);
+    const char *fragPath7 = env->GetStringUTFChars(frag7, nullptr);
+    const char *fragPath8 = env->GetStringUTFChars(frag8, nullptr);
+    const char *fragPath9 = env->GetStringUTFChars(frag9, nullptr);
+    const char *fragPath10 = env->GetStringUTFChars(frag10, nullptr);
+    const char *fragPath11 = env->GetStringUTFChars(frag11, nullptr);
+    const char *fragPath12 = env->GetStringUTFChars(frag12, nullptr);
+
+    if (filterRender == nullptr)
+        filterRender = new OpenglesTextureFilterRender();
+    string sVertexPath(vertexPath);
+    string sFragPath(fragPath);
+    string sFragPath1(fragPath1);
+    string sFragPath2(fragPath2);
+    string sFragPath3(fragPath3);
+    string sFragPath4(fragPath4);
+    string sFragPath5(fragPath5);
+    string sFragPath6(fragPath6);
+    string sFragPath7(fragPath7);
+    string sFragPath8(fragPath8);
+    string sFragPath9(fragPath9);
+    string sFragPath10(fragPath10);
+    string sFragPath11(fragPath11);
+    string sFragPath12(fragPath12);
+
+    vector<string> sFragPathes;
+    sFragPathes.push_back(sFragPath);
+    sFragPathes.push_back(sFragPath1);
+    sFragPathes.push_back(sFragPath2);
+    sFragPathes.push_back(sFragPath3);
+    sFragPathes.push_back(sFragPath4);
+    sFragPathes.push_back(sFragPath5);
+    sFragPathes.push_back(sFragPath6);
+    sFragPathes.push_back(sFragPath7);
+    sFragPathes.push_back(sFragPath8);
+    sFragPathes.push_back(sFragPath9);
+    sFragPathes.push_back(sFragPath10);
+    sFragPathes.push_back(sFragPath11);
+    sFragPathes.push_back(sFragPath12);
+
+//    filterRender->setSharderStringPath(sVertexPath, sFragPath1);
+    filterRender->setSharderStringPathes(sVertexPath, sFragPathes);
+
+    env->ReleaseStringUTFChars(vertex, vertexPath);
+    env->ReleaseStringUTFChars(frag, fragPath);
+    env->ReleaseStringUTFChars(frag1, fragPath1);
+    env->ReleaseStringUTFChars(frag2, fragPath2);
+    env->ReleaseStringUTFChars(frag3, fragPath3);
+    env->ReleaseStringUTFChars(frag4, fragPath4);
+    env->ReleaseStringUTFChars(frag5, fragPath5);
+    env->ReleaseStringUTFChars(frag6, fragPath6);
+    env->ReleaseStringUTFChars(frag7, fragPath7);
+    env->ReleaseStringUTFChars(frag8, fragPath8);
+    env->ReleaseStringUTFChars(frag9, fragPath9);
+    env->ReleaseStringUTFChars(frag10, fragPath10);
+    env->ReleaseStringUTFChars(frag11, fragPath11);
+    env->ReleaseStringUTFChars(frag12, fragPath12);
+
+
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_texture_filter_player_destroy(JNIEnv *env, jobject thiz) {
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_texture_filter_player_init(JNIEnv *env, jobject thiz,
+                               jobject surface,
+                               jobject assetManager,
+                               jint width,
+                               jint height) {
+    if (filterRender != nullptr) {
+        ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
+        auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
+        filterRender->init(window, aAssetManager, (size_t) width, (size_t) height);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_texture_filter_player_render(JNIEnv *env, jobject thiz) {
+    if (filterRender != nullptr) {
+        filterRender->render();
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_texture_filter_player_draw(JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height,
+                               jint rotation) {
+    jbyte *bufferPtr = env->GetByteArrayElements(data, nullptr);
+    jsize arrayLength = env->GetArrayLength(data);
+
+    if (filterRender != nullptr) {
+
+        filterRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
+                           (size_t) height,
+                           rotation);
+    }
+
+    env->ReleaseByteArrayElements(data, bufferPtr, 0);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_texture_filter_player_setParameters(JNIEnv *env, jobject thiz, jint p) {
+
+    if (filterRender != nullptr) {
+        filterRender->setParameters((uint32_t) p);
+    }
+
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+cpp_texture_filter_player_getParameters(JNIEnv *env, jobject thiz) {
+    if (filterRender != nullptr) {
+        return filterRender->getParameters();
+    }
+    return 0;
+
+}
+
 
 static const JNINativeMethod methods[] = {
         //GLCameraPre
-        {"native_camera_pre_init_opengl",            "()I",                   (void *) cpp_camera_pre_init_opengl},
-        {"native_camera_pre_set_wh_opengl",          "(II)Z",                 (void *) cpp_camera_pre_set_wh_opengl},
-        {"native_camera_pre_set_video_texture",      "(I)V",                  (void *) cpp_camera_pre_set_video_texture},
-        {"native_camera_pre_render_frame",           "([F)V",                 (void *) cpp_camera_pre_render_frame},
-        {"native_camera_pre_set_glsl_path",          "(Ljava/lang/String"
-                                                     ";Ljava/lang/String;)V", (void *) cpp_camera_pre_frag_vertex_path},
-        {"native_camera_pre_set_glsl_pic",           "(Ljava/lang/String;)V", (void *) cpp_camera_pre_frag_vertex_pic},
+        {"native_camera_pre_init_opengl",               "()I",                   (void *) cpp_camera_pre_init_opengl},
+        {"native_camera_pre_set_wh_opengl",             "(II)Z",                 (void *) cpp_camera_pre_set_wh_opengl},
+        {"native_camera_pre_set_video_texture",         "(I)V",                  (void *) cpp_camera_pre_set_video_texture},
+        {"native_camera_pre_render_frame",              "([F)V",                 (void *) cpp_camera_pre_render_frame},
+        {"native_camera_pre_set_glsl_path",             "(Ljava/lang/String"
+                                                        ";Ljava/lang/String;)V", (void *) cpp_camera_pre_frag_vertex_path},
+        {"native_camera_pre_set_glsl_pic",              "(Ljava/lang/String;)V", (void *) cpp_camera_pre_frag_vertex_pic},
 
 
         /*********************** OpenGL 聚光手电筒********************/
-        {"native_flash_light_init_opengl",           "(II)Z",                 (void *) cpp_flash_light_init_opengl},
-        {"native_flash_light_render_frame",          "()V",                   (void *) cpp_flash_light_render_frame},
-        {"native_flash_light_color_set_glsl_path",   "(Ljava/lang/String"
-                                                     ";Ljava/lang/String;)V", (void *) cpp_flash_light_color_frag_vertex_path},
-        {"native_flash_light_set_glsl_path",         "(Ljava/lang/String"
-                                                     ";Ljava/lang/String"
-                                                     ";Ljava/lang/String"
-                                                     ";Ljava/lang/String;)V", (void *) cpp_flash_light_frag_vertex_path},
-        {"native_flash_light_move_xy",               "(FFI)V",                (void *) cpp_flash_light_move_xy},
-        {"native_flash_light_on_scale",              "(FFFI)V",               (void *) cpp_flash_light_on_scale},
+        {"native_flash_light_init_opengl",              "(II)Z",                 (void *) cpp_flash_light_init_opengl},
+        {"native_flash_light_render_frame",             "()V",                   (void *) cpp_flash_light_render_frame},
+        {"native_flash_light_color_set_glsl_path",      "(Ljava/lang/String"
+                                                        ";Ljava/lang/String;)V", (void *) cpp_flash_light_color_frag_vertex_path},
+        {"native_flash_light_set_glsl_path",            "(Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String;)V", (void *) cpp_flash_light_frag_vertex_path},
+        {"native_flash_light_move_xy",                  "(FFI)V",                (void *) cpp_flash_light_move_xy},
+        {"native_flash_light_on_scale",                 "(FFFI)V",               (void *) cpp_flash_light_on_scale},
 
         /*********************** OpenGL Texture显示视频********************/
-        {"native_texture_video_play_create",         "(I"
-                                                     "Ljava/lang/String;"
-                                                     "Ljava/lang/String;)V",  (void *) cpp_texture_video_play_creat},
-        {"native_texture_video_play_destroy",        "()V",                   (void *) cpp_texture_video_play_destroy},
-        {"native_texture_video_play_init",           "(Landroid/view/Surface;"
-                                                     "Landroid/content/res"
-                                                     "/AssetManager;II)V",    (void *) cpp_texture_video_play_init},
-        {"native_texture_video_play_render",         "()V",                   (void *) cpp_texture_video_play_render},
-        {"native_texture_video_play_draw",           "([BIII)V",              (void *) cpp_texture_video_play_draw},
-        {"native_texture_video_play_set_parameters", "(I)V",                  (void *) cpp_texture_video_play_setParameters},
-        {"native_texture_video_play_get_parameters", "()I",                   (void *) cpp_texture_video_play_getParameters},
+        {"native_texture_video_play_create",            "(I"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;)V",  (void *) cpp_texture_video_play_creat},
+        {"native_texture_video_play_destroy",           "()V",                   (void *) cpp_texture_video_play_destroy},
+        {"native_texture_video_play_init",              "(Landroid/view/Surface;"
+                                                        "Landroid/content/res"
+                                                        "/AssetManager;II)V",    (void *) cpp_texture_video_play_init},
+        {"native_texture_video_play_render",            "()V",                   (void *) cpp_texture_video_play_render},
+        {"native_texture_video_play_draw",              "([BIII)V",              (void *) cpp_texture_video_play_draw},
+        {"native_texture_video_play_set_parameters",    "(I)V",                  (void *) cpp_texture_video_play_setParameters},
+        {"native_texture_video_play_get_parameters",    "()I",                   (void *) cpp_texture_video_play_getParameters},
 
+        /*********************** OpenGL Texture显示滤镜视频********************/
+        {"native_texture_filter_player_create",         "(I"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
 
+                                                        ")V",                    (void *) cpp_texture_filter_player_creat},
+        {"native_texture_filter_player_destroy",        "()V",                   (void *) cpp_texture_filter_player_destroy},
+        {"native_texture_filter_player_init",           "(Landroid/view/Surface;"
+                                                        "Landroid/content/res"
+                                                        "/AssetManager;II)V",    (void *) cpp_texture_filter_player_init},
+        {"native_texture_filter_player_render",         "()V",                   (void *) cpp_texture_filter_player_render},
+        {"native_texture_filter_player_draw",           "([BIII)V",              (void *) cpp_texture_filter_player_draw},
+        {"native_texture_filter_player_set_parameters", "(I)V",                  (void *) cpp_texture_filter_player_setParameters},
+        {"native_texture_filter_player_get_parameters", "()I",                   (void *) cpp_texture_filter_player_getParameters},
 };
 
 // 定义注册方法

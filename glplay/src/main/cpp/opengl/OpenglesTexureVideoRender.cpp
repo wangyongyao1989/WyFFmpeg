@@ -117,7 +117,7 @@ bool OpenglesTexureVideoRender::createTextures() {
                  nullptr);
 
     if (!m_textureIdY) {
-//        check_gl_error("Create Y texture");
+        LOGE("OpenGL Error Create Y texture");
         return false;
     }
 
@@ -135,7 +135,7 @@ bool OpenglesTexureVideoRender::createTextures() {
                  nullptr);
 
     if (!m_textureIdU) {
-//        check_gl_error("Create U texture");
+        LOGE("OpenGL Error Create U texture");
         return false;
     }
 
@@ -153,7 +153,7 @@ bool OpenglesTexureVideoRender::createTextures() {
                  nullptr);
 
     if (!m_textureIdV) {
-//        check_gl_error("Create V texture");
+        LOGE("OpenGL Error Create V texture");
         return false;
     }
 
@@ -190,6 +190,87 @@ bool OpenglesTexureVideoRender::updateTextures() {
     return false;
 }
 
+int
+OpenglesTexureVideoRender::createProgram() {
+
+    m_program = openGlShader->createProgram();
+    m_vertexShader = openGlShader->vertexShader;
+    m_pixelShader = openGlShader->fraShader;
+    LOGI("OpenglesTexureVideoRender createProgram m_program:%d", m_program);
+
+    if (!m_program) {
+        LOGE("Could not create program.");
+        return 0;
+    }
+
+    //Get Uniform Variables Location
+    m_vertexPos = (GLuint) glGetAttribLocation(m_program, "position");
+    m_textureYLoc = glGetUniformLocation(m_program, "s_textureY");
+    m_textureULoc = glGetUniformLocation(m_program, "s_textureU");
+    m_textureVLoc = glGetUniformLocation(m_program, "s_textureV");
+    m_textureLoc = (GLuint) glGetAttribLocation(m_program, "texcoord");
+    m_textureSize = glGetUniformLocation(m_program, "texSize");
+
+    return m_program;
+}
+
+GLuint OpenglesTexureVideoRender::useProgram() {
+    if (!m_program && !createProgram()) {
+        LOGE("Could not use program.");
+        return 0;
+    }
+
+    if (isProgramChanged) {
+        glUseProgram(m_program);
+        glVertexAttribPointer(m_vertexPos, 2, GL_FLOAT, GL_FALSE, 0, kVerticek);
+        glEnableVertexAttribArray(m_vertexPos);
+
+        glUniform1i(m_textureYLoc, 0);
+        glUniform1i(m_textureULoc, 1);
+        glUniform1i(m_textureVLoc, 2);
+        glVertexAttribPointer(m_textureLoc, 2, GL_FLOAT, GL_FALSE, 0, kTextureCoordk);
+        glEnableVertexAttribArray(m_textureLoc);
+
+        if (m_textureSize >= 0) {
+            GLfloat size[2];
+            size[0] = m_width;
+            size[1] = m_height;
+            glUniform2fv(m_textureSize, 1, &size[0]);
+        }
+
+        isProgramChanged = false;
+    }
+
+    return m_program;
+}
+
+bool OpenglesTexureVideoRender::setSharderPath(const char *vertexPath, const char *fragmentPath) {
+    openGlShader->getSharderPath(vertexPath, fragmentPath);
+    return 0;
+}
+
+bool OpenglesTexureVideoRender::setSharderStringPath(string vertexPath, string fragmentPath) {
+    openGlShader->getSharderStringPath(vertexPath, fragmentPath);
+    return 0;
+}
+
+OpenglesTexureVideoRender::OpenglesTexureVideoRender() {
+    openGlShader = new OpenGLShader();
+}
+
+OpenglesTexureVideoRender::~OpenglesTexureVideoRender() {
+    deleteTextures();
+    delete_program(m_program);
+}
+
+void OpenglesTexureVideoRender::delete_program(GLuint &program) {
+    if (program) {
+        glUseProgram(0);
+        glDeleteProgram(program);
+        program = 0;
+    }
+}
+
 void OpenglesTexureVideoRender::deleteTextures() {
     if (m_textureIdY) {
         glActiveTexture(GL_TEXTURE0);
@@ -216,61 +297,13 @@ void OpenglesTexureVideoRender::deleteTextures() {
     }
 }
 
-int
-OpenglesTexureVideoRender::createProgram() {
+void OpenglesTexureVideoRender::printGLString(const char *name, GLenum s) {
+    const char *v = (const char *) glGetString(s);
+    LOGI("OpenGL %s = %s\n", name, v);
+}
 
-    m_program = lightColorShader->createProgram();
-    m_vertexShader = lightColorShader->vertexShader;
-    m_pixelShader = lightColorShader->fraShader;
-    LOGI("OpenglesTexureVideoRender createProgram m_program:%d", m_program);
-
-    if (!m_program) {
-        LOGE("Could not create program.");
-        return 0;
+void OpenglesTexureVideoRender::checkGlError(const char *op) {
+    for (GLint error = glGetError(); error; error = glGetError()) {
+        LOGI("after %s() glError (0x%x)\n", op, error);
     }
-
-    //Get Uniform Variables Location
-    m_vertexPos = (GLuint) glGetAttribLocation(m_program, "position");
-    m_textureYLoc = glGetUniformLocation(m_program, "s_textureY");
-    m_textureULoc = glGetUniformLocation(m_program, "s_textureU");
-    m_textureVLoc = glGetUniformLocation(m_program, "s_textureV");
-    m_textureLoc = (GLuint) glGetAttribLocation(m_program, "texcoord");
-
-    return m_program;
-}
-
-GLuint OpenglesTexureVideoRender::useProgram() {
-    if (!m_program && !createProgram()) {
-        LOGE("Could not use program.");
-        return 0;
-    }
-
-    if (isProgramChanged) {
-        glUseProgram(m_program);
-        glVertexAttribPointer(m_vertexPos, 2, GL_FLOAT, GL_FALSE, 0, kVerticek);
-        glEnableVertexAttribArray(m_vertexPos);
-
-        glUniform1i(m_textureYLoc, 0);
-        glUniform1i(m_textureULoc, 1);
-        glUniform1i(m_textureVLoc, 2);
-        glVertexAttribPointer(m_textureLoc, 2, GL_FLOAT, GL_FALSE, 0, kTextureCoordk);
-        glEnableVertexAttribArray(m_textureLoc);
-        isProgramChanged = false;
-    }
-
-    return m_program;
-}
-
-bool OpenglesTexureVideoRender::setSharderPath(const char *vertexPath, const char *fragmentPath) {
-    lightColorShader->getSharderPath(vertexPath, fragmentPath);
-    return 0;
-}
-
-OpenglesTexureVideoRender::OpenglesTexureVideoRender() {
-    lightColorShader = new OpenGLShader();
-}
-
-OpenglesTexureVideoRender::~OpenglesTexureVideoRender() {
-    deleteTextures();
-    delete_program(m_program);
 }

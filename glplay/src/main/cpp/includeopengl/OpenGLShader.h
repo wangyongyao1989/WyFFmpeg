@@ -54,6 +54,8 @@ public:
 
     bool getSharderPath(const char *vertexPath, const char *fragmentPath);
 
+    bool getSharderStringPath(string vertexPath, string fragmentPath);
+
     GLuint createProgram();
 
     void use() const {
