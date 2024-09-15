@@ -267,6 +267,7 @@ cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
                                 ,jstring frag2
                                 ,jstring frag3
                                 ,jstring frag4
+                                ,jstring frag5
 
                                 ) {
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
@@ -275,6 +276,7 @@ cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
     const char *fragPath2 = env->GetStringUTFChars(frag2, nullptr);
     const char *fragPath3 = env->GetStringUTFChars(frag3, nullptr);
     const char *fragPath4 = env->GetStringUTFChars(frag4, nullptr);
+    const char *fragPath5 = env->GetStringUTFChars(frag5, nullptr);
 
     if (filterRender == nullptr)
         filterRender = new OpenglesTextureFilterRender();
@@ -284,6 +286,7 @@ cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
     string sFragPath2(fragPath2);
     string sFragPath3(fragPath3);
     string sFragPath4(fragPath4);
+    string sFragPath5(fragPath5);
 
     vector<string> sFragPathes;
     sFragPathes.push_back(sFragPath);
@@ -291,6 +294,7 @@ cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
     sFragPathes.push_back(sFragPath2);
     sFragPathes.push_back(sFragPath3);
     sFragPathes.push_back(sFragPath4);
+    sFragPathes.push_back(sFragPath5);
 
 //    filterRender->setSharderStringPath(sVertexPath, sFragPath1);
     filterRender->setSharderStringPathes(sVertexPath, sFragPathes);
@@ -301,6 +305,7 @@ cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
     env->ReleaseStringUTFChars(frag2, fragPath2);
     env->ReleaseStringUTFChars(frag3, fragPath3);
     env->ReleaseStringUTFChars(frag4, fragPath4);
+    env->ReleaseStringUTFChars(frag5, fragPath5);
 
 }
 
@@ -415,6 +420,8 @@ static const JNINativeMethod methods[] = {
                                                         "Ljava/lang/String;"
                                                         "Ljava/lang/String;"
                                                         "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+
                                                         ")V",                    (void *) cpp_texture_filter_player_creat},
         {"native_texture_filter_player_destroy",        "()V",                   (void *) cpp_texture_filter_player_destroy},
         {"native_texture_filter_player_init",           "(Landroid/view/Surface;"
