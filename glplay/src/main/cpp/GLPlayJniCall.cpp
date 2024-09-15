@@ -269,6 +269,7 @@ cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
                                 ,jstring frag4
                                 ,jstring frag5
                                 ,jstring frag6
+                                ,jstring frag7
 
                                 ) {
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
@@ -279,6 +280,7 @@ cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
     const char *fragPath4 = env->GetStringUTFChars(frag4, nullptr);
     const char *fragPath5 = env->GetStringUTFChars(frag5, nullptr);
     const char *fragPath6 = env->GetStringUTFChars(frag6, nullptr);
+    const char *fragPath7 = env->GetStringUTFChars(frag7, nullptr);
 
     if (filterRender == nullptr)
         filterRender = new OpenglesTextureFilterRender();
@@ -290,6 +292,7 @@ cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
     string sFragPath4(fragPath4);
     string sFragPath5(fragPath5);
     string sFragPath6(fragPath6);
+    string sFragPath7(fragPath7);
 
     vector<string> sFragPathes;
     sFragPathes.push_back(sFragPath);
@@ -299,6 +302,7 @@ cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
     sFragPathes.push_back(sFragPath4);
     sFragPathes.push_back(sFragPath5);
     sFragPathes.push_back(sFragPath6);
+    sFragPathes.push_back(sFragPath7);
 
 //    filterRender->setSharderStringPath(sVertexPath, sFragPath1);
     filterRender->setSharderStringPathes(sVertexPath, sFragPathes);
@@ -311,6 +315,7 @@ cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
     env->ReleaseStringUTFChars(frag4, fragPath4);
     env->ReleaseStringUTFChars(frag5, fragPath5);
     env->ReleaseStringUTFChars(frag6, fragPath6);
+    env->ReleaseStringUTFChars(frag7, fragPath7);
 
 }
 
@@ -419,6 +424,7 @@ static const JNINativeMethod methods[] = {
 
         /*********************** OpenGL Texture显示滤镜视频********************/
         {"native_texture_filter_player_create",         "(I"
+                                                        "Ljava/lang/String;"
                                                         "Ljava/lang/String;"
                                                         "Ljava/lang/String;"
                                                         "Ljava/lang/String;"

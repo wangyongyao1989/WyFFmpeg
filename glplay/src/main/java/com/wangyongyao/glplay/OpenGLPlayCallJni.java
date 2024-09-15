@@ -145,6 +145,8 @@ public class OpenGLPlayCallJni {
             , String fragPath4
             , String fragPath5
             , String fragPath6
+            , String fragPath7
+
 
     ) {
         native_texture_filter_player_create(type, vertexPath
@@ -155,6 +157,7 @@ public class OpenGLPlayCallJni {
                 , fragPath4
                 , fragPath5
                 , fragPath6
+                , fragPath7
 
         );
     }
@@ -191,6 +194,7 @@ public class OpenGLPlayCallJni {
             , String fragPath4
             , String fragPath5
             , String fragPath6
+            , String fragPath7
 
     );
 

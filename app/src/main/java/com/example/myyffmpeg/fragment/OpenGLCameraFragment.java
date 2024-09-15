@@ -155,6 +155,10 @@ public class OpenGLCameraFragment extends BaseFragment {
                 mBtnGlFilterC.setText("三角形马赛克滤镜");
             }
             break;
+            case 7:{
+                mBtnGlFilterC.setText("像素过滤器");
+            }
+            break;
         }
 
     }

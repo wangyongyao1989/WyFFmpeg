@@ -34,6 +34,6 @@ void main() {
      uv *= tileNum;
      vec3 color = YuvToRgb(uv2 + vec2(step(1.0 - uv.y, uv.x) / (2.0 * tileNum.x),
      step(uv.x, uv.y) / (2.0 * tileNum.y))).rgb;
-     FragColor = vec4(color, 1.0);\
+     FragColor = vec4(color, 1.0);
 
 }
