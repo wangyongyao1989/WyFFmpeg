@@ -1,5 +1,6 @@
 # OpenGL与视频的相关应用
 ## 1、Camera 视频获取并通过OpenGL Texture纹理的渲染显示。
+  https://github.com/user-attachments/assets/913d331a-7a86-47c4-a5ef-39f2d0fd48cf
 ### 1.模糊滤镜：
   <img src="https://github.com/wangyongyao1989/WyFFmpeg/blob/main/glplay/glplaypic/blur_filter.jpg" width="350px">
 
