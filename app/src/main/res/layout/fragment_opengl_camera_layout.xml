@@ -66,6 +66,16 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="HardcodedText" />
 
+    <Button
+        android:id="@+id/btn_surface"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:text="GLSurfaceView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_gl_back"
+        tools:ignore="HardcodedText" />
+
     <FrameLayout
         android:id="@+id/gl_show"
         android:layout_width="match_parent"
