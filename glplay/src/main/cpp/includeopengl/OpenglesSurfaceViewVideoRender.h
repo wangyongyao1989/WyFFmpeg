@@ -12,6 +12,8 @@
 #include <android/native_window.h>
 #include <android/asset_manager.h>
 #include "OpenGLShader.h"
+#include <EGL/egl.h>
+#include <GLES3/gl3.h>
 
 
 struct surface_video_frame {
@@ -122,4 +124,8 @@ private:
     bool isDirty;
 
     OpenGLShader *openGlShader;
+
+    EGLDisplay display;
+    EGLSurface winsurface;
+
 };

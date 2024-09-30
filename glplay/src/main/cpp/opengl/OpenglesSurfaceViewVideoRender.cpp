@@ -6,11 +6,62 @@
 #include "OpenGLShader.h"
 
 void
-OpenglesSurfaceViewVideoRender::init(ANativeWindow *window, AAssetManager *assetManager, size_t width,
-                                size_t height) {
-    LOGI("OpenglesSurfaceViewVideoRender init==%d, %d", width, width);
+OpenglesSurfaceViewVideoRender::init(ANativeWindow *window, AAssetManager *assetManager,
+                                     size_t width,
+                                     size_t height) {
+    LOGI("OpenglesSurfaceViewVideoRender init==%d, %d", width, height);
     m_backingWidth = width;
     m_backingHeight = height;
+    ///EGL
+    //1 EGL display创建和初始化
+    display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (display == EGL_NO_DISPLAY) {
+        LOGE("eglGetDisplay failed!");
+        return;
+    }
+    if (EGL_TRUE != eglInitialize(display, 0, 0)) {
+        LOGE("eglInitialize failed!");
+        return;
+    }
+    //2 surface
+    //2-1 surface窗口配置
+    //输出配置
+    EGLConfig config;
+    EGLint configNum;
+    EGLint configSpec[] = {
+            EGL_RED_SIZE, 8,
+            EGL_GREEN_SIZE, 8,
+            EGL_BLUE_SIZE, 8,
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_NONE
+    };
+    if (EGL_TRUE != eglChooseConfig(display, configSpec, &config, 1, &configNum)) {
+        LOGE("eglChooseConfig failed!");
+        return;
+    }
+    //创建surface
+    winsurface = eglCreateWindowSurface(display, config, window, 0);
+    if (winsurface == EGL_NO_SURFACE) {
+        LOGE("eglCreateWindowSurface failed!");
+        return;
+    }
+
+    //3 context 创建关联的上下文
+    const EGLint ctxAttr[] = {
+            EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE
+    };
+    EGLContext context = eglCreateContext(display, config, EGL_NO_CONTEXT, ctxAttr);
+    if (context == EGL_NO_CONTEXT) {
+        LOGE("eglCreateContext failed!");
+        return;
+    }
+    if (EGL_TRUE != eglMakeCurrent(display, winsurface, winsurface, context)) {
+        LOGE("eglMakeCurrent failed!");
+        return;
+    }
+
+    useProgram();
+    createTextures();
+
 }
 
 void OpenglesSurfaceViewVideoRender::render() {
@@ -19,9 +70,11 @@ void OpenglesSurfaceViewVideoRender::render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    if (!updateTextures() || !useProgram()) return;
+    if (!updateTextures() /*|| !useProgram()*/) return;
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    //窗口显示
+    eglSwapBuffers(display, winsurface);
 }
 
 void OpenglesSurfaceViewVideoRender::updateFrame(const surface_video_frame &frame) {
@@ -77,7 +130,8 @@ void OpenglesSurfaceViewVideoRender::updateFrame(const surface_video_frame &fram
     isDirty = true;
 }
 
-void OpenglesSurfaceViewVideoRender::draw(uint8_t *buffer, size_t length, size_t width, size_t height,
+void
+OpenglesSurfaceViewVideoRender::draw(uint8_t *buffer, size_t length, size_t width, size_t height,
                                      float rotation) {
     m_length = length;
     m_rotation = rotation;
@@ -161,8 +215,11 @@ bool OpenglesSurfaceViewVideoRender::createTextures() {
 }
 
 bool OpenglesSurfaceViewVideoRender::updateTextures() {
-    if (!m_textureIdY && !m_textureIdU && !m_textureIdV && !createTextures()) return false;
+    if (!m_textureIdY && !m_textureIdU && !m_textureIdV /*&& !createTextures()*/) return false;
 //    LOGI("OpenglesSurfaceViewVideoRender updateTextures");
+    LOGE("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
+         m_textureIdY,
+         m_textureIdU, m_textureIdV, isDirty);
 
     if (isDirty) {
         glActiveTexture(GL_TEXTURE0);
@@ -244,7 +301,8 @@ GLuint OpenglesSurfaceViewVideoRender::useProgram() {
     return m_program;
 }
 
-bool OpenglesSurfaceViewVideoRender::setSharderPath(const char *vertexPath, const char *fragmentPath) {
+bool
+OpenglesSurfaceViewVideoRender::setSharderPath(const char *vertexPath, const char *fragmentPath) {
     openGlShader->getSharderPath(vertexPath, fragmentPath);
     return 0;
 }

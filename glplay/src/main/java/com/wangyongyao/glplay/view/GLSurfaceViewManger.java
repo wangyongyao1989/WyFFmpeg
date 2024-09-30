@@ -22,7 +22,7 @@ import com.wangyongyao.glplay.utils.OpenGLPlayFileUtils;
  * Create Time : 2024/9/30 20:08
  * Descibe : MyyFFmpeg com.wangyongyao.glplay.view
  */
-public class GLSurfaceViewManger extends SurfaceView implements SurfaceHolder.Callback, GLCamera2Listener, Runnable {
+public class GLSurfaceViewManger extends SurfaceView implements SurfaceHolder.Callback, GLCamera2Listener {
     private static String TAG = GLSurfaceViewManger.class.getSimpleName();
     private OpenGLPlayCallJni mJniCall;
     private Context mContext;
@@ -30,9 +30,6 @@ public class GLSurfaceViewManger extends SurfaceView implements SurfaceHolder.Ca
     private int mWidth;
     private int mHeight;
     private Camera2Helper2 camera2Helper;
-    private SurfaceView mSurfaceView;
-    private boolean mIsDrawing;
-    private Thread mThread;
     private SurfaceHolder mHolder;
 
     public GLSurfaceViewManger(Context context, OpenGLPlayCallJni jniCall) {
@@ -67,20 +64,10 @@ public class GLSurfaceViewManger extends SurfaceView implements SurfaceHolder.Ca
         }
     }
 
-    private void draw() {
-//        Log.e(TAG, " draw======:");
-
-    }
-
 
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         Log.e(TAG, "surfaceCreated");
-        //设置标志位为true，表示子线程可以开始运行
-        mIsDrawing = true;
-        //创建并启动子线程
-        mThread = new Thread(this);
-        mThread.start();
 
     }
 
@@ -98,36 +85,6 @@ public class GLSurfaceViewManger extends SurfaceView implements SurfaceHolder.Ca
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-        //设置标志位为false，表示子线程可以停止运行
-        mIsDrawing = false;
-        try {
-            //等待子线程结束，并释放子线程对象
-            mThread.join();
-            mThread = null;
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void run() {
-        //使用一个循环来不断地刷新页面
-        while (mIsDrawing) {
-            //获取当前时间，用于计算绘制时间
-            long start = System.currentTimeMillis();
-            //调用draw方法进行绘制操作
-            draw();
-            //获取结束时间，用于计算绘制时间
-            long end = System.currentTimeMillis();
-            //如果绘制时间小于16ms，则延时一段时间，保证每秒60帧的刷新率
-            if (end - start < 16) {
-                try {
-                    Thread.sleep(16 - (end - start));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
 
     }
 
@@ -150,7 +107,10 @@ public class GLSurfaceViewManger extends SurfaceView implements SurfaceHolder.Ca
     @Override
     public void onPreviewFrame(byte[] yuvData, int width, int height) {
 //        Log.e(TAG, "onPreviewFrame" );
-        mJniCall.glSurfaceViewDraw(yuvData, width, height, 90);
+        if (mJniCall != null) {
+            mJniCall.glSurfaceViewDraw(yuvData, width, height, 90);
+            mJniCall.glSurfaceViewRender();
+        }
     }
 
     @Override

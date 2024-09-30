@@ -40,7 +40,7 @@ public class OpenGLCameraFragment extends BaseFragment {
     private int type;
     private Button mBtnGlFilterC;
     private Button mBtnSurface;
-//    private GLSurfaceViewManger mGlSurfaceViewManger;
+    private GLSurfaceViewManger mGlSurfaceViewManger;
 
     @Override
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
@@ -125,10 +125,10 @@ public class OpenGLCameraFragment extends BaseFragment {
         mBtnSurface.setOnClickListener(view -> {
             onDestroyGLView();
             mGlShow.removeAllViews();
-//            if (mGlSurfaceViewManger == null) {
-//                mGlSurfaceViewManger = new GLSurfaceViewManger(getActivity(), mFFPlayCallJni);
-//            }
-//            mGlShow.addView(mGlSurfaceViewManger);
+            if (mGlSurfaceViewManger == null) {
+                mGlSurfaceViewManger = new GLSurfaceViewManger(getActivity(), mFFPlayCallJni);
+            }
+            mGlShow.addView(mGlSurfaceViewManger);
         });
     }
 
@@ -205,10 +205,10 @@ public class OpenGLCameraFragment extends BaseFragment {
             mGLTextureFilterPlayerView.destroyRender();
             mGLTextureFilterPlayerView = null;
         }
-//        if (mGlSurfaceViewManger != null) {
-//            mGlSurfaceViewManger.destroyRender();
-//            mGlSurfaceViewManger = null;
-//        }
+        if (mGlSurfaceViewManger != null) {
+            mGlSurfaceViewManger.destroyRender();
+            mGlSurfaceViewManger = null;
+        }
     }
 
 
