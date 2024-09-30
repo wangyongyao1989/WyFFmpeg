@@ -8,6 +8,7 @@
 #include <android/native_window_jni.h>
 #include <android/asset_manager_jni.h>
 #include "OpenglesTextureFilterRender.h"
+#include "OpenglesSurfaceViewVideoRender.h"
 
 #define LOG_TAG "wy"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -22,7 +23,7 @@ OpenglesFlashLight *flashLight;
 OpenglesCameraPre *cameraPre;
 OpenglesTexureVideoRender *textureVideoRender;
 OpenglesTextureFilterRender *filterRender;
-
+OpenglesSurfaceViewVideoRender *surfaceViewRender;
 
 
 
@@ -409,10 +410,10 @@ cpp_surfaceview_video_creat(JNIEnv *env, jobject thiz, jint type,
                             jstring frag) {
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
     const char *fragPath = env->GetStringUTFChars(frag, nullptr);
-    if (textureVideoRender == nullptr)
-        textureVideoRender = new OpenglesTexureVideoRender();
+    if (surfaceViewRender == nullptr)
+        surfaceViewRender = new OpenglesSurfaceViewVideoRender();
 
-    textureVideoRender->setSharderPath(vertexPath, fragPath);
+    surfaceViewRender->setSharderPath(vertexPath, fragPath);
 
     env->ReleaseStringUTFChars(vertex, vertexPath);
     env->ReleaseStringUTFChars(frag, fragPath);
@@ -431,18 +432,18 @@ cpp_surfaceview_video_init(JNIEnv *env, jobject thiz,
                            jobject assetManager,
                            jint width,
                            jint height) {
-    if (textureVideoRender != nullptr) {
+    if (surfaceViewRender != nullptr) {
         ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
         auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
-        textureVideoRender->init(window, aAssetManager, (size_t) width, (size_t) height);
+        surfaceViewRender->init(window, aAssetManager, (size_t) width, (size_t) height);
     }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 cpp_surfaceview_video_render(JNIEnv *env, jobject thiz) {
-    if (textureVideoRender != nullptr) {
-        textureVideoRender->render();
+    if (surfaceViewRender != nullptr) {
+        surfaceViewRender->render();
     }
 }
 
@@ -453,9 +454,9 @@ cpp_surfaceview_video_draw(JNIEnv *env, jobject obj, jbyteArray data, jint width
     jbyte *bufferPtr = env->GetByteArrayElements(data, nullptr);
     jsize arrayLength = env->GetArrayLength(data);
 
-    if (textureVideoRender != nullptr) {
+    if (surfaceViewRender != nullptr) {
 
-        textureVideoRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
+        surfaceViewRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
                                  (size_t) height,
                                  rotation);
     }
@@ -467,8 +468,8 @@ extern "C"
 JNIEXPORT void JNICALL
 cpp_surfaceview_video_setParameters(JNIEnv *env, jobject thiz, jint p) {
 
-    if (textureVideoRender != nullptr) {
-        textureVideoRender->setParameters((uint32_t) p);
+    if (surfaceViewRender != nullptr) {
+        surfaceViewRender->setParameters((uint32_t) p);
     }
 
 }
@@ -476,8 +477,8 @@ cpp_surfaceview_video_setParameters(JNIEnv *env, jobject thiz, jint p) {
 extern "C"
 JNIEXPORT jint JNICALL
 cpp_surfaceview_video_getParameters(JNIEnv *env, jobject thiz) {
-    if (textureVideoRender != nullptr) {
-        textureVideoRender->getParameters();
+    if (surfaceViewRender != nullptr) {
+        surfaceViewRender->getParameters();
     }
     return 0;
 

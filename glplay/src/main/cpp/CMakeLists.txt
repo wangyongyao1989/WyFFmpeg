@@ -23,6 +23,7 @@ add_library(
         opengl/GLCommonUtils.cpp
         opengl/OpenglesTexureVideoRender.cpp
         opengl/OpenglesTextureFilterRender.cpp
+        opengl/OpenglesSurfaceViewVideoRender.cpp
 
 
 )
