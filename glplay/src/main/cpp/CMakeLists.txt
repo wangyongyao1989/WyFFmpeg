@@ -15,6 +15,8 @@ add_library(
         SHARED
         #OpenGL相关
         GLPlayJniCall.cpp
+
+
         opengl/OpenGLShader.cpp
         opengl/OpenGLCamera3D.cpp
         opengl/OpenglesFlashLight.cpp
@@ -24,6 +26,10 @@ add_library(
         opengl/OpenglesTexureVideoRender.cpp
         opengl/OpenglesTextureFilterRender.cpp
         opengl/OpenglesSurfaceViewVideoRender.cpp
+
+        WyyEGL/EglCore.cpp
+        WyyEGL/EglSurfaceBase.cpp
+        WyyEGL/WindowSurface.cpp
 
 
 )

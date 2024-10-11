@@ -2,6 +2,7 @@ package com.wangyongyao.glplay.view;
 
 import android.content.Context;
 import android.graphics.Point;
+import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Size;
@@ -15,6 +16,8 @@ import com.wangyongyao.glplay.OpenGLPlayCallJni;
 import com.wangyongyao.glplay.camera.Camera2Helper2;
 import com.wangyongyao.glplay.camera.GLCamera2Listener;
 import com.wangyongyao.glplay.utils.OpenGLPlayFileUtils;
+
+import java.lang.ref.WeakReference;
 
 
 /**
@@ -32,6 +35,12 @@ public class GLSurfaceViewManger extends SurfaceView implements SurfaceHolder.Ca
     private Camera2Helper2 camera2Helper;
     private SurfaceHolder mHolder;
 
+    private final WeakReference<GLSurfaceViewManger> mThisWeakRef =
+            new WeakReference<GLSurfaceViewManger>(this);
+
+    private WeakReference<GLSurfaceViewManger> mGLSurfaceViewWeakRef;
+
+
     public GLSurfaceViewManger(Context context, OpenGLPlayCallJni jniCall) {
         super(context);
         Log.e(TAG, "GLSurfaceViewManger");
@@ -46,6 +55,12 @@ public class GLSurfaceViewManger extends SurfaceView implements SurfaceHolder.Ca
         init();
     }
 
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+
+    }
 
     private void init() {
         //获取SurfaceHolder对象
@@ -74,7 +89,9 @@ public class GLSurfaceViewManger extends SurfaceView implements SurfaceHolder.Ca
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
         Surface surface = holder.getSurface();
-        Log.e(TAG, "onSurfaceChanged width:" + width + ",height" + height);
+        Log.e(TAG, "onSurfaceChanged width:" + width + ",height" + height
+                + "===surface:" + surface.toString());
+//        Log.e(TAG, "surfaceChanged: "+Thread.currentThread().getName());
         if (mJniCall != null) {
             mJniCall.glSurfaceViewInit(surface, null, width, height);
         }
@@ -107,6 +124,8 @@ public class GLSurfaceViewManger extends SurfaceView implements SurfaceHolder.Ca
     @Override
     public void onPreviewFrame(byte[] yuvData, int width, int height) {
 //        Log.e(TAG, "onPreviewFrame" );
+//        Log.e(TAG, "onPreviewFrame: "+Thread.currentThread().getName());
+
         if (mJniCall != null) {
             mJniCall.glSurfaceViewDraw(yuvData, width, height, 90);
             mJniCall.glSurfaceViewRender();
@@ -134,6 +153,21 @@ public class GLSurfaceViewManger extends SurfaceView implements SurfaceHolder.Ca
     public void destroyRender() {
         mJniCall.glSurfaceViewDestroy();
         stopCameraPreview();
+    }
+
+
+    class GLThread extends Thread {
+        GLThread(WeakReference<GLSurfaceViewManger> glSurfaceViewWeakRef) {
+            super();
+            mWidth = 0;
+            mHeight = 0;
+            mGLSurfaceViewWeakRef = glSurfaceViewWeakRef;
+        }
+
+        @Override
+        public void run() {
+            super.run();
+        }
     }
 
 

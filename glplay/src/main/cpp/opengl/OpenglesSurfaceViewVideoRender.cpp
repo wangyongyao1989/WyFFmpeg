@@ -39,6 +39,8 @@ OpenglesSurfaceViewVideoRender::init(ANativeWindow *window, AAssetManager *asset
         return;
     }
     //创建surface
+    ANativeWindow_acquire(window);
+    ANativeWindow_setBuffersGeometry(window, 0, 0, AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM);
     winsurface = eglCreateWindowSurface(display, config, window, 0);
     if (winsurface == EGL_NO_SURFACE) {
         LOGE("eglCreateWindowSurface failed!");
