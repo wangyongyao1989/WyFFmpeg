@@ -457,8 +457,8 @@ cpp_surfaceview_video_draw(JNIEnv *env, jobject obj, jbyteArray data, jint width
     if (surfaceViewRender != nullptr) {
 
         surfaceViewRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
-                                 (size_t) height,
-                                 rotation);
+                                (size_t) height,
+                                rotation);
     }
 
     env->ReleaseByteArrayElements(data, bufferPtr, 0);
@@ -481,6 +481,40 @@ cpp_surfaceview_video_getParameters(JNIEnv *env, jobject thiz) {
         surfaceViewRender->getParameters();
     }
     return 0;
+
+}
+
+/*********************** WyyRenderer *******************/
+
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_wyy_renderer_init(JNIEnv *env, jobject thiz) {
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_wyy_renderer_surface_created(JNIEnv *env, jobject thiz,
+                                 jobject surface) {
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_wyy_renderer_surface_changed(JNIEnv *env, jobject thiz, jint width, jint height) {
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_wyy_renderer_release(JNIEnv *env, jobject thiz) {
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_wyy_renderer_destroy(JNIEnv *env, jobject thiz) {
 
 }
 
@@ -561,6 +595,15 @@ static const JNINativeMethod methods[] = {
         {"native_surfaceview_video_draw",               "([BIII)V",              (void *) cpp_surfaceview_video_draw},
         {"native_surfaceview_video_set_parameters",     "(I)V",                  (void *) cpp_surfaceview_video_setParameters},
         {"native_surfaceview_video_get_parameters",     "()I",                   (void *) cpp_surfaceview_video_getParameters},
+
+        /*********************** WyyRenderer *******************/
+        {"native_wyy_renderer_init",                    "()V",                   (void *) cpp_wyy_renderer_init},
+        {"native_wyy_renderer_surface_created",         "(Landroid/view/Surface;)"
+                                                        "V",                     (void *) cpp_wyy_renderer_surface_created},
+        {"native_wyy_renderer_surface_changed",         "(II)V",                 (void *) cpp_wyy_renderer_surface_changed},
+        {"native_wyy_renderer_release",                 "()V",                   (void *) cpp_wyy_renderer_release},
+        {"native_wyy_renderer_release",                 "()V",                   (void *) cpp_wyy_renderer_release},
+        {"native_wyy_renderer_destroy",                 "()V",                   (void *) cpp_wyy_renderer_destroy},
 
 
 };

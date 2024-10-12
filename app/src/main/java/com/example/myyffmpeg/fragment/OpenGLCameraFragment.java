@@ -17,7 +17,7 @@ import com.example.myyffmpeg.databinding.FragmentOpenglCameraLayoutBinding;
 import com.wangyongyao.glplay.OpenGLPlayCallJni;
 import com.wangyongyao.glplay.view.GLCameraPreView;
 import com.wangyongyao.glplay.view.GLFlashLightView;
-import com.wangyongyao.glplay.view.GLSurfaceViewManger;
+import com.wangyongyao.glplay.view.WyyGLSurfaceView;
 import com.wangyongyao.glplay.view.GLTextureCPlusVideoPlayerView;
 import com.wangyongyao.glplay.view.GLTextureFilterPlayerView;
 
@@ -40,7 +40,7 @@ public class OpenGLCameraFragment extends BaseFragment {
     private int type;
     private Button mBtnGlFilterC;
     private Button mBtnSurface;
-    private GLSurfaceViewManger mGlSurfaceViewManger;
+    private WyyGLSurfaceView mGlSurfaceViewManger;
 
     @Override
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
@@ -126,7 +126,7 @@ public class OpenGLCameraFragment extends BaseFragment {
             onDestroyGLView();
             mGlShow.removeAllViews();
             if (mGlSurfaceViewManger == null) {
-                mGlSurfaceViewManger = new GLSurfaceViewManger(getActivity(), mFFPlayCallJni);
+                mGlSurfaceViewManger = new WyyGLSurfaceView(getActivity(), mFFPlayCallJni);
             }
             mGlShow.addView(mGlSurfaceViewManger);
         });
