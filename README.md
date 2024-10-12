@@ -36,3 +36,7 @@
 
 ### 12.边缘检测滤波器：
   <img src="https://github.com/wangyongyao1989/WyFFmpeg/blob/main/glplay/glplaypic/edge_detecting_filter.jpg" width="350px">
+
+## 2、OpenGL 自定义SurfaceView Texture C++预览Camera视频
+    
+    
