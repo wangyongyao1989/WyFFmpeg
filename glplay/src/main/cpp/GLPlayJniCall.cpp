@@ -8,6 +8,7 @@
 #include <android/native_window_jni.h>
 #include <android/asset_manager_jni.h>
 #include "OpenglesTextureFilterRender.h"
+#include "OpenglesSurfaceViewVideoRender.h"
 
 #define LOG_TAG "wy"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -22,7 +23,7 @@ OpenglesFlashLight *flashLight;
 OpenglesCameraPre *cameraPre;
 OpenglesTexureVideoRender *textureVideoRender;
 OpenglesTextureFilterRender *filterRender;
-
+OpenglesSurfaceViewVideoRender *surfaceViewRender;
 
 
 
@@ -261,22 +262,12 @@ cpp_texture_video_play_getParameters(JNIEnv *env, jobject thiz) {
 extern "C"
 JNIEXPORT void JNICALL
 cpp_texture_filter_player_creat(JNIEnv *env, jobject thiz, jint type,
-                                jstring vertex
-                                ,jstring frag
-                                ,jstring frag1
-                                ,jstring frag2
-                                ,jstring frag3
-                                ,jstring frag4
-                                ,jstring frag5
-                                ,jstring frag6
-                                ,jstring frag7
-                                ,jstring frag8
-                                ,jstring frag9
-                                ,jstring frag10
-                                ,jstring frag11
-                                ,jstring frag12
+                                jstring vertex, jstring frag, jstring frag1, jstring frag2,
+                                jstring frag3, jstring frag4, jstring frag5, jstring frag6,
+                                jstring frag7, jstring frag8, jstring frag9, jstring frag10,
+                                jstring frag11, jstring frag12
 
-                                ) {
+) {
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
     const char *fragPath = env->GetStringUTFChars(frag, nullptr);
     const char *fragPath1 = env->GetStringUTFChars(frag1, nullptr);
@@ -411,6 +402,122 @@ cpp_texture_filter_player_getParameters(JNIEnv *env, jobject thiz) {
 
 }
 
+/*********************** OpenGL SurfaceView 预览Camera视频********************/
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_video_creat(JNIEnv *env, jobject thiz, jint type,
+                            jstring vertex,
+                            jstring frag) {
+    const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
+    const char *fragPath = env->GetStringUTFChars(frag, nullptr);
+    if (surfaceViewRender == nullptr)
+        surfaceViewRender = new OpenglesSurfaceViewVideoRender();
+
+    surfaceViewRender->setSharderPath(vertexPath, fragPath);
+
+    env->ReleaseStringUTFChars(vertex, vertexPath);
+    env->ReleaseStringUTFChars(frag, fragPath);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_video_destroy(JNIEnv *env, jobject thiz) {
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_video_init(JNIEnv *env, jobject thiz,
+                           jobject surface,
+                           jobject assetManager,
+                           jint width,
+                           jint height) {
+    if (surfaceViewRender != nullptr) {
+        ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
+        auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
+        surfaceViewRender->init(window, aAssetManager, (size_t) width, (size_t) height);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_video_render(JNIEnv *env, jobject thiz) {
+    if (surfaceViewRender != nullptr) {
+        surfaceViewRender->render();
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_video_draw(JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height,
+                           jint rotation) {
+    jbyte *bufferPtr = env->GetByteArrayElements(data, nullptr);
+    jsize arrayLength = env->GetArrayLength(data);
+
+    if (surfaceViewRender != nullptr) {
+
+        surfaceViewRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
+                                (size_t) height,
+                                rotation);
+    }
+
+    env->ReleaseByteArrayElements(data, bufferPtr, 0);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_video_setParameters(JNIEnv *env, jobject thiz, jint p) {
+
+    if (surfaceViewRender != nullptr) {
+        surfaceViewRender->setParameters((uint32_t) p);
+    }
+
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+cpp_surfaceview_video_getParameters(JNIEnv *env, jobject thiz) {
+    if (surfaceViewRender != nullptr) {
+        surfaceViewRender->getParameters();
+    }
+    return 0;
+
+}
+
+/*********************** WyyRenderer *******************/
+
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_wyy_renderer_init(JNIEnv *env, jobject thiz) {
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_wyy_renderer_surface_created(JNIEnv *env, jobject thiz,
+                                 jobject surface) {
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_wyy_renderer_surface_changed(JNIEnv *env, jobject thiz, jint width, jint height) {
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_wyy_renderer_release(JNIEnv *env, jobject thiz) {
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_wyy_renderer_destroy(JNIEnv *env, jobject thiz) {
+
+}
+
 
 static const JNINativeMethod methods[] = {
         //GLCameraPre
@@ -474,6 +581,31 @@ static const JNINativeMethod methods[] = {
         {"native_texture_filter_player_draw",           "([BIII)V",              (void *) cpp_texture_filter_player_draw},
         {"native_texture_filter_player_set_parameters", "(I)V",                  (void *) cpp_texture_filter_player_setParameters},
         {"native_texture_filter_player_get_parameters", "()I",                   (void *) cpp_texture_filter_player_getParameters},
+
+
+        /*********************** OpenGL SurfaceView显示视频 *******************/
+        {"native_surfaceview_video_create",             "(I"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;)V",  (void *) cpp_surfaceview_video_creat},
+        {"native_surfaceview_video_destroy",            "()V",                   (void *) cpp_surfaceview_video_destroy},
+        {"native_surfaceview_video_init",               "(Landroid/view/Surface;"
+                                                        "Landroid/content/res"
+                                                        "/AssetManager;II)V",    (void *) cpp_surfaceview_video_init},
+        {"native_surfaceview_video_render",             "()V",                   (void *) cpp_surfaceview_video_render},
+        {"native_surfaceview_video_draw",               "([BIII)V",              (void *) cpp_surfaceview_video_draw},
+        {"native_surfaceview_video_set_parameters",     "(I)V",                  (void *) cpp_surfaceview_video_setParameters},
+        {"native_surfaceview_video_get_parameters",     "()I",                   (void *) cpp_surfaceview_video_getParameters},
+
+        /*********************** WyyRenderer *******************/
+        {"native_wyy_renderer_init",                    "()V",                   (void *) cpp_wyy_renderer_init},
+        {"native_wyy_renderer_surface_created",         "(Landroid/view/Surface;)"
+                                                        "V",                     (void *) cpp_wyy_renderer_surface_created},
+        {"native_wyy_renderer_surface_changed",         "(II)V",                 (void *) cpp_wyy_renderer_surface_changed},
+        {"native_wyy_renderer_release",                 "()V",                   (void *) cpp_wyy_renderer_release},
+        {"native_wyy_renderer_release",                 "()V",                   (void *) cpp_wyy_renderer_release},
+        {"native_wyy_renderer_destroy",                 "()V",                   (void *) cpp_wyy_renderer_destroy},
+
+
 };
 
 // 定义注册方法

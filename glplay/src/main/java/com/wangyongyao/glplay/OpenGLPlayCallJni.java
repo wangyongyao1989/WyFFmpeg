@@ -225,4 +225,81 @@ public class OpenGLPlayCallJni {
 
     private native int native_texture_filter_player_get_parameters();
 
+
+    /*********************** OpenGL SurfaceView 显示视频********************/
+    public void glSurfaceViewCreate(int type, String vertexPath, String fragPath) {
+        native_surfaceview_video_create(type, vertexPath, fragPath);
+    }
+
+    public void glSurfaceViewDestroy() {
+        native_surfaceview_video_destroy();
+    }
+
+    public void glSurfaceViewInit(Surface surface, AssetManager assetManager, int width, int height) {
+        native_surfaceview_video_init(surface, assetManager, width, height);
+    }
+
+    public void glSurfaceViewRender() {
+        native_surfaceview_video_render();
+    }
+
+    public void glSurfaceViewDraw(byte[] data, int width, int height, int rotation) {
+        native_surfaceview_video_draw(data, width, height, rotation);
+    }
+
+    public void glSurfaceViewSetParameters(int params) {
+        native_surfaceview_video_set_parameters(params);
+    }
+
+    public int glSurfaceViewGetParameters() {
+        return native_surfaceview_video_get_parameters();
+    }
+
+    private native void native_surfaceview_video_create(int type, String vertexPath, String fragPath);
+
+    private native void native_surfaceview_video_destroy();
+
+    private native void native_surfaceview_video_init(Surface surface, AssetManager assetManager, int width, int height);
+
+    private native void native_surfaceview_video_render();
+
+    private native void native_surfaceview_video_draw(byte[] data, int width, int height, int rotation);
+
+    private native void native_surfaceview_video_set_parameters(int params);
+
+    private native int native_surfaceview_video_get_parameters();
+
+    /*********************** WyyRenderer *******************/
+
+    public void wyyRendererInit() {
+        native_wyy_renderer_init();
+    }
+
+    public void wyyRendererSurfaceCreated(Surface surface) {
+        native_wyy_renderer_surface_created(surface);
+    }
+
+    public void wyyRendererSurfaceChanged(int width, int height) {
+        native_wyy_renderer_surface_changed(width, height);
+    }
+
+    public void wyyRendererSurfaceRelease() {
+        native_wyy_renderer_release();
+    }
+
+    public void wyyRendererSurfaceDestroyed() {
+        native_wyy_renderer_destroy();
+    }
+
+    private native void native_wyy_renderer_init();
+
+    private native void native_wyy_renderer_surface_created(Surface surface);
+
+    private native void native_wyy_renderer_surface_changed(int width, int height);
+
+    private native void native_wyy_renderer_release();
+
+    private native void native_wyy_renderer_destroy();
+
+
 }

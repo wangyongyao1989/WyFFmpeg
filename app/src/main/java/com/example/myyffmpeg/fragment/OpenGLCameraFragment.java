@@ -17,6 +17,7 @@ import com.example.myyffmpeg.databinding.FragmentOpenglCameraLayoutBinding;
 import com.wangyongyao.glplay.OpenGLPlayCallJni;
 import com.wangyongyao.glplay.view.GLCameraPreView;
 import com.wangyongyao.glplay.view.GLFlashLightView;
+import com.wangyongyao.glplay.view.WyyGLSurfaceView;
 import com.wangyongyao.glplay.view.GLTextureCPlusVideoPlayerView;
 import com.wangyongyao.glplay.view.GLTextureFilterPlayerView;
 
@@ -38,6 +39,8 @@ public class OpenGLCameraFragment extends BaseFragment {
     private Button mBtnGlFilter;
     private int type;
     private Button mBtnGlFilterC;
+    private Button mBtnSurface;
+    private WyyGLSurfaceView mGlSurfaceViewManger;
 
     @Override
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
@@ -55,6 +58,7 @@ public class OpenGLCameraFragment extends BaseFragment {
         mBtnGlCamera2 = mBinding.btnGlCamera2;
         mBtnGlFilter = mBinding.btnGlFilter;
         mBtnGlFilterC = mBinding.btnGlFilterC;
+        mBtnSurface = mBinding.btnSurface;
         mGlShow = mBinding.glShow;
     }
 
@@ -118,6 +122,14 @@ public class OpenGLCameraFragment extends BaseFragment {
             switchFilter();
         });
 
+        mBtnSurface.setOnClickListener(view -> {
+            onDestroyGLView();
+            mGlShow.removeAllViews();
+            if (mGlSurfaceViewManger == null) {
+                mGlSurfaceViewManger = new WyyGLSurfaceView(getActivity(), mFFPlayCallJni);
+            }
+            mGlShow.addView(mGlSurfaceViewManger);
+        });
     }
 
     @SuppressLint("SetTextI18n")
@@ -192,6 +204,10 @@ public class OpenGLCameraFragment extends BaseFragment {
         if (mGLTextureFilterPlayerView != null) {
             mGLTextureFilterPlayerView.destroyRender();
             mGLTextureFilterPlayerView = null;
+        }
+        if (mGlSurfaceViewManger != null) {
+            mGlSurfaceViewManger.destroyRender();
+            mGlSurfaceViewManger = null;
         }
     }
 

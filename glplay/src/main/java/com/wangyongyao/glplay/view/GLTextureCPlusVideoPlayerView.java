@@ -49,7 +49,7 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
         String fragPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "texture_video_play_frament.glsl");
         String vertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "texture_video_play_vert.glsl");
         mJniCall.glTextureVideoPlayCreate(0, vertexPath, fragPath);
-
+        Log.e(TAG, "init: "+Thread.currentThread().getName());
         setRenderer(this);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
@@ -64,6 +64,7 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
 
 
     public void onDrawFrame(GL10 gl) {
+        Log.e(TAG, "onDrawFrame: "+Thread.currentThread().getName());
         if (mJniCall != null) {
             mJniCall.glTextureVideoPlayRender();
         }
@@ -72,6 +73,7 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
 
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         Log.e(TAG, "onSurfaceChanged width:" + width + ",height" + height);
+        Log.e(TAG, "onSurfaceChanged: "+Thread.currentThread().getName());
         if (mJniCall != null) {
             mJniCall.glTextureVideoPlayInit(null, null, width, height);
         }
@@ -85,6 +87,7 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
     @Override
     public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
         Log.e(TAG, "onSurfaceCreated:");
+        Log.e(TAG, "onSurfaceCreated: "+Thread.currentThread().getName());
 
 
     }
