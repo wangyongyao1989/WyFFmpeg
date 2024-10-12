@@ -20,6 +20,7 @@ import com.wangyongyao.glplay.view.GLFlashLightView;
 import com.wangyongyao.glplay.view.WyyGLSurfaceView;
 import com.wangyongyao.glplay.view.GLTextureCPlusVideoPlayerView;
 import com.wangyongyao.glplay.view.GLTextureFilterPlayerView;
+import com.wangyongyao.glplay.view.WyyGLSurfaceViewNew;
 
 public class OpenGLCameraFragment extends BaseFragment {
 
@@ -40,7 +41,10 @@ public class OpenGLCameraFragment extends BaseFragment {
     private int type;
     private Button mBtnGlFilterC;
     private Button mBtnSurface;
-    private WyyGLSurfaceView mGlSurfaceViewManger;
+    private WyyGLSurfaceView mWyyGLSurfaceView;
+    private Button mBtnSurfaceNew;
+    private WyyGLSurfaceViewNew mWyyGLSurfaceViewNew;
+
 
     @Override
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
@@ -59,6 +63,7 @@ public class OpenGLCameraFragment extends BaseFragment {
         mBtnGlFilter = mBinding.btnGlFilter;
         mBtnGlFilterC = mBinding.btnGlFilterC;
         mBtnSurface = mBinding.btnSurface;
+        mBtnSurfaceNew = mBinding.btnSurfaceNew;
         mGlShow = mBinding.glShow;
     }
 
@@ -125,10 +130,19 @@ public class OpenGLCameraFragment extends BaseFragment {
         mBtnSurface.setOnClickListener(view -> {
             onDestroyGLView();
             mGlShow.removeAllViews();
-            if (mGlSurfaceViewManger == null) {
-                mGlSurfaceViewManger = new WyyGLSurfaceView(getActivity(), mFFPlayCallJni);
+            if (mWyyGLSurfaceView == null) {
+                mWyyGLSurfaceView = new WyyGLSurfaceView(getActivity(), mFFPlayCallJni);
             }
-            mGlShow.addView(mGlSurfaceViewManger);
+            mGlShow.addView(mWyyGLSurfaceView);
+        });
+
+        mBtnSurfaceNew.setOnClickListener(view -> {
+            onDestroyGLView();
+            mGlShow.removeAllViews();
+            if (mWyyGLSurfaceViewNew == null) {
+                mWyyGLSurfaceViewNew = new WyyGLSurfaceViewNew(getActivity(), mFFPlayCallJni);
+            }
+            mGlShow.addView(mWyyGLSurfaceViewNew);
         });
     }
 
@@ -205,9 +219,9 @@ public class OpenGLCameraFragment extends BaseFragment {
             mGLTextureFilterPlayerView.destroyRender();
             mGLTextureFilterPlayerView = null;
         }
-        if (mGlSurfaceViewManger != null) {
-            mGlSurfaceViewManger.destroyRender();
-            mGlSurfaceViewManger = null;
+        if (mWyyGLSurfaceView != null) {
+            mWyyGLSurfaceView.destroyRender();
+            mWyyGLSurfaceView = null;
         }
     }
 

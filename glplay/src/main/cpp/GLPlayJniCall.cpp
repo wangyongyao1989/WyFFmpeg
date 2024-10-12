@@ -9,6 +9,7 @@
 #include <android/asset_manager_jni.h>
 #include "OpenglesTextureFilterRender.h"
 #include "OpenglesSurfaceViewVideoRender.h"
+#include "EGLSurfaceViewVideoRender.h"
 
 #define LOG_TAG "wy"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -24,6 +25,7 @@ OpenglesCameraPre *cameraPre;
 OpenglesTexureVideoRender *textureVideoRender;
 OpenglesTextureFilterRender *filterRender;
 OpenglesSurfaceViewVideoRender *surfaceViewRender;
+EGLSurfaceViewVideoRender *eglsurfaceViewRender;
 
 
 
@@ -518,6 +520,68 @@ cpp_wyy_renderer_destroy(JNIEnv *env, jobject thiz) {
 
 }
 
+/*********************** OpenGL SurfaceViewNew 预览Camera视频********************/
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_new_video_creat(JNIEnv *env, jobject thiz, jint type,
+                                jstring vertex,
+                                jstring frag) {
+    const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
+    const char *fragPath = env->GetStringUTFChars(frag, nullptr);
+    if (eglsurfaceViewRender == nullptr)
+        eglsurfaceViewRender = new EGLSurfaceViewVideoRender();
+
+    eglsurfaceViewRender->setSharderPath(vertexPath, fragPath);
+
+    env->ReleaseStringUTFChars(vertex, vertexPath);
+    env->ReleaseStringUTFChars(frag, fragPath);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_new_video_destroy(JNIEnv *env, jobject thiz) {
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_new_video_init(JNIEnv *env, jobject thiz,
+                               jobject surface,
+                               jobject assetManager,
+                               jint width,
+                               jint height) {
+    if (eglsurfaceViewRender != nullptr) {
+        ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
+        auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
+        eglsurfaceViewRender->init(window, aAssetManager, (size_t) width, (size_t) height);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_new_video_render(JNIEnv *env, jobject thiz) {
+    if (eglsurfaceViewRender != nullptr) {
+        eglsurfaceViewRender->render();
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_new_video_draw(JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height,
+                               jint rotation) {
+    jbyte *bufferPtr = env->GetByteArrayElements(data, nullptr);
+    jsize arrayLength = env->GetArrayLength(data);
+
+    if (eglsurfaceViewRender != nullptr) {
+
+        eglsurfaceViewRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
+                                (size_t) height,
+                                rotation);
+    }
+
+    env->ReleaseByteArrayElements(data, bufferPtr, 0);
+}
+
 
 static const JNINativeMethod methods[] = {
         //GLCameraPre
@@ -604,6 +668,17 @@ static const JNINativeMethod methods[] = {
         {"native_wyy_renderer_release",                 "()V",                   (void *) cpp_wyy_renderer_release},
         {"native_wyy_renderer_release",                 "()V",                   (void *) cpp_wyy_renderer_release},
         {"native_wyy_renderer_destroy",                 "()V",                   (void *) cpp_wyy_renderer_destroy},
+
+        /*********************** OpenGL SurfaceViewNew显示视频 *******************/
+        {"native_surfaceview_new_video_create",         "(I"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;)V",  (void *) cpp_surfaceview_new_video_creat},
+        {"native_surfaceview_new_video_destroy",        "()V",                   (void *) cpp_surfaceview_new_video_destroy},
+        {"native_surfaceview_new_video_init",           "(Landroid/view/Surface;"
+                                                        "Landroid/content/res"
+                                                        "/AssetManager;II)V",    (void *) cpp_surfaceview_new_video_init},
+        {"native_surfaceview_new_video_render",         "()V",                   (void *) cpp_surfaceview_new_video_render},
+        {"native_surfaceview_new_video_draw",           "([BIII)V",              (void *) cpp_surfaceview_new_video_draw},
 
 
 };
