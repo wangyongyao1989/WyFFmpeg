@@ -12,54 +12,20 @@ EGLSurfaceViewVideoRender::init(ANativeWindow *window, AAssetManager *assetManag
     LOGI("EGLSurfaceViewVideoRender init==%d, %d", width, height);
     m_backingWidth = width;
     m_backingHeight = height;
-    ///EGL
-    //1 EGL display创建和初始化
-    display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    if (display == EGL_NO_DISPLAY) {
-        LOGE("eglGetDisplay failed!");
-        return;
-    }
-    if (EGL_TRUE != eglInitialize(display, 0, 0)) {
-        LOGE("eglInitialize failed!");
-        return;
-    }
-    //2 surface
-    //2-1 surface窗口配置
-    //输出配置
-    EGLConfig config;
-    EGLint configNum;
-    EGLint configSpec[] = {
-            EGL_RED_SIZE, 8,
-            EGL_GREEN_SIZE, 8,
-            EGL_BLUE_SIZE, 8,
-            EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_NONE
-    };
-    if (EGL_TRUE != eglChooseConfig(display, configSpec, &config, 1, &configNum)) {
-        LOGE("eglChooseConfig failed!");
-        return;
-    }
-    //创建surface
-    ANativeWindow_acquire(window);
-    ANativeWindow_setBuffersGeometry(window, 0, 0, AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM);
-    winsurface = eglCreateWindowSurface(display, config, window, 0);
-    if (winsurface == EGL_NO_SURFACE) {
-        LOGE("eglCreateWindowSurface failed!");
+
+    m_EglCore = new EglCore(eglGetCurrentContext(), FLAG_RECORDABLE);
+    if (!m_EglCore) {
+        LOGE("new EglCore failed!");
         return;
     }
 
-    //3 context 创建关联的上下文
-    const EGLint ctxAttr[] = {
-            EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE
-    };
-    EGLContext context = eglCreateContext(display, config, EGL_NO_CONTEXT, ctxAttr);
-    if (context == EGL_NO_CONTEXT) {
-        LOGE("eglCreateContext failed!");
+    m_WindowSurface = new WindowSurface(m_EglCore, window);
+    if (!m_EglCore) {
+        LOGE("new WindowSurface failed!");
         return;
     }
-    if (EGL_TRUE != eglMakeCurrent(display, winsurface, winsurface, context)) {
-        LOGE("eglMakeCurrent failed!");
-        return;
-    }
+
+    m_WindowSurface->makeCurrent();
 
     useProgram();
     createTextures();
@@ -76,7 +42,9 @@ void EGLSurfaceViewVideoRender::render() {
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     //窗口显示
-    eglSwapBuffers(display, winsurface);
+//    eglSwapBuffers(display, winsurface);
+
+    m_WindowSurface->swapBuffers();
 }
 
 void EGLSurfaceViewVideoRender::release() {
@@ -105,6 +73,16 @@ void EGLSurfaceViewVideoRender::release() {
 
     if (winsurface) {
         winsurface = nullptr;
+    }
+
+    if (m_EglCore) {
+        delete m_EglCore;
+        m_EglCore = nullptr;
+    }
+
+    if (m_WindowSurface) {
+        delete m_WindowSurface;
+        m_WindowSurface = nullptr;
     }
 
 }
@@ -377,6 +355,17 @@ EGLSurfaceViewVideoRender::~EGLSurfaceViewVideoRender() {
     if (winsurface) {
         winsurface = nullptr;
     }
+
+    if (m_EglCore) {
+        delete m_EglCore;
+        m_EglCore = nullptr;
+    }
+
+    if (m_WindowSurface) {
+        delete m_WindowSurface;
+        m_WindowSurface = nullptr;
+    }
+
 }
 
 void EGLSurfaceViewVideoRender::delete_program(GLuint &program) {

@@ -186,6 +186,10 @@ EGLSurface EglCore::createWindowSurface(ANativeWindow *surface) {
     int surfaceAttribs[] = {
             EGL_NONE
     };
+
+    ANativeWindow_acquire(surface);
+    ANativeWindow_setBuffersGeometry(surface, 0, 0, AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM);
+
     LOGD("eglCreateWindowSurface start");
     EGLSurface eglSurface = eglCreateWindowSurface(mEGLDisplay, mEGLConfig, surface, surfaceAttribs);
     checkEglError("eglCreateWindowSurface");

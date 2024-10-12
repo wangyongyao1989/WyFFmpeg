@@ -14,6 +14,8 @@
 #include "OpenGLShader.h"
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
+#include "EglCore.h"
+#include "WindowSurface.h"
 
 
 struct egl_surface_video_frame {
@@ -129,5 +131,8 @@ private:
 
     EGLDisplay display = nullptr;
     EGLSurface winsurface = nullptr;
+
+    EglCore *m_EglCore = nullptr;
+    WindowSurface *m_WindowSurface = nullptr;
 
 };
