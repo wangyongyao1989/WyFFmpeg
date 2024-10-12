@@ -7,8 +7,8 @@
 
 void
 EGLSurfaceViewVideoRender::init(ANativeWindow *window, AAssetManager *assetManager,
-                                     size_t width,
-                                     size_t height) {
+                                size_t width,
+                                size_t height) {
     LOGI("EGLSurfaceViewVideoRender init==%d, %d", width, height);
     m_backingWidth = width;
     m_backingHeight = height;
@@ -79,6 +79,36 @@ void EGLSurfaceViewVideoRender::render() {
     eglSwapBuffers(display, winsurface);
 }
 
+void EGLSurfaceViewVideoRender::release() {
+    m_vertexShader = 0;
+    m_pixelShader = 0;
+    if (m_pDataY) {
+        m_pDataY = nullptr;
+    }
+    if (m_pDataU) {
+        delete m_pDataU;
+        m_pDataU = nullptr;
+    }
+    if (m_pDataV) {
+        delete m_pDataV;
+        m_pDataV = nullptr;
+    }
+
+    if (openGlShader) {
+        delete openGlShader;
+        openGlShader = nullptr;
+    }
+
+    if (display) {
+        display = nullptr;
+    }
+
+    if (winsurface) {
+        winsurface = nullptr;
+    }
+
+}
+
 void EGLSurfaceViewVideoRender::updateFrame(const egl_surface_video_frame &frame) {
     m_sizeY = frame.width * frame.height;
     m_sizeU = frame.width * frame.height / 4;
@@ -134,7 +164,7 @@ void EGLSurfaceViewVideoRender::updateFrame(const egl_surface_video_frame &frame
 
 void
 EGLSurfaceViewVideoRender::draw(uint8_t *buffer, size_t length, size_t width, size_t height,
-                                     float rotation) {
+                                float rotation) {
     m_length = length;
     m_rotation = rotation;
 
@@ -321,6 +351,32 @@ EGLSurfaceViewVideoRender::EGLSurfaceViewVideoRender() {
 EGLSurfaceViewVideoRender::~EGLSurfaceViewVideoRender() {
     deleteTextures();
     delete_program(m_program);
+    m_vertexShader = 0;
+    m_pixelShader = 0;
+    if (m_pDataY) {
+        m_pDataY = nullptr;
+    }
+    if (m_pDataU) {
+        delete m_pDataU;
+        m_pDataU = nullptr;
+    }
+    if (m_pDataV) {
+        delete m_pDataV;
+        m_pDataV = nullptr;
+    }
+
+    if (openGlShader) {
+        delete openGlShader;
+        openGlShader = nullptr;
+    }
+
+    if (display) {
+        display = nullptr;
+    }
+
+    if (winsurface) {
+        winsurface = nullptr;
+    }
 }
 
 void EGLSurfaceViewVideoRender::delete_program(GLuint &program) {

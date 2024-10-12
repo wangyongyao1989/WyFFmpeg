@@ -218,7 +218,7 @@ public class WyyGLSurfaceViewNew extends SurfaceView implements SurfaceHolder.Ca
 
         public void shutdown() {
             if (mJniCall != null) {
-                mJniCall.glTextureVideoPlayDestroy();
+                mJniCall.glSurfaceViewNewDestroy();
             }
             Looper.myLooper().quit();
 

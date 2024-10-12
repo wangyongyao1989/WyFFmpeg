@@ -56,6 +56,8 @@ public:
 
     void updateFrame(const surface_video_frame &frame);
 
+    void release();
+
     void draw(uint8_t *buffer, size_t length, size_t width, size_t height, float rotation);
 
     void setParameters(uint32_t params);
@@ -123,9 +125,10 @@ private:
 
     bool isDirty;
 
-    OpenGLShader *openGlShader;
+    OpenGLShader *openGlShader = nullptr;
 
-    EGLDisplay display;
-    EGLSurface winsurface;
+    EGLDisplay display = nullptr;
+    EGLSurface winsurface = nullptr;
+
 
 };

@@ -424,7 +424,8 @@ cpp_surfaceview_video_creat(JNIEnv *env, jobject thiz, jint type,
 extern "C"
 JNIEXPORT void JNICALL
 cpp_surfaceview_video_destroy(JNIEnv *env, jobject thiz) {
-
+    if (surfaceViewRender)
+        surfaceViewRender->release();
 }
 
 extern "C"
@@ -540,7 +541,8 @@ cpp_surfaceview_new_video_creat(JNIEnv *env, jobject thiz, jint type,
 extern "C"
 JNIEXPORT void JNICALL
 cpp_surfaceview_new_video_destroy(JNIEnv *env, jobject thiz) {
-
+    if (eglsurfaceViewRender != nullptr)
+        eglsurfaceViewRender->release();
 }
 
 extern "C"
@@ -575,8 +577,8 @@ cpp_surfaceview_new_video_draw(JNIEnv *env, jobject obj, jbyteArray data, jint w
     if (eglsurfaceViewRender != nullptr) {
 
         eglsurfaceViewRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
-                                (size_t) height,
-                                rotation);
+                                   (size_t) height,
+                                   rotation);
     }
 
     env->ReleaseByteArrayElements(data, bufferPtr, 0);
@@ -659,6 +661,7 @@ static const JNINativeMethod methods[] = {
         {"native_surfaceview_video_draw",               "([BIII)V",              (void *) cpp_surfaceview_video_draw},
         {"native_surfaceview_video_set_parameters",     "(I)V",                  (void *) cpp_surfaceview_video_setParameters},
         {"native_surfaceview_video_get_parameters",     "()I",                   (void *) cpp_surfaceview_video_getParameters},
+        {"native_surfaceview_video_destroy",            "()V",                   (void *) cpp_surfaceview_video_destroy},
 
         /*********************** WyyRenderer *******************/
         {"native_wyy_renderer_init",                    "()V",                   (void *) cpp_wyy_renderer_init},

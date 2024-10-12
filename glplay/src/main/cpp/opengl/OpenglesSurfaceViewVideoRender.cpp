@@ -79,6 +79,36 @@ void OpenglesSurfaceViewVideoRender::render() {
     eglSwapBuffers(display, winsurface);
 }
 
+void OpenglesSurfaceViewVideoRender::release() {
+    m_vertexShader = 0;
+    m_pixelShader = 0;
+    if (m_pDataY) {
+        m_pDataY = nullptr;
+    }
+    if (m_pDataU) {
+        delete m_pDataU;
+        m_pDataU = nullptr;
+    }
+    if (m_pDataV) {
+        delete m_pDataV;
+        m_pDataV = nullptr;
+    }
+
+    if (openGlShader) {
+        delete openGlShader;
+        openGlShader = nullptr;
+    }
+
+    if (display) {
+        display = nullptr;
+    }
+
+    if (winsurface) {
+        winsurface = nullptr;
+    }
+
+}
+
 void OpenglesSurfaceViewVideoRender::updateFrame(const surface_video_frame &frame) {
     m_sizeY = frame.width * frame.height;
     m_sizeU = frame.width * frame.height / 4;
@@ -321,6 +351,33 @@ OpenglesSurfaceViewVideoRender::OpenglesSurfaceViewVideoRender() {
 OpenglesSurfaceViewVideoRender::~OpenglesSurfaceViewVideoRender() {
     deleteTextures();
     delete_program(m_program);
+
+    m_vertexShader = 0;
+    m_pixelShader = 0;
+    if (m_pDataY) {
+        m_pDataY = nullptr;
+    }
+    if (m_pDataU) {
+        delete m_pDataU;
+        m_pDataU = nullptr;
+    }
+    if (m_pDataV) {
+        delete m_pDataV;
+        m_pDataV = nullptr;
+    }
+
+    if (openGlShader) {
+        delete openGlShader;
+        openGlShader = nullptr;
+    }
+
+    if (display) {
+        display = nullptr;
+    }
+
+    if (winsurface) {
+        winsurface = nullptr;
+    }
 }
 
 void OpenglesSurfaceViewVideoRender::delete_program(GLuint &program) {
