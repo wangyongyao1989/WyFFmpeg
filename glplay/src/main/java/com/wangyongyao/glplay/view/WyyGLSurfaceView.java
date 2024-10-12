@@ -98,9 +98,6 @@ public class WyyGLSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         Log.e(TAG, "onSurfaceChanged width:" + width + ",height" + height
                 + "===surface:" + mSurface.toString());
 //        Log.e(TAG, "surfaceChanged: "+Thread.currentThread().getName());
-//        if (mJniCall != null) {
-//            mJniCall.glSurfaceViewInit(surface, null, width, height);
-//        }
         mMyGLRendererThread.getHandler().sendSurfaceChanged(format, width, height);
 
         mWidth = width;
