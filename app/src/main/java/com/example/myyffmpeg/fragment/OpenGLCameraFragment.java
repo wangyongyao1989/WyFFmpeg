@@ -223,6 +223,10 @@ public class OpenGLCameraFragment extends BaseFragment {
             mWyyGLSurfaceView.destroyRender();
             mWyyGLSurfaceView = null;
         }
+        if (mWyyGLSurfaceViewNew != null) {
+            mWyyGLSurfaceViewNew.destroyRender();
+            mWyyGLSurfaceViewNew = null;
+        }
     }
 
 

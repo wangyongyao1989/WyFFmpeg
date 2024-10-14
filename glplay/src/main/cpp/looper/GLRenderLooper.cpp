@@ -15,25 +15,25 @@ GLRenderLooper::GLRenderLooper() {
 void GLRenderLooper::handleMessage(LooperMessage *msg) {
     Looper::handleMessage(msg);
     switch (msg->what) {
-        case MSG_SurfaceCreated: {
-            LOGE("GLRenderLooper::handleMessage MSG_SurfaceCreated");
-            OnSurfaceCreated();
-        }
-            break;
-        case MSG_SurfaceChanged:
-            LOGE("GLRenderLooper::handleMessage MSG_SurfaceChanged");
-            OnSurfaceChanged(msg->arg1, msg->arg2);
-            break;
-        case MSG_DrawFrame:
-            LOGE("GLRenderLooper::handleMessage MSG_DrawFrame");
-            OnDrawFrame();
-            break;
-        case MSG_SurfaceDestroyed:
-            LOGE("GLRenderLooper::handleMessage MSG_SurfaceDestroyed");
-            OnSurfaceDestroyed();
-            break;
-        default:
-            break;
+//        case MSG_SurfaceCreated: {
+//            LOGE("GLRenderLooper::handleMessage MSG_SurfaceCreated");
+//            OnSurfaceCreated();
+//        }
+//            break;
+//        case MSG_SurfaceChanged:
+//            LOGE("GLRenderLooper::handleMessage MSG_SurfaceChanged");
+//            OnSurfaceChanged(msg->arg1, msg->arg2);
+//            break;
+//        case MSG_DrawFrame:
+//            LOGE("GLRenderLooper::handleMessage MSG_DrawFrame");
+//            OnDrawFrame();
+//            break;
+//        case MSG_SurfaceDestroyed:
+//            LOGE("GLRenderLooper::handleMessage MSG_SurfaceDestroyed");
+//            OnSurfaceDestroyed();
+//            break;
+//        default:
+//            break;
     }
 }
 

@@ -13,8 +13,8 @@
 struct LooperMessage;
 typedef struct LooperMessage LooperMessage;
 
-void* Looper::trampoline(void* p) {
-    ((Looper*)p)->loop();
+void *Looper::trampoline(void *p) {
+    ((Looper *) p)->loop();
     return NULL;
 }
 
@@ -65,7 +65,7 @@ void Looper::addMessage(LooperMessage *msg, bool flush) {
     LooperMessage *h = head;
 
     if (flush) {
-        while(h) {
+        while (h) {
             LooperMessage *next = h->next;
             delete h;
             h = next;
@@ -80,13 +80,13 @@ void Looper::addMessage(LooperMessage *msg, bool flush) {
     } else {
         head = msg;
     }
-    LOGE("Looper::addMessage msg->what=%d", msg->what);
+//    LOGE("Looper::addMessage msg->what=%d", msg->what);
     sem_post(&headWriteProtect);
     sem_post(&headDataAvailable);
 }
 
 void Looper::loop() {
-    while(true) {
+    while (true) {
         // wait for available message
         sem_wait(&headDataAvailable);
 
@@ -106,7 +106,7 @@ void Looper::loop() {
             delete msg;
             return;
         }
-        LOGE("Looper::loop() processing msg.what=%d", msg->what);
+//        LOGE("Looper::loop() processing msg.what=%d", msg->what);
         handleMessage(msg);
         delete msg;
     }
@@ -128,5 +128,5 @@ void Looper::quit() {
 }
 
 void Looper::handleMessage(LooperMessage *msg) {
-    LOGE("Looper::handleMessage [what, obj]=[%d, %p]", msg->what, msg->obj);
+//    LOGE("Looper::handleMessage [what, obj]=[%d, %p]", msg->what, msg->obj);
 }

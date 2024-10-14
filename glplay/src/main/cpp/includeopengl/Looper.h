@@ -19,19 +19,16 @@ struct LooperMessage {
     bool quit;
 };
 
-enum {
-    MSG_SurfaceCreated,
-    MSG_SurfaceChanged,
-    MSG_DrawFrame,
-    MSG_SurfaceDestroyed,
-};
 
 class Looper {
 
 public:
     Looper();
-    Looper&operator=(const Looper& ) = delete;
-    Looper(Looper&) = delete;
+
+    Looper &operator=(const Looper &) = delete;
+
+    Looper(Looper &) = delete;
+
     virtual ~Looper();
 
     void postMessage(int what, bool flush = false);

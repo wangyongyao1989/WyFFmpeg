@@ -7,83 +7,20 @@
 
 
 void EGLSurfaceViewVideoRender::surfaceCreated(ANativeWindow *window, AAssetManager *assetManager) {
-    m_EglCore = new EglCore(eglGetCurrentContext(), FLAG_RECORDABLE);
-    if (!m_EglCore) {
-        LOGE("new EglCore failed!");
-        return;
-    }
-
-    m_WindowSurface = new WindowSurface(m_EglCore, window);
-    if (!m_EglCore) {
-        LOGE("new WindowSurface failed!");
-        return;
-    }
-    m_WindowSurface->makeCurrent();
-
+    m_ANWindow = window;
+    postMessage(MSG_SurfaceCreated, false);
 }
 
 void EGLSurfaceViewVideoRender::surfaceChanged(size_t width, size_t height) {
-    m_backingWidth = width;
-    m_backingHeight = height;
-
-    useProgram();
-    createTextures();
-
+    postMessage(MSG_SurfaceChanged, width, height);
 }
 
 void EGLSurfaceViewVideoRender::render() {
-//    LOGI("EGLSurfaceViewVideoRender render");
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-    if (!updateTextures() /*|| !useProgram()*/) return;
-
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    //窗口显示
-//    eglSwapBuffers(display, winsurface);
-
-    m_WindowSurface->swapBuffers();
+    postMessage(MSG_DrawFrame, false);
 }
 
 void EGLSurfaceViewVideoRender::release() {
-    m_vertexShader = 0;
-    m_pixelShader = 0;
-    if (m_pDataY) {
-        m_pDataY = nullptr;
-    }
-    if (m_pDataU) {
-        delete m_pDataU;
-        m_pDataU = nullptr;
-    }
-    if (m_pDataV) {
-        delete m_pDataV;
-        m_pDataV = nullptr;
-    }
-
-    if (openGlShader) {
-        delete openGlShader;
-        openGlShader = nullptr;
-    }
-
-    if (display) {
-        display = nullptr;
-    }
-
-    if (winsurface) {
-        winsurface = nullptr;
-    }
-
-    if (m_EglCore) {
-        delete m_EglCore;
-        m_EglCore = nullptr;
-    }
-
-    if (m_WindowSurface) {
-        delete m_WindowSurface;
-        m_WindowSurface = nullptr;
-    }
-
+    postMessage(MSG_SurfaceDestroyed, false);
 }
 
 void EGLSurfaceViewVideoRender::updateFrame(const egl_surface_video_frame &frame) {
@@ -142,9 +79,6 @@ void EGLSurfaceViewVideoRender::updateFrame(const egl_surface_video_frame &frame
 void
 EGLSurfaceViewVideoRender::draw(uint8_t *buffer, size_t length, size_t width, size_t height,
                                 float rotation) {
-    m_length = length;
-    m_rotation = rotation;
-
     egl_surface_video_frame frame{};
     frame.width = width;
     frame.height = height;
@@ -225,10 +159,9 @@ bool EGLSurfaceViewVideoRender::createTextures() {
 
 bool EGLSurfaceViewVideoRender::updateTextures() {
     if (!m_textureIdY && !m_textureIdU && !m_textureIdV /*&& !createTextures()*/) return false;
-//    LOGI("EGLSurfaceViewVideoRender updateTextures");
-    LOGE("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
-         m_textureIdY,
-         m_textureIdU, m_textureIdV, isDirty);
+//    LOGE("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
+//         m_textureIdY,
+//         m_textureIdU, m_textureIdV, isDirty);
 
     if (isDirty) {
         glActiveTexture(GL_TEXTURE0);
@@ -401,28 +334,25 @@ void EGLSurfaceViewVideoRender::deleteTextures() {
     }
 }
 
-void EGLSurfaceViewVideoRender::OnSurfaceCreated() {
-
-}
 
 void EGLSurfaceViewVideoRender::handleMessage(LooperMessage *msg) {
     Looper::handleMessage(msg);
     switch (msg->what) {
         case MSG_SurfaceCreated: {
-            LOGE("GLRenderLooper::handleMessage MSG_SurfaceCreated");
+            LOGE("EGLSurfaceViewVideoRender::handleMessage MSG_SurfaceCreated");
             OnSurfaceCreated();
         }
             break;
         case MSG_SurfaceChanged:
-            LOGE("GLRenderLooper::handleMessage MSG_SurfaceChanged");
+            LOGE("EGLSurfaceViewVideoRender::handleMessage MSG_SurfaceChanged");
             OnSurfaceChanged(msg->arg1, msg->arg2);
             break;
         case MSG_DrawFrame:
-            LOGE("GLRenderLooper::handleMessage MSG_DrawFrame");
+//            LOGE("EGLSurfaceViewVideoRender::handleMessage MSG_DrawFrame");
             OnDrawFrame();
             break;
         case MSG_SurfaceDestroyed:
-            LOGE("GLRenderLooper::handleMessage MSG_SurfaceDestroyed");
+            LOGE("EGLSurfaceViewVideoRender::handleMessage MSG_SurfaceDestroyed");
             OnSurfaceDestroyed();
             break;
         default:
@@ -430,23 +360,79 @@ void EGLSurfaceViewVideoRender::handleMessage(LooperMessage *msg) {
     }
 }
 
-void EGLSurfaceViewVideoRender::OnSurfaceChanged(int w, int h) {
+void EGLSurfaceViewVideoRender::OnSurfaceCreated() {
+    m_EglCore = new EglCore(eglGetCurrentContext(), FLAG_RECORDABLE);
+    if (!m_EglCore) {
+        LOGE("new EglCore failed!");
+        return;
+    }
 
+    LOGE("OnSurfaceCreated m_ANWindow:%p", m_ANWindow);
+
+    m_WindowSurface = new WindowSurface(m_EglCore, m_ANWindow);
+    if (!m_EglCore) {
+        LOGE("new WindowSurface failed!");
+        return;
+    }
+    m_WindowSurface->makeCurrent();
+}
+
+void EGLSurfaceViewVideoRender::OnSurfaceChanged(int w, int h) {
+    m_backingWidth = w;
+    m_backingHeight = h;
+    useProgram();
+    createTextures();
 }
 
 void EGLSurfaceViewVideoRender::OnDrawFrame() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    if (!updateTextures() /*|| !useProgram()*/) return;
 
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    //窗口显示
+    m_WindowSurface->swapBuffers();
 }
 
 void EGLSurfaceViewVideoRender::OnSurfaceDestroyed() {
+    m_vertexShader = 0;
+    m_pixelShader = 0;
 
+    if (m_pDataY) {
+        m_pDataY = nullptr;
+    }
+
+    if (m_pDataU) {
+        m_pDataU = nullptr;
+    }
+
+    if (m_pDataV) {
+        m_pDataV = nullptr;
+    }
+
+    if (openGlShader) {
+        delete openGlShader;
+        openGlShader = nullptr;
+    }
+
+    if (display) {
+        display = nullptr;
+    }
+
+    if (winsurface) {
+        winsurface = nullptr;
+    }
+
+    if (m_EglCore) {
+        delete m_EglCore;
+        m_EglCore = nullptr;
+    }
+
+    if (m_WindowSurface) {
+        delete m_WindowSurface;
+        m_WindowSurface = nullptr;
+    }
 }
-
-bool EGLSurfaceViewVideoRender::CreateFrameBufferObj() {
-
-    return false;
-}
-
 
 void EGLSurfaceViewVideoRender::printGLString(const char *name, GLenum s) {
     const char *v = (const char *) glGetString(s);

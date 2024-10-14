@@ -2,7 +2,6 @@ package com.wangyongyao.glplay.view;
 
 import android.content.Context;
 import android.graphics.Point;
-import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -18,7 +17,6 @@ import androidx.annotation.NonNull;
 import com.wangyongyao.glplay.OpenGLPlayCallJni;
 import com.wangyongyao.glplay.camera.Camera2Helper2;
 import com.wangyongyao.glplay.camera.GLCamera2Listener;
-import com.wangyongyao.glplay.render.WyyRenderer;
 import com.wangyongyao.glplay.utils.OpenGLPlayFileUtils;
 
 import java.lang.ref.WeakReference;

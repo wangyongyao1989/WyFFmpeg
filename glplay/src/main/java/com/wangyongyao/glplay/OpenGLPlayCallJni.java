@@ -269,37 +269,7 @@ public class OpenGLPlayCallJni {
 
     private native int native_surfaceview_video_get_parameters();
 
-    /*********************** WyyRenderer *******************/
 
-    public void wyyRendererInit() {
-        native_wyy_renderer_init();
-    }
-
-    public void wyyRendererSurfaceCreated(Surface surface) {
-        native_wyy_renderer_surface_created(surface);
-    }
-
-    public void wyyRendererSurfaceChanged(int width, int height) {
-        native_wyy_renderer_surface_changed(width, height);
-    }
-
-    public void wyyRendererSurfaceRelease() {
-        native_wyy_renderer_release();
-    }
-
-    public void wyyRendererSurfaceDestroyed() {
-        native_wyy_renderer_destroy();
-    }
-
-    private native void native_wyy_renderer_init();
-
-    private native void native_wyy_renderer_surface_created(Surface surface);
-
-    private native void native_wyy_renderer_surface_changed(int width, int height);
-
-    private native void native_wyy_renderer_release();
-
-    private native void native_wyy_renderer_destroy();
 
     /*********************** OpenGL SurfaceViewNew 显示视频********************/
     public void glSurfaceViewNewInit(int type, String vertexPath, String fragPath) {

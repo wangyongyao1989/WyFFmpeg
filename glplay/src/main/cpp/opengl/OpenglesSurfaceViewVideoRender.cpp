@@ -86,11 +86,9 @@ void OpenglesSurfaceViewVideoRender::release() {
         m_pDataY = nullptr;
     }
     if (m_pDataU) {
-        delete m_pDataU;
         m_pDataU = nullptr;
     }
     if (m_pDataV) {
-        delete m_pDataV;
         m_pDataV = nullptr;
     }
 

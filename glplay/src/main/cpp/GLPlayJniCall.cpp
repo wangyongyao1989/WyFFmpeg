@@ -487,39 +487,6 @@ cpp_surfaceview_video_getParameters(JNIEnv *env, jobject thiz) {
 
 }
 
-/*********************** WyyRenderer *******************/
-
-
-extern "C"
-JNIEXPORT void JNICALL
-cpp_wyy_renderer_init(JNIEnv *env, jobject thiz) {
-
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-cpp_wyy_renderer_surface_created(JNIEnv *env, jobject thiz,
-                                 jobject surface) {
-
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-cpp_wyy_renderer_surface_changed(JNIEnv *env, jobject thiz, jint width, jint height) {
-
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-cpp_wyy_renderer_release(JNIEnv *env, jobject thiz) {
-
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-cpp_wyy_renderer_destroy(JNIEnv *env, jobject thiz) {
-
-}
 
 /*********************** OpenGL SurfaceViewNew 预览Camera视频********************/
 extern "C"
@@ -671,14 +638,6 @@ static const JNINativeMethod methods[] = {
         {"native_surfaceview_video_get_parameters",     "()I",                   (void *) cpp_surfaceview_video_getParameters},
         {"native_surfaceview_video_destroy",            "()V",                   (void *) cpp_surfaceview_video_destroy},
 
-        /*********************** WyyRenderer *******************/
-        {"native_wyy_renderer_init",                    "()V",                   (void *) cpp_wyy_renderer_init},
-        {"native_wyy_renderer_surface_created",         "(Landroid/view/Surface;)"
-                                                        "V",                     (void *) cpp_wyy_renderer_surface_created},
-        {"native_wyy_renderer_surface_changed",         "(II)V",                 (void *) cpp_wyy_renderer_surface_changed},
-        {"native_wyy_renderer_release",                 "()V",                   (void *) cpp_wyy_renderer_release},
-        {"native_wyy_renderer_release",                 "()V",                   (void *) cpp_wyy_renderer_release},
-        {"native_wyy_renderer_destroy",                 "()V",                   (void *) cpp_wyy_renderer_destroy},
 
         /*********************** OpenGL SurfaceViewNew显示视频 *******************/
 

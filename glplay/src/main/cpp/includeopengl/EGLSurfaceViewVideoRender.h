@@ -18,6 +18,13 @@
 #include "WindowSurface.h"
 #include "GLRenderLooper.h"
 
+enum {
+    MSG_SurfaceCreated,
+    MSG_SurfaceChanged,
+    MSG_DrawFrame,
+    MSG_SurfaceDestroyed,
+};
+
 
 struct egl_surface_video_frame {
     size_t width;
@@ -68,18 +75,9 @@ public:
 
     uint32_t getParameters();
 
-    int createProgram();
-
     bool setSharderPath(const char *vertexPath, const char *fragmentPath);
 
     bool setSharderStringPath(string vertexPath, string fragmentPath);
-
-    bool isProgramChanged = true;
-
-    void delete_program(GLuint &program);
-
-    GLuint m_program = 0;
-
 
 private:
 
@@ -98,12 +96,20 @@ private:
 
     void deleteTextures();
 
+    int createProgram();
 
     GLuint useProgram();
 
     void printGLString(const char *name, GLenum s);
 
     void checkGlError(const char *op);
+
+
+    bool isProgramChanged = true;
+
+    void delete_program(GLuint &program);
+
+    GLuint m_program = 0;
 
     GLuint m_vertexShader = 0;
     GLuint m_pixelShader = 0;
@@ -145,5 +151,7 @@ private:
 
     EglCore *m_EglCore = nullptr;
     WindowSurface *m_WindowSurface = nullptr;
+
+    ANativeWindow *m_ANWindow = nullptr;
 
 };
