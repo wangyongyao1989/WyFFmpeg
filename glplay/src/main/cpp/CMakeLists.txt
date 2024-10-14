@@ -32,6 +32,9 @@ add_library(
         WyyEGL/EglSurfaceBase.cpp
         WyyEGL/WindowSurface.cpp
 
+        looper/GLRenderLooper.cpp
+        looper/Looper.cpp
+
 
 )
 

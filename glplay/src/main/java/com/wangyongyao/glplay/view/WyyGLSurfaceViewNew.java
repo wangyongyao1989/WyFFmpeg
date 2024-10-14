@@ -71,6 +71,12 @@ public class WyyGLSurfaceViewNew extends SurfaceView implements SurfaceHolder.Ca
         //注册SurfaceHolder的回调方法
         mHolder.addCallback(this);
 
+        String fragPath = OpenGLPlayFileUtils.getModelFilePath(mContext
+                , "texture_video_play_frament.glsl");
+        String vertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext
+                , "texture_video_play_vert.glsl");
+        mJniCall.glSurfaceViewNewInit(0, vertexPath, fragPath);
+
         mMyGLRendererThread = new MyGLRendererThread(mThisWeakRef);
         mMyGLRendererThread.start();
 
@@ -187,16 +193,19 @@ public class WyyGLSurfaceViewNew extends SurfaceView implements SurfaceHolder.Ca
 
         public void surfaceCreated() {
             Log.e(TAG, "onSurfaceChanged: " + Thread.currentThread().getName());
-            String fragPath = OpenGLPlayFileUtils.getModelFilePath(mContext
-                    , "texture_video_play_frament.glsl");
-            String vertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext
-                    , "texture_video_play_vert.glsl");
-            mJniCall.glSurfaceViewNewCreate(0, vertexPath, fragPath);
+            if (mJniCall != null) {
+                mJniCall.glSurfaceViewNewCreated(mSurface, null);
+            }
+//            String fragPath = OpenGLPlayFileUtils.getModelFilePath(mContext
+//                    , "texture_video_play_frament.glsl");
+//            String vertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext
+//                    , "texture_video_play_vert.glsl");
+//            mJniCall.glSurfaceViewNewCreate(0, vertexPath, fragPath);
         }
 
         public void surfaceChanged(int width, int height) {
             if (mJniCall != null) {
-                mJniCall.glSurfaceViewNewInit(mSurface, null, width, height);
+                mJniCall.glSurfaceViewNewChanged(width, height);
             }
         }
 

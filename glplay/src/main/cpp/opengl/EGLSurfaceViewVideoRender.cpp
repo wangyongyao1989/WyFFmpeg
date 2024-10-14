@@ -5,14 +5,8 @@
 #include "EGLSurfaceViewVideoRender.h"
 #include "OpenGLShader.h"
 
-void
-EGLSurfaceViewVideoRender::init(ANativeWindow *window, AAssetManager *assetManager,
-                                size_t width,
-                                size_t height) {
-    LOGI("EGLSurfaceViewVideoRender init==%d, %d", width, height);
-    m_backingWidth = width;
-    m_backingHeight = height;
 
+void EGLSurfaceViewVideoRender::surfaceCreated(ANativeWindow *window, AAssetManager *assetManager) {
     m_EglCore = new EglCore(eglGetCurrentContext(), FLAG_RECORDABLE);
     if (!m_EglCore) {
         LOGE("new EglCore failed!");
@@ -24,8 +18,13 @@ EGLSurfaceViewVideoRender::init(ANativeWindow *window, AAssetManager *assetManag
         LOGE("new WindowSurface failed!");
         return;
     }
-
     m_WindowSurface->makeCurrent();
+
+}
+
+void EGLSurfaceViewVideoRender::surfaceChanged(size_t width, size_t height) {
+    m_backingWidth = width;
+    m_backingHeight = height;
 
     useProgram();
     createTextures();
@@ -401,6 +400,53 @@ void EGLSurfaceViewVideoRender::deleteTextures() {
         m_textureIdV = 0;
     }
 }
+
+void EGLSurfaceViewVideoRender::OnSurfaceCreated() {
+
+}
+
+void EGLSurfaceViewVideoRender::handleMessage(LooperMessage *msg) {
+    Looper::handleMessage(msg);
+    switch (msg->what) {
+        case MSG_SurfaceCreated: {
+            LOGE("GLRenderLooper::handleMessage MSG_SurfaceCreated");
+            OnSurfaceCreated();
+        }
+            break;
+        case MSG_SurfaceChanged:
+            LOGE("GLRenderLooper::handleMessage MSG_SurfaceChanged");
+            OnSurfaceChanged(msg->arg1, msg->arg2);
+            break;
+        case MSG_DrawFrame:
+            LOGE("GLRenderLooper::handleMessage MSG_DrawFrame");
+            OnDrawFrame();
+            break;
+        case MSG_SurfaceDestroyed:
+            LOGE("GLRenderLooper::handleMessage MSG_SurfaceDestroyed");
+            OnSurfaceDestroyed();
+            break;
+        default:
+            break;
+    }
+}
+
+void EGLSurfaceViewVideoRender::OnSurfaceChanged(int w, int h) {
+
+}
+
+void EGLSurfaceViewVideoRender::OnDrawFrame() {
+
+}
+
+void EGLSurfaceViewVideoRender::OnSurfaceDestroyed() {
+
+}
+
+bool EGLSurfaceViewVideoRender::CreateFrameBufferObj() {
+
+    return false;
+}
+
 
 void EGLSurfaceViewVideoRender::printGLString(const char *name, GLenum s) {
     const char *v = (const char *) glGetString(s);

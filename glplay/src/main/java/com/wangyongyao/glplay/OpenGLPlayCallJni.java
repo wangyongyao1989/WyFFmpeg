@@ -302,16 +302,16 @@ public class OpenGLPlayCallJni {
     private native void native_wyy_renderer_destroy();
 
     /*********************** OpenGL SurfaceViewNew 显示视频********************/
-    public void glSurfaceViewNewCreate(int type, String vertexPath, String fragPath) {
-        native_surfaceview_new_video_create(type, vertexPath, fragPath);
+    public void glSurfaceViewNewInit(int type, String vertexPath, String fragPath) {
+        native_surfaceview_new_video_init(type, vertexPath, fragPath);
     }
 
-    public void glSurfaceViewNewDestroy() {
-        native_surfaceview_new_video_destroy();
+    public void glSurfaceViewNewCreated(Surface surface, AssetManager assetManager) {
+        native_surfaceview_new_video_created(surface, assetManager);
     }
 
-    public void glSurfaceViewNewInit(Surface surface, AssetManager assetManager, int width, int height) {
-        native_surfaceview_new_video_init(surface, assetManager, width, height);
+    public void glSurfaceViewNewChanged(int width, int height) {
+        native_surfaceview_new_video_changed(width, height);
     }
 
     public void glSurfaceViewNewRender() {
@@ -321,19 +321,23 @@ public class OpenGLPlayCallJni {
     public void glSurfaceViewNewDraw(byte[] data, int width, int height, int rotation) {
         native_surfaceview_new_video_draw(data, width, height, rotation);
     }
-    
 
-    private native void native_surfaceview_new_video_create(int type, String vertexPath, String fragPath);
+    public void glSurfaceViewNewDestroy() {
+        native_surfaceview_new_video_destroy();
+    }
 
-    private native void native_surfaceview_new_video_destroy();
 
-    private native void native_surfaceview_new_video_init(Surface surface, AssetManager assetManager, int width, int height);
+    private native void native_surfaceview_new_video_init(int type, String vertexPath, String fragPath);
+
+    private native void native_surfaceview_new_video_created(Surface surface, AssetManager assetManager);
+
+    private native void native_surfaceview_new_video_changed(int width, int height);
 
     private native void native_surfaceview_new_video_render();
 
     private native void native_surfaceview_new_video_draw(byte[] data, int width, int height, int rotation);
 
-    
-    
+    private native void native_surfaceview_new_video_destroy();
+
 
 }

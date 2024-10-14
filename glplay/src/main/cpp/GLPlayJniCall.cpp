@@ -18,7 +18,7 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 using namespace std;
 //包名+类名字符串定义：
-const char *rtmp_class_name = "com/wangyongyao/glplay/OpenGLPlayCallJni";
+const char *java_call_jni_class = "com/wangyongyao/glplay/OpenGLPlayCallJni";
 
 OpenglesFlashLight *flashLight;
 OpenglesCameraPre *cameraPre;
@@ -524,9 +524,9 @@ cpp_wyy_renderer_destroy(JNIEnv *env, jobject thiz) {
 /*********************** OpenGL SurfaceViewNew 预览Camera视频********************/
 extern "C"
 JNIEXPORT void JNICALL
-cpp_surfaceview_new_video_creat(JNIEnv *env, jobject thiz, jint type,
-                                jstring vertex,
-                                jstring frag) {
+cpp_surfaceview_new_video_init(JNIEnv *env, jobject thiz, jint type,
+                               jstring vertex,
+                               jstring frag) {
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
     const char *fragPath = env->GetStringUTFChars(frag, nullptr);
     if (eglsurfaceViewRender == nullptr)
@@ -540,22 +540,23 @@ cpp_surfaceview_new_video_creat(JNIEnv *env, jobject thiz, jint type,
 
 extern "C"
 JNIEXPORT void JNICALL
-cpp_surfaceview_new_video_destroy(JNIEnv *env, jobject thiz) {
-    if (eglsurfaceViewRender != nullptr)
-        eglsurfaceViewRender->release();
+cpp_surfaceview_new_video_created(JNIEnv *env, jobject thiz,
+                                  jobject surface,
+                                  jobject assetManager) {
+    if (eglsurfaceViewRender != nullptr) {
+        ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
+        auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
+        eglsurfaceViewRender->surfaceCreated(window, aAssetManager);
+    }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-cpp_surfaceview_new_video_init(JNIEnv *env, jobject thiz,
-                               jobject surface,
-                               jobject assetManager,
-                               jint width,
-                               jint height) {
+cpp_surfaceview_new_video_changed(JNIEnv *env, jobject thiz,
+                                  jint width,
+                                  jint height) {
     if (eglsurfaceViewRender != nullptr) {
-        ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
-        auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
-        eglsurfaceViewRender->init(window, aAssetManager, (size_t) width, (size_t) height);
+        eglsurfaceViewRender->surfaceChanged( (size_t) width, (size_t) height);
     }
 }
 
@@ -582,6 +583,13 @@ cpp_surfaceview_new_video_draw(JNIEnv *env, jobject obj, jbyteArray data, jint w
     }
 
     env->ReleaseByteArrayElements(data, bufferPtr, 0);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_new_video_destroy(JNIEnv *env, jobject thiz) {
+    if (eglsurfaceViewRender != nullptr)
+        eglsurfaceViewRender->release();
 }
 
 
@@ -673,15 +681,19 @@ static const JNINativeMethod methods[] = {
         {"native_wyy_renderer_destroy",                 "()V",                   (void *) cpp_wyy_renderer_destroy},
 
         /*********************** OpenGL SurfaceViewNew显示视频 *******************/
-        {"native_surfaceview_new_video_create",         "(I"
+
+        {"native_surfaceview_new_video_init",           "(I"
                                                         "Ljava/lang/String;"
-                                                        "Ljava/lang/String;)V",  (void *) cpp_surfaceview_new_video_creat},
-        {"native_surfaceview_new_video_destroy",        "()V",                   (void *) cpp_surfaceview_new_video_destroy},
-        {"native_surfaceview_new_video_init",           "(Landroid/view/Surface;"
+                                                        "Ljava/lang/String;)V",  (void *) cpp_surfaceview_new_video_init},
+        {"native_surfaceview_new_video_created",
+                                                        "(Landroid/view/Surface;"
                                                         "Landroid/content/res"
-                                                        "/AssetManager;II)V",    (void *) cpp_surfaceview_new_video_init},
+                                                        "/AssetManager;)V",      (void *) cpp_surfaceview_new_video_created},
+
+        {"native_surfaceview_new_video_changed",        "(II)V",                 (void *) cpp_surfaceview_new_video_changed},
         {"native_surfaceview_new_video_render",         "()V",                   (void *) cpp_surfaceview_new_video_render},
         {"native_surfaceview_new_video_draw",           "([BIII)V",              (void *) cpp_surfaceview_new_video_draw},
+        {"native_surfaceview_new_video_destroy",        "()V",                   (void *) cpp_surfaceview_new_video_destroy},
 
 
 };
@@ -696,7 +708,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     }
 
     // 获取类引用
-    jclass clazz = env->FindClass(rtmp_class_name);
+    jclass clazz = env->FindClass(java_call_jni_class);
 
     // 注册native方法
     jint regist_result = env->RegisterNatives(clazz, methods,
@@ -707,6 +719,18 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
         LOGI("动态注册 success result = %d", regist_result);
     }
     return JNI_VERSION_1_6;
+}
+
+extern "C" void JNI_OnUnload(JavaVM *jvm, void *p) {
+    JNIEnv *env = NULL;
+    if (jvm->GetEnv((void **) (&env), JNI_VERSION_1_6) != JNI_OK) {
+        return;
+    }
+    jclass clazz = env->FindClass(java_call_jni_class);
+    if (env != NULL) {
+        env->UnregisterNatives(clazz);
+    }
+
 }
 
 

@@ -16,6 +16,7 @@
 #include <GLES3/gl3.h>
 #include "EglCore.h"
 #include "WindowSurface.h"
+#include "GLRenderLooper.h"
 
 
 struct egl_surface_video_frame {
@@ -44,15 +45,16 @@ static const float EGLTextureCoord[8] = {
         1, 1
 };
 
-class EGLSurfaceViewVideoRender {
+class EGLSurfaceViewVideoRender : public Looper {
 
 public:
     EGLSurfaceViewVideoRender();
 
     ~EGLSurfaceViewVideoRender();
 
-    void
-    init(ANativeWindow *window, AAssetManager *assetManager, size_t width, size_t height);
+    void surfaceCreated(ANativeWindow *window, AAssetManager *assetManager);
+
+    void surfaceChanged(size_t width, size_t height);
 
     void render();
 
@@ -80,6 +82,15 @@ public:
 
 
 private:
+
+    void handleMessage(LooperMessage *msg);
+
+    void OnSurfaceCreated();
+    void OnSurfaceChanged(int w, int h);
+    void OnDrawFrame();
+    void OnSurfaceDestroyed();
+
+    bool CreateFrameBufferObj();
 
     bool createTextures();
 
