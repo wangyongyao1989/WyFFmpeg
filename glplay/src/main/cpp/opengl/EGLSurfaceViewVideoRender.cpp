@@ -297,7 +297,7 @@ EGLSurfaceViewVideoRender::~EGLSurfaceViewVideoRender() {
         delete m_WindowSurface;
         m_WindowSurface = nullptr;
     }
-
+    quit();
 }
 
 void EGLSurfaceViewVideoRender::delete_program(GLuint &program) {
@@ -432,6 +432,9 @@ void EGLSurfaceViewVideoRender::OnSurfaceDestroyed() {
         delete m_WindowSurface;
         m_WindowSurface = nullptr;
     }
+
+    quit();
+
 }
 
 void EGLSurfaceViewVideoRender::printGLString(const char *name, GLenum s) {
