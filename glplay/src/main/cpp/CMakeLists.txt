@@ -34,6 +34,9 @@ add_library(
 
         looper/Looper.cpp
 
+        record/TextureMovieEncoder2.cpp
+        record/VideoEncoderCore.cpp
+
 
 )
 
@@ -63,6 +66,7 @@ target_link_libraries(
         GLESv3
         OpenSLES
         vulkan
+        mediandk
         log
         ${third-party-libs}
 

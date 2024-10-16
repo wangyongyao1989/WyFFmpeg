@@ -16,7 +16,7 @@
 #include <GLES3/gl3.h>
 #include "EglCore.h"
 #include "WindowSurface.h"
-#include "GLRenderLooper.h"
+#include "Looper.h"
 
 enum {
     MSG_SurfaceCreated,
