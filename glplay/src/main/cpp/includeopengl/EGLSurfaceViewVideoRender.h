@@ -17,6 +17,8 @@
 #include "EglCore.h"
 #include "WindowSurface.h"
 #include "Looper.h"
+#include "VideoEncoderCore.h"
+#include "TextureMovieEncoder2.h"
 
 enum {
     MSG_SurfaceCreated,
@@ -52,6 +54,10 @@ static const float EGLTextureCoord[8] = {
         1, 1
 };
 
+static const size_t BIT_RATE = 4000000;   // 4Mbps
+static const size_t VIDEO_WIDTH = 1280;
+static const size_t VIDEO_HEIGHT = 720;
+
 class EGLSurfaceViewVideoRender : public Looper {
 
 public:
@@ -78,6 +84,10 @@ public:
     bool setSharderPath(const char *vertexPath, const char *fragmentPath);
 
     bool setSharderStringPath(string vertexPath, string fragmentPath);
+
+    void startEncoder(const char *recordPath);
+
+    void stopEncoder();
 
 private:
 
@@ -153,5 +163,12 @@ private:
     WindowSurface *m_WindowSurface = nullptr;
 
     ANativeWindow *m_ANWindow = nullptr;
+
+    VideoEncoderCore *m_VideoEncoderCore = nullptr;
+
+    TextureMovieEncoder2 *m_TextureMovieEncoder2 = nullptr;
+    WindowSurface *m_InputWindowSurface = nullptr;
+
+
 
 };

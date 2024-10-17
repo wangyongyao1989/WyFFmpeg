@@ -523,7 +523,7 @@ cpp_surfaceview_new_video_changed(JNIEnv *env, jobject thiz,
                                   jint width,
                                   jint height) {
     if (eglsurfaceViewRender != nullptr) {
-        eglsurfaceViewRender->surfaceChanged( (size_t) width, (size_t) height);
+        eglsurfaceViewRender->surfaceChanged((size_t) width, (size_t) height);
     }
 }
 
@@ -557,6 +557,24 @@ JNIEXPORT void JNICALL
 cpp_surfaceview_new_video_destroy(JNIEnv *env, jobject thiz) {
     if (eglsurfaceViewRender != nullptr)
         eglsurfaceViewRender->release();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_new_video_start_record(JNIEnv *env, jobject thiz, jstring recordPath) {
+
+    if (eglsurfaceViewRender == nullptr) return;
+    const char *path = env->GetStringUTFChars(recordPath, nullptr);
+    eglsurfaceViewRender->startEncoder(path);
+    env->ReleaseStringUTFChars(recordPath, path);
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_new_video_stop_record(JNIEnv *env, jobject thiz) {
+    if (eglsurfaceViewRender == nullptr) return;
+    eglsurfaceViewRender->stopEncoder();
 }
 
 
@@ -653,6 +671,8 @@ static const JNINativeMethod methods[] = {
         {"native_surfaceview_new_video_render",         "()V",                   (void *) cpp_surfaceview_new_video_render},
         {"native_surfaceview_new_video_draw",           "([BIII)V",              (void *) cpp_surfaceview_new_video_draw},
         {"native_surfaceview_new_video_destroy",        "()V",                   (void *) cpp_surfaceview_new_video_destroy},
+        {"native_surfaceview_new_video_start_record",   "(Ljava/lang/String;)V", (void *) cpp_surfaceview_new_video_start_record},
+        {"native_surfaceview_new_video_stop_record",    "()V",                   (void *) cpp_surfaceview_new_video_stop_record},
 
 
 };

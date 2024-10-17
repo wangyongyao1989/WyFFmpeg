@@ -14,7 +14,7 @@ enum {
 };
 
 
-class TextureMovieEncoder2 : public Looper{
+class TextureMovieEncoder2 : public Looper {
 
 
 public:

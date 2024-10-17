@@ -270,7 +270,6 @@ public class OpenGLPlayCallJni {
     private native int native_surfaceview_video_get_parameters();
 
 
-
     /*********************** OpenGL SurfaceViewNew 显示视频********************/
     public void glSurfaceViewNewInit(int type, String vertexPath, String fragPath) {
         native_surfaceview_new_video_init(type, vertexPath, fragPath);
@@ -296,6 +295,14 @@ public class OpenGLPlayCallJni {
         native_surfaceview_new_video_destroy();
     }
 
+    public void glSurfaceViewNewStartRecord(String recordPath) {
+        native_surfaceview_new_video_start_record(recordPath);
+    }
+
+    public void glSurfaceViewNewStopRecord() {
+        native_surfaceview_new_video_stop_record();
+    }
+
 
     private native void native_surfaceview_new_video_init(int type, String vertexPath, String fragPath);
 
@@ -309,5 +316,8 @@ public class OpenGLPlayCallJni {
 
     private native void native_surfaceview_new_video_destroy();
 
+    private native void native_surfaceview_new_video_start_record(String recordPath);
+
+    private native void native_surfaceview_new_video_stop_record();
 
 }

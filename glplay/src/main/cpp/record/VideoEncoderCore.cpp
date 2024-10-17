@@ -7,7 +7,8 @@
 
 VideoEncoderCore::VideoEncoderCore(size_t width, size_t height, size_t bitRate,
                                    const char *outPutFile) {
-    LOGD("VideoEncoderCore- width: %d, height: %d, bitRate: %d", width, height, bitRate);
+    LOGD("VideoEncoderCore- width: %d, height: %d, bitRate: %d ,outPutFile: %s", width, height,
+         bitRate, outPutFile);
     m_MediaMuxer_fp = fopen(outPutFile, "wb+");// 打开新建一个文件。
     if (m_MediaMuxer_fp == nullptr) {
         LOGE("MediaCodecMuxer:: Mp4 file fopen err!");
@@ -46,6 +47,13 @@ VideoEncoderCore::VideoEncoderCore(size_t width, size_t height, size_t bitRate,
         return;
     }
 
+    media_status_t createInputSurfaceStatus = AMediaCodec_createInputSurface(m_AMediaCodec,
+                                                                             &m_WindowSurface);
+    if (createInputSurfaceStatus != AMEDIA_OK) {
+        LOGE("ERROR: AMediaCodec_createInputSurface :%d",createInputSurfaceStatus);
+        return;
+    }
+
     media_status_t codecStart = AMediaCodec_start(m_AMediaCodec);
     if (codecStart != AMEDIA_OK) {
         LOGE("ERROR: AMediaCodec_start");
@@ -55,6 +63,7 @@ VideoEncoderCore::VideoEncoderCore(size_t width, size_t height, size_t bitRate,
 
     // 新建一个复合输出
     m_AMediaMuxer = AMediaMuxer_new(m_MediaMuxer_fd, AMEDIAMUXER_OUTPUT_FORMAT_MPEG_4);
+    LOGE("ERROR: m_AMediaMuxer OK");
 
     mTrackIndex = -1;
     mMuxerStarted = false;
@@ -188,6 +197,11 @@ void VideoEncoderCore::release() {
         delete m_MediaMuxer_fp;
         m_MediaMuxer_fp = nullptr;
     }
+}
+
+ANativeWindow* VideoEncoderCore::getInputSurface() {
+
+    return m_WindowSurface;
 }
 
 

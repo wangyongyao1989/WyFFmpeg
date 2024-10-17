@@ -156,5 +156,13 @@ public class WyyGLSurfaceViewNew extends SurfaceView implements SurfaceHolder.Ca
         stopCameraPreview();
     }
 
+    public void startRecord(String path) {
+        mJniCall.glSurfaceViewNewStartRecord(path);
+    }
+
+    public void stopRecord() {
+        mJniCall.glSurfaceViewNewStopRecord();
+    }
+
 
 }

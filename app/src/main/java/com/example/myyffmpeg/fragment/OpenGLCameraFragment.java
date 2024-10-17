@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +15,7 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentOpenglCameraLayoutBinding;
+import com.example.myyffmpeg.utils.DirectoryPath;
 import com.wangyongyao.glplay.OpenGLPlayCallJni;
 import com.wangyongyao.glplay.view.GLCameraPreView;
 import com.wangyongyao.glplay.view.GLFlashLightView;
@@ -21,6 +23,10 @@ import com.wangyongyao.glplay.view.WyyGLSurfaceView;
 import com.wangyongyao.glplay.view.GLTextureCPlusVideoPlayerView;
 import com.wangyongyao.glplay.view.GLTextureFilterPlayerView;
 import com.wangyongyao.glplay.view.WyyGLSurfaceViewNew;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class OpenGLCameraFragment extends BaseFragment {
 
@@ -44,6 +50,8 @@ public class OpenGLCameraFragment extends BaseFragment {
     private WyyGLSurfaceView mWyyGLSurfaceView;
     private Button mBtnSurfaceNew;
     private WyyGLSurfaceViewNew mWyyGLSurfaceViewNew;
+    private Button mBtnSurfaceNewRecord;
+    private boolean isRecording;
 
 
     @Override
@@ -64,6 +72,7 @@ public class OpenGLCameraFragment extends BaseFragment {
         mBtnGlFilterC = mBinding.btnGlFilterC;
         mBtnSurface = mBinding.btnSurface;
         mBtnSurfaceNew = mBinding.btnSurfaceNew;
+        mBtnSurfaceNewRecord = mBinding.btnSurfaceNewRecord;
         mGlShow = mBinding.glShow;
     }
 
@@ -144,64 +153,86 @@ public class OpenGLCameraFragment extends BaseFragment {
             }
             mGlShow.addView(mWyyGLSurfaceViewNew);
         });
+
+        mBtnSurfaceNewRecord.setOnClickListener(v -> {
+            if (mWyyGLSurfaceViewNew != null) {
+                if (isRecording) {
+
+                    mWyyGLSurfaceViewNew.stopRecord();
+                    isRecording = false;
+                } else {
+                    @SuppressLint("SimpleDateFormat") SimpleDateFormat formatter
+                            = new SimpleDateFormat("yy_MM_dd_HH_mm_ss");
+                    Date curDate = new Date(System.currentTimeMillis());//获取当前时间
+                    String str = formatter.format(curDate);
+                    String videoDir = DirectoryPath.createVideoDir(getActivity());
+                    String videoName = videoDir + File.pathSeparator + str + ".mp4";
+                    mWyyGLSurfaceViewNew.startRecord(videoName);
+                    isRecording = true;
+                }
+            } else {
+                Toast.makeText(getActivity(), "自定GLSurfaceViewNew没开启"
+                        , Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @SuppressLint("SetTextI18n")
     private void switchFilter() {
         int type = 0;
         if (mGLTextureFilterPlayerView != null) {
-           type = mGLTextureFilterPlayerView.getFilterType();
+            type = mGLTextureFilterPlayerView.getFilterType();
         }
         switch (type) {
-            case 0:{
+            case 0: {
                 mBtnGlFilterC.setText("GL滤镜切换");
             }
             break;
-            case 1:{
+            case 1: {
                 mBtnGlFilterC.setText("模糊滤镜");
             }
             break;
-            case 2:{
+            case 2: {
                 mBtnGlFilterC.setText("鱼眼滤镜");
             }
             break;
-            case 3:{
+            case 3: {
                 mBtnGlFilterC.setText("旋流过滤器");
             }
             break;
-            case 4:{
+            case 4: {
                 mBtnGlFilterC.setText("放大镜滤光片");
             }
             break;
-            case 5:{
+            case 5: {
                 mBtnGlFilterC.setText("利希滕斯坦式过滤器");
             }
             break;
-            case 6:{
+            case 6: {
                 mBtnGlFilterC.setText("三角形马赛克滤镜");
             }
             break;
-            case 7:{
+            case 7: {
                 mBtnGlFilterC.setText("像素过滤器");
             }
             break;
-            case 8:{
+            case 8: {
                 mBtnGlFilterC.setText("交叉缝合过滤器");
             }
             break;
-            case 9:{
+            case 9: {
                 mBtnGlFilterC.setText("Toonify过滤器");
             }
             break;
-            case 10:{
+            case 10: {
                 mBtnGlFilterC.setText("捕食者热视觉滤镜");
             }
             break;
-            case 11:{
+            case 11: {
                 mBtnGlFilterC.setText("压花过滤器");
             }
             break;
-            case 12:{
+            case 12: {
                 mBtnGlFilterC.setText("边缘检测滤波器");
             }
             break;

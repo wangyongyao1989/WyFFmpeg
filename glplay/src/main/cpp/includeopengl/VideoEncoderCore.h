@@ -16,6 +16,7 @@
 #include "media/NdkMediaFormat.h"
 #include "media/NdkMediaMuxer.h"
 #include "media/NdkMediaExtractor.h"
+#include "WindowSurface.h"
 
 
 
@@ -33,6 +34,8 @@ public:
     ~VideoEncoderCore();
 
     void drainEncoder(bool endOfStream);
+
+    ANativeWindow* getInputSurface();
 
     void release();
 
@@ -62,6 +65,9 @@ private:
     AMediaMuxer *m_AMediaMuxer;
     FILE *m_MediaMuxer_fp;
     size_t m_MediaMuxer_fd;
+
+    ANativeWindow *m_WindowSurface = nullptr;
+
 };
 
 

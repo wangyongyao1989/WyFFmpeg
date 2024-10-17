@@ -389,9 +389,24 @@ void EGLSurfaceViewVideoRender::OnDrawFrame() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     if (!updateTextures() /*|| !useProgram()*/) return;
 
+
+
+    if (m_TextureMovieEncoder2 != nullptr) {
+        m_TextureMovieEncoder2->frameAvailableSoon();
+    }
+    if (m_InputWindowSurface != nullptr) {
+        m_InputWindowSurface->makeCurrent();
+        glViewport(0,0,m_backingWidth,m_backingHeight);
+        m_InputWindowSurface->getCurrentFrame();
+        m_InputWindowSurface->setPresentationTime(40000);
+        m_InputWindowSurface->swapBuffers();
+    }
+
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     //窗口显示
     m_WindowSurface->swapBuffers();
+    m_WindowSurface->makeCurrent();
+
 }
 
 void EGLSurfaceViewVideoRender::OnSurfaceDestroyed() {
@@ -445,5 +460,29 @@ void EGLSurfaceViewVideoRender::printGLString(const char *name, GLenum s) {
 void EGLSurfaceViewVideoRender::checkGlError(const char *op) {
     for (GLint error = glGetError(); error; error = glGetError()) {
         LOGI("after %s() glError (0x%x)\n", op, error);
+    }
+}
+
+void EGLSurfaceViewVideoRender::startEncoder(const char *recordPath) {
+    LOGD("EGLSurfaceViewVideoRender::startEncoder()");
+    m_VideoEncoderCore = new VideoEncoderCore(VIDEO_WIDTH, VIDEO_HEIGHT, BIT_RATE, recordPath);
+    m_InputWindowSurface = new WindowSurface(m_EglCore, m_VideoEncoderCore->getInputSurface());
+    m_TextureMovieEncoder2 = new TextureMovieEncoder2(m_VideoEncoderCore);
+}
+
+void EGLSurfaceViewVideoRender::stopEncoder() {
+    LOGD("EGLSurfaceViewVideoRender::stopEncoder()");
+
+    if (m_VideoEncoderCore != nullptr) {
+        m_VideoEncoderCore->release();
+        m_VideoEncoderCore = nullptr;
+    }
+    if (m_InputWindowSurface != nullptr) {
+        m_InputWindowSurface->release();
+        m_InputWindowSurface = nullptr;
+    }
+
+    if (m_TextureMovieEncoder2 != nullptr) {
+        m_TextureMovieEncoder2 = nullptr;
     }
 }
