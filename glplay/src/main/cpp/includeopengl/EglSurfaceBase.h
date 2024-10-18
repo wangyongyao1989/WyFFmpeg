@@ -29,6 +29,8 @@ public:
     // 切换到当前上下文
     void makeCurrent();
 
+    void makeCurrentReadFrom(EglSurfaceBase readSurface);
+
     // 交换缓冲区，显示图像
     bool swapBuffers();
 

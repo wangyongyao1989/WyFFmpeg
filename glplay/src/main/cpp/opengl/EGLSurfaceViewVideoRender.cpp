@@ -1,113 +1,29 @@
 //  Author : wangyongyao https://github.com/wangyongyao1989
-// Created by MMM on 2024/9/5.
+// Created by MMM on 2024/10/13.
 //
 
-#include "OpenglesSurfaceViewVideoRender.h"
+#include "EGLSurfaceViewVideoRender.h"
 #include "OpenGLShader.h"
 
-void
-OpenglesSurfaceViewVideoRender::init(ANativeWindow *window, AAssetManager *assetManager,
-                                     size_t width,
-                                     size_t height) {
-    LOGI("OpenglesSurfaceViewVideoRender init==%d, %d", width, height);
-    m_backingWidth = width;
-    m_backingHeight = height;
-    ///EGL
-    //1 EGL display创建和初始化
-    display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    if (display == EGL_NO_DISPLAY) {
-        LOGE("eglGetDisplay failed!");
-        return;
-    }
-    if (EGL_TRUE != eglInitialize(display, 0, 0)) {
-        LOGE("eglInitialize failed!");
-        return;
-    }
-    //2 surface
-    //2-1 surface窗口配置
-    //输出配置
-    EGLConfig config;
-    EGLint configNum;
-    EGLint configSpec[] = {
-            EGL_RED_SIZE, 8,
-            EGL_GREEN_SIZE, 8,
-            EGL_BLUE_SIZE, 8,
-            EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_NONE
-    };
-    if (EGL_TRUE != eglChooseConfig(display, configSpec, &config, 1, &configNum)) {
-        LOGE("eglChooseConfig failed!");
-        return;
-    }
-    //创建surface
-    ANativeWindow_acquire(window);
-    ANativeWindow_setBuffersGeometry(window, 0, 0, AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM);
-    winsurface = eglCreateWindowSurface(display, config, window, 0);
-    if (winsurface == EGL_NO_SURFACE) {
-        LOGE("eglCreateWindowSurface failed!");
-        return;
-    }
 
-    //3 context 创建关联的上下文
-    const EGLint ctxAttr[] = {
-            EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE
-    };
-    EGLContext context = eglCreateContext(display, config, EGL_NO_CONTEXT, ctxAttr);
-    if (context == EGL_NO_CONTEXT) {
-        LOGE("eglCreateContext failed!");
-        return;
-    }
-    if (EGL_TRUE != eglMakeCurrent(display, winsurface, winsurface, context)) {
-        LOGE("eglMakeCurrent failed!");
-        return;
-    }
-
-    useProgram();
-    createTextures();
-
+void EGLSurfaceViewVideoRender::surfaceCreated(ANativeWindow *window, AAssetManager *assetManager) {
+    m_ANWindow = window;
+    postMessage(MSG_SurfaceCreated, false);
 }
 
-void OpenglesSurfaceViewVideoRender::render() {
-//    LOGI("OpenglesSurfaceViewVideoRender render");
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-    if (!updateTextures() /*|| !useProgram()*/) return;
-
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    //窗口显示
-    eglSwapBuffers(display, winsurface);
+void EGLSurfaceViewVideoRender::surfaceChanged(size_t width, size_t height) {
+    postMessage(MSG_SurfaceChanged, width, height);
 }
 
-void OpenglesSurfaceViewVideoRender::release() {
-    m_vertexShader = 0;
-    m_pixelShader = 0;
-    if (m_pDataY) {
-        m_pDataY = nullptr;
-    }
-    if (m_pDataU) {
-        m_pDataU = nullptr;
-    }
-    if (m_pDataV) {
-        m_pDataV = nullptr;
-    }
-
-    if (openGlShader) {
-        delete openGlShader;
-        openGlShader = nullptr;
-    }
-
-    if (display) {
-        display = nullptr;
-    }
-
-    if (winsurface) {
-        winsurface = nullptr;
-    }
-
+void EGLSurfaceViewVideoRender::render() {
+    postMessage(MSG_DrawFrame, false);
 }
 
-void OpenglesSurfaceViewVideoRender::updateFrame(const surface_video_frame &frame) {
+void EGLSurfaceViewVideoRender::release() {
+    postMessage(MSG_SurfaceDestroyed, false);
+}
+
+void EGLSurfaceViewVideoRender::updateFrame(const egl_surface_video_frame &frame) {
     m_sizeY = frame.width * frame.height;
     m_sizeU = frame.width * frame.height / 4;
     m_sizeV = frame.width * frame.height / 4;
@@ -161,12 +77,9 @@ void OpenglesSurfaceViewVideoRender::updateFrame(const surface_video_frame &fram
 }
 
 void
-OpenglesSurfaceViewVideoRender::draw(uint8_t *buffer, size_t length, size_t width, size_t height,
-                                     float rotation) {
-    m_length = length;
-    m_rotation = rotation;
-
-    surface_video_frame frame{};
+EGLSurfaceViewVideoRender::draw(uint8_t *buffer, size_t length, size_t width, size_t height,
+                                float rotation) {
+    egl_surface_video_frame frame{};
     frame.width = width;
     frame.height = height;
     frame.stride_y = width;
@@ -178,15 +91,15 @@ OpenglesSurfaceViewVideoRender::draw(uint8_t *buffer, size_t length, size_t widt
     updateFrame(frame);
 }
 
-void OpenglesSurfaceViewVideoRender::setParameters(uint32_t params) {
+void EGLSurfaceViewVideoRender::setParameters(uint32_t params) {
     m_params = params;
 }
 
-uint32_t OpenglesSurfaceViewVideoRender::getParameters() {
+uint32_t EGLSurfaceViewVideoRender::getParameters() {
     return m_params;
 }
 
-bool OpenglesSurfaceViewVideoRender::createTextures() {
+bool EGLSurfaceViewVideoRender::createTextures() {
     auto widthY = (GLsizei) m_width;
     auto heightY = (GLsizei) m_height;
 
@@ -244,12 +157,11 @@ bool OpenglesSurfaceViewVideoRender::createTextures() {
     return true;
 }
 
-bool OpenglesSurfaceViewVideoRender::updateTextures() {
+bool EGLSurfaceViewVideoRender::updateTextures() {
     if (!m_textureIdY && !m_textureIdU && !m_textureIdV /*&& !createTextures()*/) return false;
-//    LOGI("OpenglesSurfaceViewVideoRender updateTextures");
-    LOGE("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
-         m_textureIdY,
-         m_textureIdU, m_textureIdV, isDirty);
+//    LOGE("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
+//         m_textureIdY,
+//         m_textureIdU, m_textureIdV, isDirty);
 
     if (isDirty) {
         glActiveTexture(GL_TEXTURE0);
@@ -278,12 +190,12 @@ bool OpenglesSurfaceViewVideoRender::updateTextures() {
 }
 
 int
-OpenglesSurfaceViewVideoRender::createProgram() {
+EGLSurfaceViewVideoRender::createProgram() {
 
     m_program = openGlShader->createProgram();
     m_vertexShader = openGlShader->vertexShader;
     m_pixelShader = openGlShader->fraShader;
-    LOGI("OpenglesSurfaceViewVideoRender createProgram m_program:%d", m_program);
+    LOGI("EGLSurfaceViewVideoRender createProgram m_program:%d", m_program);
 
     if (!m_program) {
         LOGE("Could not create program.");
@@ -301,7 +213,7 @@ OpenglesSurfaceViewVideoRender::createProgram() {
     return m_program;
 }
 
-GLuint OpenglesSurfaceViewVideoRender::useProgram() {
+GLuint EGLSurfaceViewVideoRender::useProgram() {
     if (!m_program && !createProgram()) {
         LOGE("Could not use program.");
         return 0;
@@ -309,13 +221,13 @@ GLuint OpenglesSurfaceViewVideoRender::useProgram() {
 
     if (isProgramChanged) {
         glUseProgram(m_program);
-        glVertexAttribPointer(m_vertexPos, 2, GL_FLOAT, GL_FALSE, 0, kVerticekSurface);
+        glVertexAttribPointer(m_vertexPos, 2, GL_FLOAT, GL_FALSE, 0, EGLVerticek);
         glEnableVertexAttribArray(m_vertexPos);
 
         glUniform1i(m_textureYLoc, 0);
         glUniform1i(m_textureULoc, 1);
         glUniform1i(m_textureVLoc, 2);
-        glVertexAttribPointer(m_textureLoc, 2, GL_FLOAT, GL_FALSE, 0, kTextureCoordSurface);
+        glVertexAttribPointer(m_textureLoc, 2, GL_FLOAT, GL_FALSE, 0, EGLTextureCoord);
         glEnableVertexAttribArray(m_textureLoc);
 
         if (m_textureSize >= 0) {
@@ -332,24 +244,23 @@ GLuint OpenglesSurfaceViewVideoRender::useProgram() {
 }
 
 bool
-OpenglesSurfaceViewVideoRender::setSharderPath(const char *vertexPath, const char *fragmentPath) {
+EGLSurfaceViewVideoRender::setSharderPath(const char *vertexPath, const char *fragmentPath) {
     openGlShader->getSharderPath(vertexPath, fragmentPath);
     return 0;
 }
 
-bool OpenglesSurfaceViewVideoRender::setSharderStringPath(string vertexPath, string fragmentPath) {
+bool EGLSurfaceViewVideoRender::setSharderStringPath(string vertexPath, string fragmentPath) {
     openGlShader->getSharderStringPath(vertexPath, fragmentPath);
     return 0;
 }
 
-OpenglesSurfaceViewVideoRender::OpenglesSurfaceViewVideoRender() {
+EGLSurfaceViewVideoRender::EGLSurfaceViewVideoRender() {
     openGlShader = new OpenGLShader();
 }
 
-OpenglesSurfaceViewVideoRender::~OpenglesSurfaceViewVideoRender() {
+EGLSurfaceViewVideoRender::~EGLSurfaceViewVideoRender() {
     deleteTextures();
     delete_program(m_program);
-
     m_vertexShader = 0;
     m_pixelShader = 0;
     if (m_pDataY) {
@@ -376,9 +287,20 @@ OpenglesSurfaceViewVideoRender::~OpenglesSurfaceViewVideoRender() {
     if (winsurface) {
         winsurface = nullptr;
     }
+
+    if (m_EglCore) {
+        delete m_EglCore;
+        m_EglCore = nullptr;
+    }
+
+    if (m_WindowSurface) {
+        delete m_WindowSurface;
+        m_WindowSurface = nullptr;
+    }
+    quit();
 }
 
-void OpenglesSurfaceViewVideoRender::delete_program(GLuint &program) {
+void EGLSurfaceViewVideoRender::delete_program(GLuint &program) {
     if (program) {
         glUseProgram(0);
         glDeleteProgram(program);
@@ -386,7 +308,7 @@ void OpenglesSurfaceViewVideoRender::delete_program(GLuint &program) {
     }
 }
 
-void OpenglesSurfaceViewVideoRender::deleteTextures() {
+void EGLSurfaceViewVideoRender::deleteTextures() {
     if (m_textureIdY) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -412,13 +334,182 @@ void OpenglesSurfaceViewVideoRender::deleteTextures() {
     }
 }
 
-void OpenglesSurfaceViewVideoRender::printGLString(const char *name, GLenum s) {
+
+void EGLSurfaceViewVideoRender::handleMessage(LooperMessage *msg) {
+    Looper::handleMessage(msg);
+    switch (msg->what) {
+        case MSG_SurfaceCreated: {
+            LOGE("EGLSurfaceViewVideoRender::handleMessage MSG_SurfaceCreated");
+            OnSurfaceCreated();
+        }
+            break;
+        case MSG_SurfaceChanged:
+            LOGE("EGLSurfaceViewVideoRender::handleMessage MSG_SurfaceChanged");
+            OnSurfaceChanged(msg->arg1, msg->arg2);
+            break;
+        case MSG_DrawFrame:
+//            LOGE("EGLSurfaceViewVideoRender::handleMessage MSG_DrawFrame");
+            OnDrawFrame();
+            break;
+        case MSG_SurfaceDestroyed:
+            LOGE("EGLSurfaceViewVideoRender::handleMessage MSG_SurfaceDestroyed");
+            OnSurfaceDestroyed();
+            break;
+        default:
+            break;
+    }
+}
+
+void EGLSurfaceViewVideoRender::OnSurfaceCreated() {
+    m_EglCore = new EglCore(eglGetCurrentContext(), FLAG_RECORDABLE);
+    if (!m_EglCore) {
+        LOGE("new EglCore failed!");
+        return;
+    }
+
+    LOGE("OnSurfaceCreated m_ANWindow:%p", m_ANWindow);
+
+    m_WindowSurface = new WindowSurface(m_EglCore, m_ANWindow);
+    if (!m_EglCore) {
+        LOGE("new WindowSurface failed!");
+        return;
+    }
+    m_WindowSurface->makeCurrent();
+}
+
+void EGLSurfaceViewVideoRender::OnSurfaceChanged(int w, int h) {
+    m_backingWidth = w;
+    m_backingHeight = h;
+    LOGE("OnSurfaceChanged m_backingWidth:%d,m_backingHeight:%d", m_backingWidth, m_backingHeight);
+    float windowAspect = (float) m_backingHeight / (float) m_backingWidth;
+    size_t outWidth, outHeight;
+    if (VIDEO_HEIGHT > VIDEO_WIDTH * windowAspect) {
+        // limited by narrow width; reduce height
+        outWidth = VIDEO_WIDTH;
+        outHeight = (int) (VIDEO_WIDTH * windowAspect);
+    } else {
+        // limited by short height; restrict width
+        outHeight = VIDEO_HEIGHT;
+        outWidth = (int) (VIDEO_HEIGHT / windowAspect);
+    }
+    LOGE(" outWidth:%d,outHeight:%d", outWidth, outHeight);
+
+    offX = (VIDEO_WIDTH - outWidth) / 2;
+    offY = (VIDEO_HEIGHT - outHeight) / 2;
+    off_right = offX + outWidth;
+    off_bottom = offY + outHeight;
+    //Adjusting window 1920x1104 to +14,+0 1252x720
+    LOGE("Adjusting window offX:%d,offY:%d,off_right:%d,off_bottom:%d", offX, offY, off_right,
+         off_bottom);
+    useProgram();
+    createTextures();
+}
+
+void EGLSurfaceViewVideoRender::OnDrawFrame() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    if (!updateTextures() /*|| !useProgram()*/) return;
+
+    //窗口显示
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+//    LOGE("OnDrawFrame thread:%ld", pthread_self());
+    if (m_TextureMovieEncoder2 != nullptr) {
+        m_TextureMovieEncoder2->frameAvailableSoon();
+    }
+    if (m_InputWindowSurface != nullptr) {
+        m_InputWindowSurface->makeCurrentReadFrom(*m_WindowSurface);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        checkGlError("before glBlitFramebuffer");
+        glBlitFramebuffer(0, 0, m_backingWidth, m_backingHeight, offX, offY, off_right, off_bottom,
+                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
+//        m_InputWindowSurface->setPresentationTime(40002204);
+        m_InputWindowSurface->swapBuffers();
+
+    }
+
+    //切换到m_WindowSurface
+    m_WindowSurface->makeCurrent();
+    m_WindowSurface->swapBuffers();
+
+}
+
+void EGLSurfaceViewVideoRender::OnSurfaceDestroyed() {
+    m_vertexShader = 0;
+    m_pixelShader = 0;
+
+    if (m_pDataY) {
+        m_pDataY = nullptr;
+    }
+
+    if (m_pDataU) {
+        m_pDataU = nullptr;
+    }
+
+    if (m_pDataV) {
+        m_pDataV = nullptr;
+    }
+
+    if (openGlShader) {
+        delete openGlShader;
+        openGlShader = nullptr;
+    }
+
+    if (display) {
+        display = nullptr;
+    }
+
+    if (winsurface) {
+        winsurface = nullptr;
+    }
+
+    if (m_EglCore) {
+        delete m_EglCore;
+        m_EglCore = nullptr;
+    }
+
+    if (m_WindowSurface) {
+        delete m_WindowSurface;
+        m_WindowSurface = nullptr;
+    }
+
+    quit();
+
+}
+
+void EGLSurfaceViewVideoRender::printGLString(const char *name, GLenum s) {
     const char *v = (const char *) glGetString(s);
     LOGI("OpenGL %s = %s\n", name, v);
 }
 
-void OpenglesSurfaceViewVideoRender::checkGlError(const char *op) {
+void EGLSurfaceViewVideoRender::checkGlError(const char *op) {
     for (GLint error = glGetError(); error; error = glGetError()) {
         LOGI("after %s() glError (0x%x)\n", op, error);
+    }
+}
+
+void EGLSurfaceViewVideoRender::startEncoder(const char *recordPath) {
+    LOGD("EGLSurfaceViewVideoRender::startEncoder()");
+    m_VideoEncoderCore = new VideoEncoderCore(VIDEO_WIDTH, VIDEO_HEIGHT, BIT_RATE, recordPath);
+    m_InputWindowSurface = new WindowSurface(m_EglCore, m_VideoEncoderCore->getInputSurface());
+    m_TextureMovieEncoder2 = new TextureMovieEncoder2(m_VideoEncoderCore);
+}
+
+void EGLSurfaceViewVideoRender::stopEncoder() {
+    LOGD("EGLSurfaceViewVideoRender::stopEncoder()");
+
+    if (m_VideoEncoderCore != nullptr) {
+        m_VideoEncoderCore->drainEncoder(true);
+        m_VideoEncoderCore->release();
+        m_VideoEncoderCore = nullptr;
+    }
+    if (m_InputWindowSurface != nullptr) {
+        m_InputWindowSurface->release();
+        m_InputWindowSurface = nullptr;
+    }
+
+    if (m_TextureMovieEncoder2 != nullptr) {
+        m_TextureMovieEncoder2 = nullptr;
     }
 }

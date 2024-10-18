@@ -83,6 +83,14 @@ void EglSurfaceBase::makeCurrent() {
 }
 
 /**
+* Makes our EGL context and surface current for drawing, using the supplied surface
+* for reading.
+*/
+void EglSurfaceBase::makeCurrentReadFrom(EglSurfaceBase readSurface) {
+    mEglCore->makeCurrent(mEglSurface,readSurface.mEglSurface);
+}
+
+/**
  * 交换到前台显示
  * @return
  */
@@ -111,3 +119,5 @@ char* EglSurfaceBase::getCurrentFrame() {
     glReadPixels(0, 0, getWidth(), getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     return pixels;
 }
+
+

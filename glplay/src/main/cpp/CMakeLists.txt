@@ -26,10 +26,16 @@ add_library(
         opengl/OpenglesTexureVideoRender.cpp
         opengl/OpenglesTextureFilterRender.cpp
         opengl/OpenglesSurfaceViewVideoRender.cpp
+        opengl/EGLSurfaceViewVideoRender.cpp
 
         WyyEGL/EglCore.cpp
         WyyEGL/EglSurfaceBase.cpp
         WyyEGL/WindowSurface.cpp
+
+        looper/Looper.cpp
+
+        record/TextureMovieEncoder2.cpp
+        record/VideoEncoderCore.cpp
 
 
 )
@@ -60,6 +66,7 @@ target_link_libraries(
         GLESv3
         OpenSLES
         vulkan
+        mediandk
         log
         ${third-party-libs}
 

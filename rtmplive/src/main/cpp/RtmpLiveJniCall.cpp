@@ -10,7 +10,7 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 //包名+类名字符串定义：
-const char *rtmp_class_name = "com/example/rtmplive/RtmpLivePusher";
+const char *java_call_jni_class = "com/example/rtmplive/RtmpLivePusher";
 
 RtmpPusherManger *rtmpManger;
 
@@ -143,7 +143,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     }
 
     // 获取类引用
-    jclass clazz = env->FindClass(rtmp_class_name);
+    jclass clazz = env->FindClass(java_call_jni_class);
 
     // 注册native方法
     jint regist_result = env->RegisterNatives(clazz, methods,

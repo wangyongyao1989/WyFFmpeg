@@ -76,6 +76,26 @@
         app:layout_constraintTop_toBottomOf="@+id/btn_gl_back"
         tools:ignore="HardcodedText" />
 
+    <Button
+        android:id="@+id/btn_surface_new"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:text="selfGLSurfaceView"
+        app:layout_constraintStart_toEndOf="@+id/btn_surface"
+        app:layout_constraintTop_toBottomOf="@+id/btn_gl_back"
+        tools:ignore="HardcodedText" />
+
+    <Button
+        android:id="@+id/btn_surface_new_record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:text="start recording"
+        app:layout_constraintStart_toEndOf="@+id/btn_surface_new"
+        app:layout_constraintTop_toBottomOf="@+id/btn_gl_back"
+        tools:ignore="HardcodedText" />
+
     <FrameLayout
         android:id="@+id/gl_show"
         android:layout_width="match_parent"

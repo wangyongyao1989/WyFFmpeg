@@ -9,6 +9,7 @@
 #include <android/asset_manager_jni.h>
 #include "OpenglesTextureFilterRender.h"
 #include "OpenglesSurfaceViewVideoRender.h"
+#include "EGLSurfaceViewVideoRender.h"
 
 #define LOG_TAG "wy"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -17,13 +18,14 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 using namespace std;
 //包名+类名字符串定义：
-const char *rtmp_class_name = "com/wangyongyao/glplay/OpenGLPlayCallJni";
+const char *java_call_jni_class = "com/wangyongyao/glplay/OpenGLPlayCallJni";
 
 OpenglesFlashLight *flashLight;
 OpenglesCameraPre *cameraPre;
 OpenglesTexureVideoRender *textureVideoRender;
 OpenglesTextureFilterRender *filterRender;
 OpenglesSurfaceViewVideoRender *surfaceViewRender;
+EGLSurfaceViewVideoRender *eglsurfaceViewRender;
 
 
 
@@ -422,7 +424,8 @@ cpp_surfaceview_video_creat(JNIEnv *env, jobject thiz, jint type,
 extern "C"
 JNIEXPORT void JNICALL
 cpp_surfaceview_video_destroy(JNIEnv *env, jobject thiz) {
-
+    if (surfaceViewRender)
+        surfaceViewRender->release();
 }
 
 extern "C"
@@ -484,38 +487,94 @@ cpp_surfaceview_video_getParameters(JNIEnv *env, jobject thiz) {
 
 }
 
-/*********************** WyyRenderer *******************/
 
+/*********************** OpenGL SurfaceViewNew 预览Camera视频********************/
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_new_video_init(JNIEnv *env, jobject thiz, jint type,
+                               jstring vertex,
+                               jstring frag) {
+    const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
+    const char *fragPath = env->GetStringUTFChars(frag, nullptr);
+    if (eglsurfaceViewRender == nullptr)
+        eglsurfaceViewRender = new EGLSurfaceViewVideoRender();
+
+    eglsurfaceViewRender->setSharderPath(vertexPath, fragPath);
+
+    env->ReleaseStringUTFChars(vertex, vertexPath);
+    env->ReleaseStringUTFChars(frag, fragPath);
+}
 
 extern "C"
 JNIEXPORT void JNICALL
-cpp_wyy_renderer_init(JNIEnv *env, jobject thiz) {
+cpp_surfaceview_new_video_created(JNIEnv *env, jobject thiz,
+                                  jobject surface,
+                                  jobject assetManager) {
+    if (eglsurfaceViewRender != nullptr) {
+        ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
+        auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
+        eglsurfaceViewRender->surfaceCreated(window, aAssetManager);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_new_video_changed(JNIEnv *env, jobject thiz,
+                                  jint width,
+                                  jint height) {
+    if (eglsurfaceViewRender != nullptr) {
+        eglsurfaceViewRender->surfaceChanged((size_t) width, (size_t) height);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_new_video_render(JNIEnv *env, jobject thiz) {
+    if (eglsurfaceViewRender != nullptr) {
+        eglsurfaceViewRender->render();
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_new_video_draw(JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height,
+                               jint rotation) {
+    jbyte *bufferPtr = env->GetByteArrayElements(data, nullptr);
+    jsize arrayLength = env->GetArrayLength(data);
+
+    if (eglsurfaceViewRender != nullptr) {
+
+        eglsurfaceViewRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
+                                   (size_t) height,
+                                   rotation);
+    }
+
+    env->ReleaseByteArrayElements(data, bufferPtr, 0);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_new_video_destroy(JNIEnv *env, jobject thiz) {
+    if (eglsurfaceViewRender != nullptr)
+        eglsurfaceViewRender->release();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_surfaceview_new_video_start_record(JNIEnv *env, jobject thiz, jstring recordPath) {
+
+    if (eglsurfaceViewRender == nullptr) return;
+    const char *path = env->GetStringUTFChars(recordPath, nullptr);
+    eglsurfaceViewRender->startEncoder(path);
+    env->ReleaseStringUTFChars(recordPath, path);
 
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-cpp_wyy_renderer_surface_created(JNIEnv *env, jobject thiz,
-                                 jobject surface) {
-
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-cpp_wyy_renderer_surface_changed(JNIEnv *env, jobject thiz, jint width, jint height) {
-
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-cpp_wyy_renderer_release(JNIEnv *env, jobject thiz) {
-
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-cpp_wyy_renderer_destroy(JNIEnv *env, jobject thiz) {
-
+cpp_surfaceview_new_video_stop_record(JNIEnv *env, jobject thiz) {
+    if (eglsurfaceViewRender == nullptr) return;
+    eglsurfaceViewRender->stopEncoder();
 }
 
 
@@ -595,15 +654,25 @@ static const JNINativeMethod methods[] = {
         {"native_surfaceview_video_draw",               "([BIII)V",              (void *) cpp_surfaceview_video_draw},
         {"native_surfaceview_video_set_parameters",     "(I)V",                  (void *) cpp_surfaceview_video_setParameters},
         {"native_surfaceview_video_get_parameters",     "()I",                   (void *) cpp_surfaceview_video_getParameters},
+        {"native_surfaceview_video_destroy",            "()V",                   (void *) cpp_surfaceview_video_destroy},
 
-        /*********************** WyyRenderer *******************/
-        {"native_wyy_renderer_init",                    "()V",                   (void *) cpp_wyy_renderer_init},
-        {"native_wyy_renderer_surface_created",         "(Landroid/view/Surface;)"
-                                                        "V",                     (void *) cpp_wyy_renderer_surface_created},
-        {"native_wyy_renderer_surface_changed",         "(II)V",                 (void *) cpp_wyy_renderer_surface_changed},
-        {"native_wyy_renderer_release",                 "()V",                   (void *) cpp_wyy_renderer_release},
-        {"native_wyy_renderer_release",                 "()V",                   (void *) cpp_wyy_renderer_release},
-        {"native_wyy_renderer_destroy",                 "()V",                   (void *) cpp_wyy_renderer_destroy},
+
+        /*********************** OpenGL SurfaceViewNew显示视频 *******************/
+
+        {"native_surfaceview_new_video_init",           "(I"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;)V",  (void *) cpp_surfaceview_new_video_init},
+        {"native_surfaceview_new_video_created",
+                                                        "(Landroid/view/Surface;"
+                                                        "Landroid/content/res"
+                                                        "/AssetManager;)V",      (void *) cpp_surfaceview_new_video_created},
+
+        {"native_surfaceview_new_video_changed",        "(II)V",                 (void *) cpp_surfaceview_new_video_changed},
+        {"native_surfaceview_new_video_render",         "()V",                   (void *) cpp_surfaceview_new_video_render},
+        {"native_surfaceview_new_video_draw",           "([BIII)V",              (void *) cpp_surfaceview_new_video_draw},
+        {"native_surfaceview_new_video_destroy",        "()V",                   (void *) cpp_surfaceview_new_video_destroy},
+        {"native_surfaceview_new_video_start_record",   "(Ljava/lang/String;)V", (void *) cpp_surfaceview_new_video_start_record},
+        {"native_surfaceview_new_video_stop_record",    "()V",                   (void *) cpp_surfaceview_new_video_stop_record},
 
 
 };
@@ -618,7 +687,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     }
 
     // 获取类引用
-    jclass clazz = env->FindClass(rtmp_class_name);
+    jclass clazz = env->FindClass(java_call_jni_class);
 
     // 注册native方法
     jint regist_result = env->RegisterNatives(clazz, methods,
@@ -629,6 +698,18 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
         LOGI("动态注册 success result = %d", regist_result);
     }
     return JNI_VERSION_1_6;
+}
+
+extern "C" void JNI_OnUnload(JavaVM *jvm, void *p) {
+    JNIEnv *env = NULL;
+    if (jvm->GetEnv((void **) (&env), JNI_VERSION_1_6) != JNI_OK) {
+        return;
+    }
+    jclass clazz = env->FindClass(java_call_jni_class);
+    if (env != NULL) {
+        env->UnregisterNatives(clazz);
+    }
+
 }
 
 

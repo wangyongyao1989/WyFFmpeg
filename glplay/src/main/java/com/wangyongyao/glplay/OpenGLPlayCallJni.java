@@ -269,37 +269,55 @@ public class OpenGLPlayCallJni {
 
     private native int native_surfaceview_video_get_parameters();
 
-    /*********************** WyyRenderer *******************/
 
-    public void wyyRendererInit() {
-        native_wyy_renderer_init();
+    /*********************** OpenGL SurfaceViewNew 显示视频********************/
+    public void glSurfaceViewNewInit(int type, String vertexPath, String fragPath) {
+        native_surfaceview_new_video_init(type, vertexPath, fragPath);
     }
 
-    public void wyyRendererSurfaceCreated(Surface surface) {
-        native_wyy_renderer_surface_created(surface);
+    public void glSurfaceViewNewCreated(Surface surface, AssetManager assetManager) {
+        native_surfaceview_new_video_created(surface, assetManager);
     }
 
-    public void wyyRendererSurfaceChanged(int width, int height) {
-        native_wyy_renderer_surface_changed(width, height);
+    public void glSurfaceViewNewChanged(int width, int height) {
+        native_surfaceview_new_video_changed(width, height);
     }
 
-    public void wyyRendererSurfaceRelease() {
-        native_wyy_renderer_release();
+    public void glSurfaceViewNewRender() {
+        native_surfaceview_new_video_render();
     }
 
-    public void wyyRendererSurfaceDestroyed() {
-        native_wyy_renderer_destroy();
+    public void glSurfaceViewNewDraw(byte[] data, int width, int height, int rotation) {
+        native_surfaceview_new_video_draw(data, width, height, rotation);
     }
 
-    private native void native_wyy_renderer_init();
+    public void glSurfaceViewNewDestroy() {
+        native_surfaceview_new_video_destroy();
+    }
 
-    private native void native_wyy_renderer_surface_created(Surface surface);
+    public void glSurfaceViewNewStartRecord(String recordPath) {
+        native_surfaceview_new_video_start_record(recordPath);
+    }
 
-    private native void native_wyy_renderer_surface_changed(int width, int height);
+    public void glSurfaceViewNewStopRecord() {
+        native_surfaceview_new_video_stop_record();
+    }
 
-    private native void native_wyy_renderer_release();
 
-    private native void native_wyy_renderer_destroy();
+    private native void native_surfaceview_new_video_init(int type, String vertexPath, String fragPath);
 
+    private native void native_surfaceview_new_video_created(Surface surface, AssetManager assetManager);
+
+    private native void native_surfaceview_new_video_changed(int width, int height);
+
+    private native void native_surfaceview_new_video_render();
+
+    private native void native_surfaceview_new_video_draw(byte[] data, int width, int height, int rotation);
+
+    private native void native_surfaceview_new_video_destroy();
+
+    private native void native_surfaceview_new_video_start_record(String recordPath);
+
+    private native void native_surfaceview_new_video_stop_record();
 
 }

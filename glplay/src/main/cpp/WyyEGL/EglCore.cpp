@@ -96,6 +96,8 @@ bool EglCore::init(EGLContext sharedContext, int flags) {
         LOGE("eglPresentationTimeANDROID is not available!");
     }
 
+    
+
     int values[1] = {0};
     eglQueryContext(mEGLDisplay, mEGLContext, EGL_CONTEXT_CLIENT_VERSION, values);
     LOGD("EGLContext created, client version %d", values[0]);
@@ -186,6 +188,10 @@ EGLSurface EglCore::createWindowSurface(ANativeWindow *surface) {
     int surfaceAttribs[] = {
             EGL_NONE
     };
+
+    ANativeWindow_acquire(surface);
+    ANativeWindow_setBuffersGeometry(surface, 0, 0, AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM);
+
     LOGD("eglCreateWindowSurface start");
     EGLSurface eglSurface = eglCreateWindowSurface(mEGLDisplay, mEGLConfig, surface, surfaceAttribs);
     checkEglError("eglCreateWindowSurface");
@@ -228,6 +234,7 @@ void EglCore::makeCurrent(EGLSurface eglSurface) {
     }
     if (!eglMakeCurrent(mEGLDisplay, eglSurface, eglSurface, mEGLContext)) {
         // TODO 抛出异常
+        LOGD("Note: eglMakeCurrent error.\n");
     }
 }
 
