@@ -500,6 +500,7 @@ void EGLSurfaceViewVideoRender::stopEncoder() {
     LOGD("EGLSurfaceViewVideoRender::stopEncoder()");
 
     if (m_VideoEncoderCore != nullptr) {
+        m_VideoEncoderCore->drainEncoder(true);
         m_VideoEncoderCore->release();
         m_VideoEncoderCore = nullptr;
     }

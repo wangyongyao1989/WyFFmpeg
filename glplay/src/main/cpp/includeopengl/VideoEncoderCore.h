@@ -67,7 +67,7 @@ private:
     FILE *m_MediaMuxer_fp;
     size_t m_MediaMuxer_fd;
 
-    ANativeWindow *m_WindowSurface = nullptr;
+    ANativeWindow *m_Encoder_WindowSurface = nullptr;
 
 };
 

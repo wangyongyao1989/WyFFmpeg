@@ -46,9 +46,9 @@ VideoEncoderCore::VideoEncoderCore(size_t width, size_t height, size_t bitRate,
         LOGE("ERROR: AMediaCodec_createEncoderByType");
         return;
     }
-
+    //创建一个录制的WindowSurface，用于视频的录制
     media_status_t createInputSurfaceStatus = AMediaCodec_createInputSurface(m_AMediaCodec,
-                                                                             &m_WindowSurface);
+                                                                             &m_Encoder_WindowSurface);
     if (createInputSurfaceStatus != AMEDIA_OK) {
         LOGE("ERROR: AMediaCodec_createInputSurface :%d", createInputSurfaceStatus);
         return;
@@ -59,7 +59,6 @@ VideoEncoderCore::VideoEncoderCore(size_t width, size_t height, size_t bitRate,
         LOGE("ERROR: AMediaCodec_start");
         return;
     }
-
 
     // 新建一个复合输出
     m_AMediaMuxer = AMediaMuxer_new(m_MediaMuxer_fd, AMEDIAMUXER_OUTPUT_FORMAT_MPEG_4);
@@ -77,17 +76,15 @@ VideoEncoderCore::~VideoEncoderCore() {
 
 void VideoEncoderCore::drainEncoder(bool endOfStream) {
 //    LOGE("drainEncoder thread:%ld", pthread_self());
-
     if (endOfStream) {
         LOGE("sending EOS to encoder");
         AMediaCodec_signalEndOfInputStream(m_AMediaCodec);
     }
 
     while (true) {
-
         AMediaCodecBufferInfo info;
-        //time out usec 5
-        ssize_t status = AMediaCodec_dequeueOutputBuffer(m_AMediaCodec, &info, 5);
+        //time out usec 1
+        ssize_t status = AMediaCodec_dequeueOutputBuffer(m_AMediaCodec, &info, 1);
 //        LOGW("AMediaCodec_dequeueOutputBuffer status %d", status);
 
         if (status == AMEDIACODEC_INFO_TRY_AGAIN_LATER) {
@@ -184,7 +181,7 @@ void VideoEncoderCore::release() {
 
 ANativeWindow *VideoEncoderCore::getInputSurface() {
 
-    return m_WindowSurface;
+    return m_Encoder_WindowSurface;
 }
 
 

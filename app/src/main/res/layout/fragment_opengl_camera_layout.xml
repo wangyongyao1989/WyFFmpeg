@@ -91,7 +91,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="5dp"
-        android:text="自定义GLSurfaceView start recording"
+        android:text="start recording"
         app:layout_constraintStart_toEndOf="@+id/btn_surface_new"
         app:layout_constraintTop_toBottomOf="@+id/btn_gl_back"
         tools:ignore="HardcodedText" />

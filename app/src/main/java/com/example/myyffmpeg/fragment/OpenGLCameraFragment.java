@@ -157,9 +157,9 @@ public class OpenGLCameraFragment extends BaseFragment {
         mBtnSurfaceNewRecord.setOnClickListener(v -> {
             if (mWyyGLSurfaceViewNew != null) {
                 if (isRecording) {
-
                     mWyyGLSurfaceViewNew.stopRecord();
                     isRecording = false;
+                    mBtnSurfaceNewRecord.setText("start recording");
                 } else {
                     @SuppressLint("SimpleDateFormat") SimpleDateFormat formatter
                             = new SimpleDateFormat("yy_MM_dd_HH_mm_ss");
@@ -169,6 +169,7 @@ public class OpenGLCameraFragment extends BaseFragment {
                     String videoName = videoDir + File.pathSeparator + str + ".mp4";
                     mWyyGLSurfaceViewNew.startRecord(videoName);
                     isRecording = true;
+                    mBtnSurfaceNewRecord.setText("stop recording");
                 }
             } else {
                 Toast.makeText(getActivity(), "自定GLSurfaceViewNew没开启"
