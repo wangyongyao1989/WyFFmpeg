@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <stdio.h>
 #include "LogUtils.h"
+#include "thread"
 
 #include "media/NdkMediaCrypto.h"
 #include "media/NdkMediaCodec.h"

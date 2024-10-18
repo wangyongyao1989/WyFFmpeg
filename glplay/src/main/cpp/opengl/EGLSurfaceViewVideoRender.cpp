@@ -380,6 +380,27 @@ void EGLSurfaceViewVideoRender::OnSurfaceCreated() {
 void EGLSurfaceViewVideoRender::OnSurfaceChanged(int w, int h) {
     m_backingWidth = w;
     m_backingHeight = h;
+    LOGE("OnSurfaceChanged m_backingWidth:%d,m_backingHeight:%d", m_backingWidth, m_backingHeight);
+    float windowAspect = (float) m_backingHeight / (float) m_backingWidth;
+    size_t outWidth, outHeight;
+    if (VIDEO_HEIGHT > VIDEO_WIDTH * windowAspect) {
+        // limited by narrow width; reduce height
+        outWidth = VIDEO_WIDTH;
+        outHeight = (int) (VIDEO_WIDTH * windowAspect);
+    } else {
+        // limited by short height; restrict width
+        outHeight = VIDEO_HEIGHT;
+        outWidth = (int) (VIDEO_HEIGHT / windowAspect);
+    }
+    LOGE(" outWidth:%d,outHeight:%d", outWidth, outHeight);
+
+    offX = (VIDEO_WIDTH - outWidth) / 2;
+    offY = (VIDEO_HEIGHT - outHeight) / 2;
+    off_right = offX + outWidth;
+    off_bottom = offY + outHeight;
+    //Adjusting window 1920x1104 to +14,+0 1252x720
+    LOGE("Adjusting window offX:%d,offY:%d,off_right:%d,off_bottom:%d", offX, offY, off_right,
+         off_bottom);
     useProgram();
     createTextures();
 }
@@ -389,23 +410,28 @@ void EGLSurfaceViewVideoRender::OnDrawFrame() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     if (!updateTextures() /*|| !useProgram()*/) return;
 
+    //窗口显示
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-
+//    LOGE("OnDrawFrame thread:%ld", pthread_self());
     if (m_TextureMovieEncoder2 != nullptr) {
         m_TextureMovieEncoder2->frameAvailableSoon();
     }
     if (m_InputWindowSurface != nullptr) {
-        m_InputWindowSurface->makeCurrent();
-        glViewport(0,0,m_backingWidth,m_backingHeight);
-        m_InputWindowSurface->getCurrentFrame();
-        m_InputWindowSurface->setPresentationTime(40000);
+        m_InputWindowSurface->makeCurrentReadFrom(*m_WindowSurface);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        checkGlError("before glBlitFramebuffer");
+        glBlitFramebuffer(0, 0, m_backingWidth, m_backingHeight, offX, offY, off_right, off_bottom,
+                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
+//        m_InputWindowSurface->setPresentationTime(40002204);
         m_InputWindowSurface->swapBuffers();
+
     }
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    //窗口显示
-    m_WindowSurface->swapBuffers();
+    //切换到m_WindowSurface
     m_WindowSurface->makeCurrent();
+    m_WindowSurface->swapBuffers();
 
 }
 

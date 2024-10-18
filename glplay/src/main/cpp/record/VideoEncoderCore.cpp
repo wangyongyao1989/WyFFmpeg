@@ -50,7 +50,7 @@ VideoEncoderCore::VideoEncoderCore(size_t width, size_t height, size_t bitRate,
     media_status_t createInputSurfaceStatus = AMediaCodec_createInputSurface(m_AMediaCodec,
                                                                              &m_WindowSurface);
     if (createInputSurfaceStatus != AMEDIA_OK) {
-        LOGE("ERROR: AMediaCodec_createInputSurface :%d",createInputSurfaceStatus);
+        LOGE("ERROR: AMediaCodec_createInputSurface :%d", createInputSurfaceStatus);
         return;
     }
 
@@ -63,7 +63,7 @@ VideoEncoderCore::VideoEncoderCore(size_t width, size_t height, size_t bitRate,
 
     // 新建一个复合输出
     m_AMediaMuxer = AMediaMuxer_new(m_MediaMuxer_fd, AMEDIAMUXER_OUTPUT_FORMAT_MPEG_4);
-    LOGE("ERROR: m_AMediaMuxer OK");
+    LOGD(" AMediaMuxer_new OK");
 
     mTrackIndex = -1;
     mMuxerStarted = false;
@@ -76,99 +76,82 @@ VideoEncoderCore::~VideoEncoderCore() {
 
 
 void VideoEncoderCore::drainEncoder(bool endOfStream) {
+//    LOGE("drainEncoder thread:%ld", pthread_self());
 
     if (endOfStream) {
         LOGE("sending EOS to encoder");
         AMediaCodec_signalEndOfInputStream(m_AMediaCodec);
     }
 
-//    uint8_t *outputBuffer = AMediaCodec_getOutputBuffer(m_AMediaCodec, &bufferInfo, TIMEOUT);
     while (true) {
-        ssize_t encoderStatus = AMediaCodec_dequeueOutputBuffer(m_AMediaCodec, &bufferInfo,
-                                                                TIMEOUT);
-        if (encoderStatus == AMEDIACODEC_INFO_TRY_AGAIN_LATER) {
-            // no output available yet
+
+        AMediaCodecBufferInfo info;
+        //time out usec 5
+        ssize_t status = AMediaCodec_dequeueOutputBuffer(m_AMediaCodec, &info, 5);
+//        LOGW("AMediaCodec_dequeueOutputBuffer status %d", status);
+
+        if (status == AMEDIACODEC_INFO_TRY_AGAIN_LATER) {
+
             if (!endOfStream) {
-                return;
-                //break;      // out of while
-            }
-            if (endOfStream) {
-                LOGE("no output available, spinning to await EOS");
-                return;
-            }
-
-        } else if (encoderStatus == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED) {
-            // not expected for an encoder
-
-        } else if (encoderStatus == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED) {
-            // should happen before receiving buffers, and should only happen once
-            if (mMuxerStarted) {
-                LOGE("ERROR: format changed twice");
-            }
-            AMediaFormat *newFormat = AMediaCodec_getOutputFormat(m_AMediaCodec);
-
-            if (newFormat == nullptr) {
-                LOGE("Unable to set new format.");
-            }
-
-            // now that we have the Magic Goodies, start the muxer
-            mTrackIndex = AMediaMuxer_addTrack(m_AMediaMuxer, newFormat);
-            media_status_t err = AMediaMuxer_start(m_AMediaMuxer);
-
-            if (err != AMEDIA_OK) {
-                LOGE("Error occurred:%d", err);
-            }
-
-            mMuxerStarted = true;
-        } else if (encoderStatus < 0) {
-            LOGE("unexpected result from encoder.dequeueOutputBuffer:%d", encoderStatus);
-            // let's ignore it
-        } else {
-
-            size_t out_size;
-            uint8_t *encodedData = AMediaCodec_getOutputBuffer(m_AMediaCodec, encoderStatus,
-                                                               &out_size);
-
-            if (out_size <= 0) {
-                LOGE("Encoded data of size 0.");
-
-            }
-
-            if (encodedData == nullptr) {
-                LOGE("encoderOutputBuffer  %d was null", encodedData);
-            }
-
-
-            if ((bufferInfo.flags & AMEDIACODEC_BUFFER_FLAG_CODEC_CONFIG) != 0) {
-                // The codec config data was pulled out and fed to the muxer when we got
-                // the INFO_OUTPUT_FORMAT_CHANGED status.  Ignore it.
-                LOGE("ignoring BUFFER_FLAG_CODEC_CONFIG");
-
-                bufferInfo.size = 0;
-            }
-
-            if (bufferInfo.size != 0) {
-                if (!mMuxerStarted) {
-                    LOGE("muxer hasn't started");
-                }
-
-                // adjust the ByteBuffer values to match BufferInfo (not needed?)
-                //encodedData.position(mBufferInfo.offset);
-                //encodedData.limit(mBufferInfo.offset + mBufferInfo.size);
-                AMediaMuxer_writeSampleData(m_AMediaMuxer, mTrackIndex, encodedData, &bufferInfo);
+                break;
             } else {
-                LOGE("mBufferInfo empty");
+                LOGI("video no output available, spinning to await EOS");
+            }
+        } else if (status == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED) {
+            // not expected for an encoder
+        } else if (status == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED) {
+            if (mMuxerStarted) {
+                LOGW("format changed twice");
             }
 
-            AMediaCodec_releaseOutputBuffer(m_AMediaCodec, encoderStatus, false);
+            AMediaFormat *fmt = AMediaCodec_getOutputFormat(m_AMediaCodec);
+            const char *s = AMediaFormat_toString(fmt);
+            LOGI("video output format %s", s);
 
-            if ((bufferInfo.flags & AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM) != 0) {
-                if (!endOfStream) {
-                    LOGE("reached end of stream unexpectedly");
-                } else {
-                    LOGE("end of stream reached");
+            mTrackIndex = AMediaMuxer_addTrack(m_AMediaMuxer, fmt);
+
+            if (mTrackIndex != -1) {
+
+                LOGI("AMediaMuxer_start");
+                AMediaMuxer_start(m_AMediaMuxer);
+                mMuxerStarted = true;
+            }
+
+        } else {
+            uint8_t *encodeData = AMediaCodec_getOutputBuffer(m_AMediaCodec, status,
+                                                              NULL/* out_size */);
+            if (encodeData == NULL) {
+                LOGE("encoder output buffer was null");
+            }
+            if ((info.flags & AMEDIACODEC_BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                LOGI("ignoring AMEDIACODEC_BUFFER_FLAG_CODEC_CONFIG");
+                info.size = 0;
+            }
+
+            size_t dataSize = info.size;
+
+            if (dataSize != 0) {
+
+                if (!mMuxerStarted) {
+                    LOGE("muxer has't started");
                 }
-                break;      // out of while
+//                info.presentationTimeUs = frameIndex * 1000000L / frameRate;
+                LOGI("AMediaMuxer_writeSampleData video size %d", dataSize);
+                AMediaMuxer_writeSampleData(m_AMediaMuxer, mTrackIndex, encodeData, &info);
+            } else {
+                LOGI("Info emptye %d", dataSize);
+            }
+
+            AMediaCodec_releaseOutputBuffer(m_AMediaCodec, status, false);
+
+            if ((info.flags & AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM) != 0) {
+
+                if (!endOfStream) {
+                    LOGW("reached end of stream unexpectly");
+                } else {
+                    LOGI("video end of stream reached");
+                }
+                break;
             }
         }
     }
@@ -199,7 +182,7 @@ void VideoEncoderCore::release() {
     }
 }
 
-ANativeWindow* VideoEncoderCore::getInputSurface() {
+ANativeWindow *VideoEncoderCore::getInputSurface() {
 
     return m_WindowSurface;
 }

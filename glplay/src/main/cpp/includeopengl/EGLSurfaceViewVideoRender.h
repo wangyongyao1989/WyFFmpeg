@@ -169,6 +169,9 @@ private:
     TextureMovieEncoder2 *m_TextureMovieEncoder2 = nullptr;
     WindowSurface *m_InputWindowSurface = nullptr;
 
-
+    size_t offX;
+    size_t offY;
+    size_t off_right;
+    size_t off_bottom;
 
 };
