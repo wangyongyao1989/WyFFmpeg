@@ -498,9 +498,10 @@ void EGLSurfaceViewVideoRender::startEncoder(const char *recordPath) {
 
 void EGLSurfaceViewVideoRender::stopEncoder() {
     LOGD("EGLSurfaceViewVideoRender::stopEncoder()");
-
+    if (m_TextureMovieEncoder2 != nullptr) {
+        m_TextureMovieEncoder2->stopRecording();
+    }
     if (m_VideoEncoderCore != nullptr) {
-        m_VideoEncoderCore->drainEncoder(true);
         m_VideoEncoderCore->release();
         m_VideoEncoderCore = nullptr;
     }
