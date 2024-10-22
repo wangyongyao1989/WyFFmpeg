@@ -408,7 +408,7 @@ void EGLSurfaceViewVideoRender::OnSurfaceChanged(int w, int h) {
 void EGLSurfaceViewVideoRender::OnDrawFrame() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    if (!updateTextures() /*|| !useProgram()*/) return;
+    if (!updateTextures() || !useProgram()) return;
 
     //窗口显示
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

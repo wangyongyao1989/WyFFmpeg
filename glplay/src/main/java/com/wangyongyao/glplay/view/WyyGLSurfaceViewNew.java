@@ -66,7 +66,7 @@ public class WyyGLSurfaceViewNew extends SurfaceView implements SurfaceHolder.Ca
         mHolder.addCallback(this);
 
         String fragPath = OpenGLPlayFileUtils.getModelFilePath(mContext
-                , "texture_filter1_play_frament.glsl");
+                , "texture_filter9_play_frament.glsl");
         String vertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext
                 , "texture_video_play_vert.glsl");
         mJniCall.glSurfaceViewNewInit(0, vertexPath, fragPath);
