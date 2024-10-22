@@ -70,7 +70,7 @@ VideoEncoderCore::VideoEncoderCore(size_t width, size_t height, size_t bitRate,
 }
 
 VideoEncoderCore::~VideoEncoderCore() {
-
+    release();
 }
 
 
@@ -79,6 +79,7 @@ void VideoEncoderCore::drainEncoder(bool endOfStream) {
     if (endOfStream) {
         LOGE("sending EOS to encoder");
         AMediaCodec_signalEndOfInputStream(m_AMediaCodec);
+        return;
     }
 
     while (true) {
@@ -133,7 +134,7 @@ void VideoEncoderCore::drainEncoder(bool endOfStream) {
                     LOGE("muxer has't started");
                 }
 //                info.presentationTimeUs = frameIndex * 1000000L / frameRate;
-                LOGI("AMediaMuxer_writeSampleData video size %d", dataSize);
+//                LOGI("AMediaMuxer_writeSampleData video size %d", dataSize);
                 AMediaMuxer_writeSampleData(m_AMediaMuxer, mTrackIndex, encodeData, &info);
             } else {
                 LOGI("Info emptye %d", dataSize);
@@ -180,7 +181,6 @@ void VideoEncoderCore::release() {
 }
 
 ANativeWindow *VideoEncoderCore::getInputSurface() {
-
     return m_Encoder_WindowSurface;
 }
 

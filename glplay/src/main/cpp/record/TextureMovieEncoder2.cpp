@@ -4,8 +4,6 @@
 
 #include "../includeopengl/TextureMovieEncoder2.h"
 
-
-
 TextureMovieEncoder2::TextureMovieEncoder2(VideoEncoderCore *videoEncoderCore) {
     m_VideoEncoderCore = videoEncoderCore;
 
@@ -22,8 +20,6 @@ TextureMovieEncoder2::~TextureMovieEncoder2() {
 
 void TextureMovieEncoder2::stopRecording() {
     postMessage(MSG_STOP_RECORDING);
-//    m_VideoEncoderCore->drainEncoder(true);
-//    m_VideoEncoderCore->release();
 }
 
 bool TextureMovieEncoder2::isRecording() {
@@ -34,7 +30,6 @@ bool TextureMovieEncoder2::isRecording() {
 void TextureMovieEncoder2::frameAvailableSoon() {
 //    LOGE("TextureMovieEncoder2::frameAvailableSoon");
     postMessage(MSG_FRAME_AVAILABLE);
-//    m_VideoEncoderCore->drainEncoder(false);
 }
 
 void TextureMovieEncoder2::handleFrameAvailable() {
