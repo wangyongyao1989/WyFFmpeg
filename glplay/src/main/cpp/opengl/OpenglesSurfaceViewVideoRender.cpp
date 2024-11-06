@@ -245,7 +245,7 @@ bool OpenglesSurfaceViewVideoRender::createTextures() {
 }
 
 bool OpenglesSurfaceViewVideoRender::updateTextures() {
-    if (!m_textureIdY && !m_textureIdU && !m_textureIdV /*&& !createTextures()*/) return false;
+    if (!m_textureIdY && !m_textureIdU && !m_textureIdV /*&& !createYUVTextures()*/) return false;
 //    LOGI("OpenglesSurfaceViewVideoRender updateTextures");
     LOGE("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
          m_textureIdY,

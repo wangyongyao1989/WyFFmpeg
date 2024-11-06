@@ -326,6 +326,10 @@ public class OpenGLPlayCallJni {
         native_draw_text_surface_init(type, vertexPath, fragPath);
     }
 
+    public void glDrawTextPicPath(String vertexPath) {
+        native_draw_text_pic_path(vertexPath);
+    }
+
     public void glDrawTextSurfaceCreated(Surface surface, AssetManager assetManager) {
         native_draw_text_surface_created(surface, assetManager);
     }
@@ -356,6 +360,8 @@ public class OpenGLPlayCallJni {
 
 
     private native void native_draw_text_surface_init(int type, String vertexPath, String fragPath);
+
+    private native void native_draw_text_pic_path(String picPath);
 
     private native void native_draw_text_surface_created(Surface surface, AssetManager assetManager);
 

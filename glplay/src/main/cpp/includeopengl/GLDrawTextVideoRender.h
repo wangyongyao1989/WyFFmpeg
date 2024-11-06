@@ -22,6 +22,8 @@
 #include "Looper.h"
 #include "VideoEncoderCore.h"
 #include "TextureMovieEncoder2.h"
+#include <stb_image.h>
+
 
 enum {
     MSG_Draw_Text_SurfaceCreated,
@@ -57,6 +59,13 @@ static const float EGLTextTextureCoord[8] = {
         1, 1
 };
 
+static const float EGLPicTextureCoord[8] = {
+        0, 0,
+        0, 0.5f,
+        0.5f, 0,
+        0.5, 0.5f
+};
+
 static const size_t BIT_RATE_DRAW_TEXT = 4000000;   // 4Mbps
 static const size_t VIDEO_WIDTH_DRAW_TEXT= 1280;
 static const size_t VIDEO_HEIGHT_DRAW_TEXT = 720;
@@ -86,6 +95,8 @@ public:
 
     bool setSharderPath(const char *vertexPath, const char *fragmentPath);
 
+    bool setPicTextPath(const char *picPath);
+
     bool setSharderStringPath(string vertexPath, string fragmentPath);
 
     void startEncoder(const char *recordPath);
@@ -103,7 +114,9 @@ private:
 
     bool CreateFrameBufferObj();
 
-    bool createTextures();
+    bool createYUVTextures();
+
+    void creatPicTexture();     //创建图片纹理
 
     bool updateTextures();
 
@@ -142,10 +155,12 @@ private:
     GLuint m_textureIdV = 0;
 
     GLuint m_vertexPos = 0;
-    GLuint m_textureLoc = 0;
+    GLuint m_textureCoordLoc = 0;
+    GLuint m_pic_textureCoordLoc = 0;
     GLint m_textureYLoc = 0;
     GLint m_textureULoc = 0;
     GLint m_textureVLoc = 0;
+    GLuint m_texturePicLoc = 0;
     GLint m_textureSize = 0;
 
     size_t m_width = 0;
@@ -176,6 +191,8 @@ private:
     size_t offY;
     size_t off_right;
     size_t off_bottom;
+
+    const char *m_picPath = nullptr;
 
 };
 

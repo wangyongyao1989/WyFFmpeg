@@ -583,8 +583,8 @@ cpp_surfaceview_new_video_stop_record(JNIEnv *env, jobject thiz) {
 extern "C"
 JNIEXPORT void JNICALL
 cpp_draw_text_surface_init(JNIEnv *env, jobject thiz, jint type,
-                               jstring vertex,
-                               jstring frag) {
+                           jstring vertex,
+                           jstring frag) {
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
     const char *fragPath = env->GetStringUTFChars(frag, nullptr);
     if (gLDrawTextVideoRender == nullptr)
@@ -598,9 +598,21 @@ cpp_draw_text_surface_init(JNIEnv *env, jobject thiz, jint type,
 
 extern "C"
 JNIEXPORT void JNICALL
+cpp_draw_text_pic_path(JNIEnv *env, jobject thiz, jstring picPath) {
+    const char *cPicPath = env->GetStringUTFChars(picPath, nullptr);
+    if (gLDrawTextVideoRender == nullptr)
+        gLDrawTextVideoRender = new GLDrawTextVideoRender();
+
+    gLDrawTextVideoRender->setPicTextPath(cPicPath);
+
+    env->ReleaseStringUTFChars(picPath, cPicPath);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
 cpp_draw_text_surface_created(JNIEnv *env, jobject thiz,
-                                  jobject surface,
-                                  jobject assetManager) {
+                              jobject surface,
+                              jobject assetManager) {
     if (gLDrawTextVideoRender != nullptr) {
         ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
         auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
@@ -611,8 +623,8 @@ cpp_draw_text_surface_created(JNIEnv *env, jobject thiz,
 extern "C"
 JNIEXPORT void JNICALL
 cpp_draw_text_surface_changed(JNIEnv *env, jobject thiz,
-                                  jint width,
-                                  jint height) {
+                              jint width,
+                              jint height) {
     if (gLDrawTextVideoRender != nullptr) {
         gLDrawTextVideoRender->surfaceChanged((size_t) width, (size_t) height);
     }
@@ -629,15 +641,15 @@ cpp_draw_text_surface_render(JNIEnv *env, jobject thiz) {
 extern "C"
 JNIEXPORT void JNICALL
 cpp_draw_text_surface_draw(JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height,
-                               jint rotation) {
+                           jint rotation) {
     jbyte *bufferPtr = env->GetByteArrayElements(data, nullptr);
     jsize arrayLength = env->GetArrayLength(data);
 
     if (gLDrawTextVideoRender != nullptr) {
 
         gLDrawTextVideoRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
-                                   (size_t) height,
-                                   rotation);
+                                    (size_t) height,
+                                    rotation);
     }
 
     env->ReleaseByteArrayElements(data, bufferPtr, 0);
@@ -767,20 +779,22 @@ static const JNINativeMethod methods[] = {
 
         /*********************** OpenGL GL视频中绘制文本并录制 *******************/
 
-        {"native_draw_text_surface_init",           "(I"
+        {"native_draw_text_surface_init",               "(I"
                                                         "Ljava/lang/String;"
                                                         "Ljava/lang/String;)V",  (void *) cpp_draw_text_surface_init},
+
+        {"native_draw_text_pic_path",                   "(Ljava/lang/String;)V", (void *) cpp_draw_text_pic_path},
         {"native_draw_text_surface_created",
                                                         "(Landroid/view/Surface;"
                                                         "Landroid/content/res"
                                                         "/AssetManager;)V",      (void *) cpp_draw_text_surface_created},
 
-        {"native_draw_text_surface_changed",        "(II)V",                 (void *) cpp_draw_text_surface_changed},
-        {"native_draw_text_surface_render",         "()V",                   (void *) cpp_draw_text_surface_render},
-        {"native_draw_text_surface_draw",           "([BIII)V",              (void *) cpp_draw_text_surface_draw},
-        {"native_draw_text_surface_destroy",        "()V",                   (void *) cpp_draw_text_surface_destroy},
-        {"native_draw_text_surface_start_record",   "(Ljava/lang/String;)V", (void *) cpp_draw_text_surface_start_record},
-        {"native_draw_text_surface_stop_record",    "()V",                   (void *) cpp_draw_text_surface_stop_record},
+        {"native_draw_text_surface_changed",            "(II)V",                 (void *) cpp_draw_text_surface_changed},
+        {"native_draw_text_surface_render",             "()V",                   (void *) cpp_draw_text_surface_render},
+        {"native_draw_text_surface_draw",               "([BIII)V",              (void *) cpp_draw_text_surface_draw},
+        {"native_draw_text_surface_destroy",            "()V",                   (void *) cpp_draw_text_surface_destroy},
+        {"native_draw_text_surface_start_record",       "(Ljava/lang/String;)V", (void *) cpp_draw_text_surface_start_record},
+        {"native_draw_text_surface_stop_record",        "()V",                   (void *) cpp_draw_text_surface_stop_record},
 
 };
 

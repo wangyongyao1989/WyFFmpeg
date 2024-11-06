@@ -77,7 +77,7 @@ void GLDrawTextVideoRender::updateFrame(const draw_text_video_frame &frame) {
 
 void
 GLDrawTextVideoRender::draw(uint8_t *buffer, size_t length, size_t width, size_t height,
-                                float rotation) {
+                            float rotation) {
     draw_text_video_frame frame{};
     frame.width = width;
     frame.height = height;
@@ -98,7 +98,7 @@ uint32_t GLDrawTextVideoRender::getParameters() {
     return m_params;
 }
 
-bool GLDrawTextVideoRender::createTextures() {
+bool GLDrawTextVideoRender::createYUVTextures() {
     auto widthY = (GLsizei) m_width;
     auto heightY = (GLsizei) m_height;
 
@@ -157,7 +157,7 @@ bool GLDrawTextVideoRender::createTextures() {
 }
 
 bool GLDrawTextVideoRender::updateTextures() {
-    if (!m_textureIdY && !m_textureIdU && !m_textureIdV /*&& !createTextures()*/) return false;
+    if (!m_textureIdY && !m_textureIdU && !m_textureIdV) return false;
 //    LOGE("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
 //         m_textureIdY,
 //         m_textureIdU, m_textureIdV, isDirty);
@@ -185,6 +185,12 @@ bool GLDrawTextVideoRender::updateTextures() {
         return true;
     }
 
+    if (m_texturePicLoc) {
+        // bind Texture
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+    }
+
     return false;
 }
 
@@ -206,11 +212,18 @@ GLDrawTextVideoRender::createProgram() {
     m_textureYLoc = glGetUniformLocation(m_program, "s_textureY");
     m_textureULoc = glGetUniformLocation(m_program, "s_textureU");
     m_textureVLoc = glGetUniformLocation(m_program, "s_textureV");
-    m_textureLoc = (GLuint) glGetAttribLocation(m_program, "texcoord");
+
+    m_texturePicLoc = (GLuint)glGetUniformLocation(m_program, "s_texturePic");
+
+    m_textureCoordLoc = (GLuint) glGetAttribLocation(m_program, "texcoord");
+    m_pic_textureCoordLoc = (GLuint) glGetAttribLocation(m_program, "picTextureCoord");
+
     m_textureSize = glGetUniformLocation(m_program, "texSize");
 
     return m_program;
 }
+
+
 
 GLuint GLDrawTextVideoRender::useProgram() {
     if (!m_program && !createProgram()) {
@@ -226,8 +239,13 @@ GLuint GLDrawTextVideoRender::useProgram() {
         glUniform1i(m_textureYLoc, 0);
         glUniform1i(m_textureULoc, 1);
         glUniform1i(m_textureVLoc, 2);
-        glVertexAttribPointer(m_textureLoc, 2, GL_FLOAT, GL_FALSE, 0, EGLTextTextureCoord);
-        glEnableVertexAttribArray(m_textureLoc);
+        glVertexAttribPointer(m_textureCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, EGLTextTextureCoord);
+        glEnableVertexAttribArray(m_textureCoordLoc);
+
+        glUniform1i(m_texturePicLoc, 3);
+        glVertexAttribPointer(m_textureCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, EGLPicTextureCoord);
+        glEnableVertexAttribArray(m_textureCoordLoc);
+
 
         if (m_textureSize >= 0) {
             GLfloat size[2];
@@ -245,6 +263,13 @@ GLuint GLDrawTextVideoRender::useProgram() {
 bool
 GLDrawTextVideoRender::setSharderPath(const char *vertexPath, const char *fragmentPath) {
     openGlShader->getSharderPath(vertexPath, fragmentPath);
+    return 0;
+}
+
+bool
+GLDrawTextVideoRender::setPicTextPath(const char *picPath) {
+    LOGE("setPicTextPath picPath:%s", picPath);
+    m_picPath = picPath;
     return 0;
 }
 
@@ -297,6 +322,12 @@ GLDrawTextVideoRender::~GLDrawTextVideoRender() {
         m_WindowSurface = nullptr;
     }
     quit();
+
+    if (m_picPath) {
+        m_picPath = nullptr;
+    }
+
+
 }
 
 void GLDrawTextVideoRender::delete_program(GLuint &program) {
@@ -397,7 +428,8 @@ void GLDrawTextVideoRender::OnSurfaceChanged(int w, int h) {
     LOGE("Adjusting window offX:%d,offY:%d,off_right:%d,off_bottom:%d", offX, offY, off_right,
          off_bottom);
     useProgram();
-    createTextures();
+    createYUVTextures();
+    creatPicTexture();
 }
 
 void GLDrawTextVideoRender::OnDrawFrame() {
@@ -486,8 +518,8 @@ void GLDrawTextVideoRender::checkGlError(const char *op) {
 
 void GLDrawTextVideoRender::startEncoder(const char *recordPath) {
     LOGD("GLDrawTextVideoRender::startEncoder()");
-    m_VideoEncoderCore = new VideoEncoderCore(VIDEO_WIDTH_DRAW_TEXT, VIDEO_HEIGHT_DRAW_TEXT
-                                              , BIT_RATE_DRAW_TEXT, recordPath);
+    m_VideoEncoderCore = new VideoEncoderCore(VIDEO_WIDTH_DRAW_TEXT, VIDEO_HEIGHT_DRAW_TEXT,
+                                              BIT_RATE_DRAW_TEXT, recordPath);
     m_InputWindowSurface = new WindowSurface(m_EglCore, m_VideoEncoderCore->getInputSurface());
     m_TextureMovieEncoder2 = new TextureMovieEncoder2(m_VideoEncoderCore);
 }
@@ -510,3 +542,48 @@ void GLDrawTextVideoRender::stopEncoder() {
         m_TextureMovieEncoder2 = nullptr;
     }
 }
+
+
+void GLDrawTextVideoRender::creatPicTexture() {
+    if (!m_picPath) {
+        LOGE("creatPicTexture m_picPath is null");
+        return;
+    }
+    int picChannels;
+    int width, height;
+    unsigned char *picData = nullptr;
+    picData = stbi_load(m_picPath, &width, &height, &picChannels, 0);
+
+    GLenum format;
+    if (picChannels == 1) {
+        format = GL_RED;
+    } else if (picChannels == 3) {
+        format = GL_RGB;
+    } else if (picChannels == 4) {
+        format = GL_RGBA;
+    }
+
+    LOGI("creatPicTexture loadTexture format =%d", format);
+    if (picData) {
+        glGenTextures(1, &m_texturePicLoc);
+        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, picData);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        stbi_image_free(picData);
+    } else {
+        checkGlError("Texture failed to load at path: ");
+        stbi_image_free(picData);
+    }
+
+    if (!m_texturePicLoc) {
+        LOGE("creatPicTexture Error Create PIC texture");
+    }
+
+
+}
+
+
