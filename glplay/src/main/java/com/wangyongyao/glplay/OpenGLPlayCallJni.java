@@ -320,4 +320,55 @@ public class OpenGLPlayCallJni {
 
     private native void native_surfaceview_new_video_stop_record();
 
+
+    /*********************** GL视频中绘制文本并录制********************/
+    public void glDrawTextSurfaceInit(int type, String vertexPath, String fragPath) {
+        native_draw_text_surface_init(type, vertexPath, fragPath);
+    }
+
+    public void glDrawTextSurfaceCreated(Surface surface, AssetManager assetManager) {
+        native_draw_text_surface_created(surface, assetManager);
+    }
+
+    public void glDrawTextSurfaceChanged(int width, int height) {
+        native_draw_text_surface_changed(width, height);
+    }
+
+    public void glDrawTextSurfaceRender() {
+        native_draw_text_surface_render();
+    }
+
+    public void glDrawTextSurfaceDraw(byte[] data, int width, int height, int rotation) {
+        native_draw_text_surface_draw(data, width, height, rotation);
+    }
+
+    public void glDrawTextSurfaceDestroy() {
+        native_draw_text_surface_destroy();
+    }
+
+    public void glDrawTextSurfaceStartRecord(String recordPath) {
+        native_draw_text_surface_start_record(recordPath);
+    }
+
+    public void glDrawTextSurfaceStopRecord() {
+        native_draw_text_surface_stop_record();
+    }
+
+
+    private native void native_draw_text_surface_init(int type, String vertexPath, String fragPath);
+
+    private native void native_draw_text_surface_created(Surface surface, AssetManager assetManager);
+
+    private native void native_draw_text_surface_changed(int width, int height);
+
+    private native void native_draw_text_surface_render();
+
+    private native void native_draw_text_surface_draw(byte[] data, int width, int height, int rotation);
+
+    private native void native_draw_text_surface_destroy();
+
+    private native void native_draw_text_surface_start_record(String recordPath);
+
+    private native void native_draw_text_surface_stop_record();
+
 }

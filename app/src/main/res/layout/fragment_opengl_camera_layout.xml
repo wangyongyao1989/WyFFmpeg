@@ -96,6 +96,25 @@
         app:layout_constraintTop_toBottomOf="@+id/btn_gl_back"
         tools:ignore="HardcodedText" />
 
+    <Button
+        android:id="@+id/btn_draw_text_surface"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:text="GL视频中绘制文本"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_surface"
+        tools:ignore="HardcodedText" />
+    <Button
+        android:id="@+id/btn_draw_text_record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:text="GL绘制文本开始录制"
+        app:layout_constraintStart_toEndOf="@+id/btn_draw_text_surface"
+        app:layout_constraintTop_toBottomOf="@+id/btn_surface"
+        tools:ignore="HardcodedText" />
+
     <FrameLayout
         android:id="@+id/gl_show"
         android:layout_width="match_parent"

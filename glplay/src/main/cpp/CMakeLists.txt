@@ -27,6 +27,7 @@ add_library(
         opengl/OpenglesTextureFilterRender.cpp
         opengl/OpenglesSurfaceViewVideoRender.cpp
         opengl/EGLSurfaceViewVideoRender.cpp
+        opengl/GLDrawTextVideoRender.cpp
 
         WyyEGL/EglCore.cpp
         WyyEGL/EglSurfaceBase.cpp
