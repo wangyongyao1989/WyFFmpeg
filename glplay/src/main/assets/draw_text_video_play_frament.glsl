@@ -23,8 +23,7 @@ void main() {
      g = y - 0.344 * u - 0.714 * v;
      b = y + 1.770 * u;
 
-
-     FragColor = vec4(r, g, b, 1.0f);
-  //   FragColor = texture(s_texturePic, v_picTextureCoord) *vec4(r, g, b, 1.0f);
-
+     //FragColor = vec4(r, g, b, 1.0f);
+     //FragColor =  picTexture * vec4(r, g, b, 1.0f);
+     FragColor =  texture(s_texturePic, v_picTextureCoord) * vec4(r, g, b, 1.0f);
 }

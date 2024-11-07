@@ -157,6 +157,14 @@ bool GLDrawTextVideoRender::createYUVTextures() {
 }
 
 bool GLDrawTextVideoRender::updateTextures() {
+    if (m_texturePicLoc) {
+        // bind Texture
+        glActiveTexture(GL_TEXTURE3);
+        checkGlError("updateTextures glActiveTexture(GL_TEXTURE3)");
+        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+        checkGlError("updateTextures glBindTexture(");
+    }
+
     if (!m_textureIdY && !m_textureIdU && !m_textureIdV) return false;
 //    LOGE("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
 //         m_textureIdY,
@@ -185,11 +193,13 @@ bool GLDrawTextVideoRender::updateTextures() {
         return true;
     }
 
-    if (m_texturePicLoc) {
-        // bind Texture
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
-    }
+//    if (m_texturePicLoc) {
+//        // bind Texture
+//        glActiveTexture(GL_TEXTURE3);
+//        checkGlError("updateTextures glActiveTexture(GL_TEXTURE3)");
+//        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+//        checkGlError("updateTextures glBindTexture(");
+//    }
 
     return false;
 }
@@ -213,7 +223,7 @@ GLDrawTextVideoRender::createProgram() {
     m_textureULoc = glGetUniformLocation(m_program, "s_textureU");
     m_textureVLoc = glGetUniformLocation(m_program, "s_textureV");
 
-    m_texturePicLoc = (GLuint)glGetUniformLocation(m_program, "s_texturePic");
+    m_texturePicLoc = (GLuint) glGetUniformLocation(m_program, "s_texturePic");
 
     m_textureCoordLoc = (GLuint) glGetAttribLocation(m_program, "texcoord");
     m_pic_textureCoordLoc = (GLuint) glGetAttribLocation(m_program, "picTextureCoord");
@@ -222,7 +232,6 @@ GLDrawTextVideoRender::createProgram() {
 
     return m_program;
 }
-
 
 
 GLuint GLDrawTextVideoRender::useProgram() {
@@ -243,8 +252,8 @@ GLuint GLDrawTextVideoRender::useProgram() {
         glEnableVertexAttribArray(m_textureCoordLoc);
 
         glUniform1i(m_texturePicLoc, 3);
-        glVertexAttribPointer(m_textureCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, EGLPicTextureCoord);
-        glEnableVertexAttribArray(m_textureCoordLoc);
+        glVertexAttribPointer(m_pic_textureCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, EGLPicTextureCoord);
+        glEnableVertexAttribArray(m_pic_textureCoordLoc);
 
 
         if (m_textureSize >= 0) {
@@ -434,7 +443,11 @@ void GLDrawTextVideoRender::OnSurfaceChanged(int w, int h) {
 
 void GLDrawTextVideoRender::OnDrawFrame() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+//    glEnable(GL_BLEND);
+//    glBlendFunc(GL_NONE, GL_ONE_MINUS_SRC_ALPHA);
+
     if (!updateTextures() || !useProgram()) return;
 
     //窗口显示
@@ -551,31 +564,45 @@ void GLDrawTextVideoRender::creatPicTexture() {
     }
     int picChannels;
     int width, height;
-    unsigned char *picData = nullptr;
+    unsigned char *picData;
+    //todo 获取为null？
     picData = stbi_load(m_picPath, &width, &height, &picChannels, 0);
+    LOGI("creatPicTexture picData  =%s", picData);
 
-    GLenum format;
-    if (picChannels == 1) {
-        format = GL_RED;
-    } else if (picChannels == 3) {
-        format = GL_RGB;
-    } else if (picChannels == 4) {
-        format = GL_RGBA;
-    }
-
-    LOGI("creatPicTexture loadTexture format =%d", format);
     if (picData) {
+        GLenum format;
+        if (picChannels == 1) {
+            format = GL_RED;
+        } else if (picChannels == 3) {
+            format = GL_RGB;
+        } else if (picChannels == 4) {
+            format = GL_RGBA;
+        }
+
+        LOGI("creatPicTexture loadTexture formatGL_RGBA =%d", GL_RGBA);
+        LOGI("creatPicTexture loadTexture GL_RGB =%d", GL_RGB);
+        LOGI("creatPicTexture loadTexture GL_RED =%d", GL_RED);
+
+        LOGI("creatPicTexture loadTexture format =%d", format);
         glGenTextures(1, &m_texturePicLoc);
+        LOGI("creatPicTexture glGenTextures", format);
+
         glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+        LOGI("creatPicTexture glBindTexture", format);
+
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, picData);
+        LOGI("creatPicTexture glTexImage2D", format);
+
         glGenerateMipmap(GL_TEXTURE_2D);
+        LOGI("creatPicTexture glGenerateMipmap", format);
+
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         stbi_image_free(picData);
     } else {
-        checkGlError("Texture failed to load at path: ");
+        LOGE("creatPicTexture picData  =(null)");
         stbi_image_free(picData);
     }
 
