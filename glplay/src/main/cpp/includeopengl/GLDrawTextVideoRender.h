@@ -61,9 +61,9 @@ static const float EGLTextTextureCoord[8] = {
 
 static const float EGLPicTextureCoord[8] = {
         0, 0,
-        0, 0.5f,
-        0.5f, 0,
-        0.5, 0.5f
+        0, 1,
+        1, 0,
+        1, 1
 };
 
 static const size_t BIT_RATE_DRAW_TEXT = 4000000;   // 4Mbps

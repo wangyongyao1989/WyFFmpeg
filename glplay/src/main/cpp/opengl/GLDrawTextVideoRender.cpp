@@ -193,14 +193,6 @@ bool GLDrawTextVideoRender::updateTextures() {
         return true;
     }
 
-//    if (m_texturePicLoc) {
-//        // bind Texture
-//        glActiveTexture(GL_TEXTURE3);
-//        checkGlError("updateTextures glActiveTexture(GL_TEXTURE3)");
-//        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
-//        checkGlError("updateTextures glBindTexture(");
-//    }
-
     return false;
 }
 
@@ -333,6 +325,9 @@ GLDrawTextVideoRender::~GLDrawTextVideoRender() {
     }
     quit();
 
+    if (picData) {
+        picData = nullptr;
+    }
 
 }
 
