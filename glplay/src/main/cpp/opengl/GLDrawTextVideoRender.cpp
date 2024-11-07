@@ -277,8 +277,9 @@ GLDrawTextVideoRender::setSharderPath(const char *vertexPath, const char *fragme
 
 bool
 GLDrawTextVideoRender::setPicTextPath(const char *picPath) {
-    LOGE("setPicTextPath picPath:%s", picPath);
-    m_picPath = picPath;
+    LOGI("setPicTextPath picPath:%s", picPath);
+    picData = stbi_load(picPath, &picWidth, &picHeight, &picChannels, 0);
+    LOGI("creatPicTexture picData  =%s", picData);
     return 0;
 }
 
@@ -331,10 +332,6 @@ GLDrawTextVideoRender::~GLDrawTextVideoRender() {
         m_WindowSurface = nullptr;
     }
     quit();
-
-    if (m_picPath) {
-        m_picPath = nullptr;
-    }
 
 
 }
@@ -464,7 +461,6 @@ void GLDrawTextVideoRender::OnDrawFrame() {
         checkGlError("before glBlitFramebuffer");
         glBlitFramebuffer(0, 0, m_backingWidth, m_backingHeight, offX, offY, off_right, off_bottom,
                           GL_COLOR_BUFFER_BIT, GL_NEAREST);
-//        m_InputWindowSurface->setPresentationTime(40002204);
         m_InputWindowSurface->swapBuffers();
 
     }
@@ -558,19 +554,9 @@ void GLDrawTextVideoRender::stopEncoder() {
 
 
 void GLDrawTextVideoRender::creatPicTexture() {
-    if (!m_picPath) {
-        LOGE("creatPicTexture m_picPath is null");
-        return;
-    }
-    int picChannels;
-    int width, height;
-    unsigned char *picData;
-    //todo 获取为null？
-    picData = stbi_load(m_picPath, &width, &height, &picChannels, 0);
-    LOGI("creatPicTexture picData  =%s", picData);
 
     if (picData) {
-        GLenum format;
+        GLenum format = 0;
         if (picChannels == 1) {
             format = GL_RED;
         } else if (picChannels == 3) {
@@ -578,24 +564,11 @@ void GLDrawTextVideoRender::creatPicTexture() {
         } else if (picChannels == 4) {
             format = GL_RGBA;
         }
-
-        LOGI("creatPicTexture loadTexture formatGL_RGBA =%d", GL_RGBA);
-        LOGI("creatPicTexture loadTexture GL_RGB =%d", GL_RGB);
-        LOGI("creatPicTexture loadTexture GL_RED =%d", GL_RED);
-
-        LOGI("creatPicTexture loadTexture format =%d", format);
         glGenTextures(1, &m_texturePicLoc);
-        LOGI("creatPicTexture glGenTextures", format);
-
         glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
-        LOGI("creatPicTexture glBindTexture", format);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, picData);
-        LOGI("creatPicTexture glTexImage2D", format);
-
+        glTexImage2D(GL_TEXTURE_2D, 0, format, picWidth, picHeight, 0, format, GL_UNSIGNED_BYTE,
+                     picData);
         glGenerateMipmap(GL_TEXTURE_2D);
-        LOGI("creatPicTexture glGenerateMipmap", format);
-
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);

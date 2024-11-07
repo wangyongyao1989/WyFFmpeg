@@ -192,8 +192,9 @@ private:
     size_t off_right;
     size_t off_bottom;
 
-    const char *m_picPath = nullptr;
-
+    int picChannels;
+    int picWidth, picHeight;
+    unsigned char *picData;
 };
 
 
