@@ -25,5 +25,11 @@ void main() {
 
      //FragColor = vec4(r, g, b, 1.0f);
      //FragColor =  picTexture * vec4(r, g, b, 1.0f);
-     FragColor =  texture(s_texturePic, v_picTextureCoord) * vec4(r, g, b, 1.0f);
+     FragColor = mix(vec4(r, g, b, 1.0f),texture(s_texturePic, v_picTextureCoord) , 0.6);
+    /* if (v_picTextureCoord.x > 0.7 && v_picTextureCoord.y > 0.7) {
+         FragColor =  texture(s_texturePic, v_picTextureCoord) * vec4(r, g, b, 1.0f);
+     } else{
+        FragColor = vec4(r, g, b, 1.0f);
+     }*/
+
 }

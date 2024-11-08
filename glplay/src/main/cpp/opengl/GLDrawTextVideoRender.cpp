@@ -157,13 +157,6 @@ bool GLDrawTextVideoRender::createYUVTextures() {
 }
 
 bool GLDrawTextVideoRender::updateTextures() {
-    if (m_texturePicLoc) {
-        // bind Texture
-        glActiveTexture(GL_TEXTURE3);
-        checkGlError("updateTextures glActiveTexture(GL_TEXTURE3)");
-        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
-        checkGlError("updateTextures glBindTexture(");
-    }
 
     if (!m_textureIdY && !m_textureIdU && !m_textureIdV) return false;
 //    LOGE("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
@@ -189,6 +182,14 @@ bool GLDrawTextVideoRender::updateTextures() {
                      GL_LUMINANCE, GL_UNSIGNED_BYTE, m_pDataV);
 
         isDirty = false;
+
+        if (m_texturePicLoc) {
+            // bind Texture
+            glActiveTexture(GL_TEXTURE3);
+            checkGlError("updateTextures glActiveTexture(GL_TEXTURE3)");
+            glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+            checkGlError("updateTextures glBindTexture(");
+        }
 
         return true;
     }
