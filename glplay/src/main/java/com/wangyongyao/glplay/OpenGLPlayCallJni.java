@@ -322,8 +322,8 @@ public class OpenGLPlayCallJni {
 
 
     /*********************** GL视频中绘制文本并录制********************/
-    public void glDrawTextSurfaceInit(int type, String vertexPath, String fragPath) {
-        native_draw_text_surface_init(type, vertexPath, fragPath);
+    public void glDrawTextSurfaceInit(int type, String vertexPath, String fragPath, String fragPath1) {
+        native_draw_text_surface_init(type, vertexPath, fragPath, fragPath1);
     }
 
     public void glDrawTextPicPath(String vertexPath) {
@@ -359,7 +359,7 @@ public class OpenGLPlayCallJni {
     }
 
 
-    private native void native_draw_text_surface_init(int type, String vertexPath, String fragPath);
+    private native void native_draw_text_surface_init(int type, String vertexPath, String fragPath, String fragPath1);
 
     private native void native_draw_text_pic_path(String picPath);
 

@@ -63,7 +63,9 @@ public class GLDrawTextSurfaceView extends SurfaceView implements SurfaceHolder.
                 , "draw_text_video_play_frament.glsl");
         String vertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext
                 , "draw_text_video_play_vert.glsl");
-        mJniCall.glDrawTextSurfaceInit(0, vertexPath, fragPath);
+        String vertexPath1 = OpenGLPlayFileUtils.getModelFilePath(mContext
+                , "draw_pic_frament.glsl");
+        mJniCall.glDrawTextSurfaceInit(0, vertexPath, fragPath, vertexPath1);
 //        String picPath = OpenGLPlayFileUtils.getModelFilePath(mContext
 //                , "diffuse_map_container2.png");
         String picPath = OpenGLPlayFileUtils.getModelFilePath(mContext

@@ -183,13 +183,13 @@ bool GLDrawTextVideoRender::updateTextures() {
 
         isDirty = false;
 
-        if (m_texturePicLoc) {
-            // bind Texture
-            glActiveTexture(GL_TEXTURE3);
-            checkGlError("updateTextures glActiveTexture(GL_TEXTURE3)");
-            glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
-            checkGlError("updateTextures glBindTexture(");
-        }
+//        if (m_texturePicLoc) {
+//            // bind Texture
+//            glActiveTexture(GL_TEXTURE3);
+//            checkGlError("updateTextures glActiveTexture(GL_TEXTURE3)");
+//            glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+//            checkGlError("updateTextures glBindTexture(");
+//        }
 
         return true;
     }
@@ -216,12 +216,22 @@ GLDrawTextVideoRender::createProgram() {
     m_textureULoc = glGetUniformLocation(m_program, "s_textureU");
     m_textureVLoc = glGetUniformLocation(m_program, "s_textureV");
 
-    m_texturePicLoc = (GLuint) glGetUniformLocation(m_program, "s_texturePic");
+//    m_texturePicLoc = (GLuint) glGetUniformLocation(m_program, "s_texturePic");
 
     m_textureCoordLoc = (GLuint) glGetAttribLocation(m_program, "texcoord");
-    m_pic_textureCoordLoc = (GLuint) glGetAttribLocation(m_program, "picTextureCoord");
 
-    m_textureSize = glGetUniformLocation(m_program, "texSize");
+    //第二个这色器程序
+    m_program1 = openGlShader1->createProgram();
+
+    if (!m_program1) {
+        LOGE("Could not create program1.");
+        return 0;
+    }
+
+    m_vertexPos1 = (GLuint) glGetAttribLocation(m_program1, "position");
+    m_textureCoordLoc1 = (GLuint) glGetAttribLocation(m_program1, "texcoord");
+
+    m_texturePicLoc = (GLuint) glGetUniformLocation(m_program1, "s_texturePic");
 
     return m_program;
 }
@@ -233,38 +243,34 @@ GLuint GLDrawTextVideoRender::useProgram() {
         return 0;
     }
 
-    if (isProgramChanged) {
-        glUseProgram(m_program);
-        glVertexAttribPointer(m_vertexPos, 2, GL_FLOAT, GL_FALSE, 0, EGLTextVerticek);
-        glEnableVertexAttribArray(m_vertexPos);
+//    if (isProgramChanged) {
+    glUseProgram(m_program);
+//        LOGE("glUseProgram(m_program)");
 
-        glUniform1i(m_textureYLoc, 0);
-        glUniform1i(m_textureULoc, 1);
-        glUniform1i(m_textureVLoc, 2);
-        glVertexAttribPointer(m_textureCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, EGLTextTextureCoord);
-        glEnableVertexAttribArray(m_textureCoordLoc);
+    glVertexAttribPointer(m_vertexPos, 3, GL_FLOAT, GL_FALSE, 0, EGLTextVerticek);
+    glEnableVertexAttribArray(m_vertexPos);
 
-        glUniform1i(m_texturePicLoc, 3);
-        glVertexAttribPointer(m_pic_textureCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, EGLPicTextureCoord);
-        glEnableVertexAttribArray(m_pic_textureCoordLoc);
+    glUniform1i(m_textureYLoc, 0);
+    glUniform1i(m_textureULoc, 1);
+    glUniform1i(m_textureVLoc, 2);
+    glVertexAttribPointer(m_textureCoordLoc, 3, GL_FLOAT, GL_FALSE, 0, EGLTextTextureCoord);
+    glEnableVertexAttribArray(m_textureCoordLoc);
 
 
-        if (m_textureSize >= 0) {
-            GLfloat size[2];
-            size[0] = m_width;
-            size[1] = m_height;
-            glUniform2fv(m_textureSize, 1, &size[0]);
-        }
 
-        isProgramChanged = false;
-    }
+
+
+
+    isProgramChanged = false;
+//    }
 
     return m_program;
 }
 
 bool
-GLDrawTextVideoRender::setSharderPath(const char *vertexPath, const char *fragmentPath) {
+GLDrawTextVideoRender::setSharderPath(const char *vertexPath, const char *fragmentPath, const char *fragmentPath1) {
     openGlShader->getSharderPath(vertexPath, fragmentPath);
+    openGlShader1->getSharderStringPath(vertexPath, fragmentPath1);
     return 0;
 }
 
@@ -283,6 +289,7 @@ bool GLDrawTextVideoRender::setSharderStringPath(string vertexPath, string fragm
 
 GLDrawTextVideoRender::GLDrawTextVideoRender() {
     openGlShader = new OpenGLShader();
+    openGlShader1 = new OpenGLShader();
 }
 
 GLDrawTextVideoRender::~GLDrawTextVideoRender() {
@@ -444,6 +451,23 @@ void GLDrawTextVideoRender::OnDrawFrame() {
     if (!updateTextures() || !useProgram()) return;
 
     //窗口显示
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    if (m_texturePicLoc) {
+        // bind Texture
+        glActiveTexture(GL_TEXTURE3);
+        checkGlError("updateTextures glActiveTexture(GL_TEXTURE3)");
+        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+        checkGlError("updateTextures glBindTexture(");
+    }
+
+    glUseProgram(m_program1);
+    glVertexAttribPointer(m_vertexPos1, 3, GL_FLOAT, GL_FALSE, 0, EGLTextVerticek1);
+
+    glUniform1i(m_texturePicLoc, 3);
+    glVertexAttribPointer(m_pic_textureCoordLoc, 3, GL_FLOAT, GL_FALSE, 0, EGLPicTextureCoord);
+    glEnableVertexAttribArray(m_pic_textureCoordLoc);
+
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 //    LOGE("OnDrawFrame thread:%ld", pthread_self());

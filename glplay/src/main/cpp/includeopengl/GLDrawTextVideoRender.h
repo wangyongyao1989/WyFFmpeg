@@ -44,30 +44,37 @@ struct draw_text_video_frame {
 };
 
 // Vertices for a full screen quad.
-static const float EGLTextVerticek[8] = {
-        -1.f, 1.f,
-        -1.f, -1.f,
-        1.f, 1.f,
-        1.f, -1.f
+static const float EGLTextVerticek[12] = {
+        -1.f, 1.f, 0,
+        -1.f, -1.f, 0,
+        1.f, 1.f, 0,
+        1.f, -1.f, 0
+};
+
+static const float EGLTextVerticek1[12] = {
+        -0.5f, 0.5f, 0,
+        -0.5f, -0.5f, 0,
+        0.5f, 0.5f, 0,
+        0.5f, -0.5f, 0
 };
 
 // Texture coordinates for mapping entire texture.
-static const float EGLTextTextureCoord[8] = {
-        0, 0,
-        0, 1,
-        1, 0,
-        1, 1
+static const float EGLTextTextureCoord[12] = {
+        0, 0, 0,
+        0, 1, 0,
+        1, 0, 0,
+        1, 1, 0,
 };
 
-static const float EGLPicTextureCoord[8] = {
-        0, 0,
-        0, 1,
-        1, 0,
-        1, 1
+static const float EGLPicTextureCoord[12] = {
+        0, 0, 0,
+        0, 1, 0,
+        1, 0, 0,
+        1, 1, 0,
 };
 
 static const size_t BIT_RATE_DRAW_TEXT = 4000000;   // 4Mbps
-static const size_t VIDEO_WIDTH_DRAW_TEXT= 1280;
+static const size_t VIDEO_WIDTH_DRAW_TEXT = 1280;
 static const size_t VIDEO_HEIGHT_DRAW_TEXT = 720;
 
 class GLDrawTextVideoRender : public Looper {
@@ -93,7 +100,7 @@ public:
 
     uint32_t getParameters();
 
-    bool setSharderPath(const char *vertexPath, const char *fragmentPath);
+    bool setSharderPath(const char *vertexPath, const char *fragmentPath, const char *fragmentPath1);
 
     bool setPicTextPath(const char *picPath);
 
@@ -108,8 +115,11 @@ private:
     void handleMessage(LooperMessage *msg);
 
     void OnSurfaceCreated();
+
     void OnSurfaceChanged(int w, int h);
+
     void OnDrawFrame();
+
     void OnSurfaceDestroyed();
 
     bool CreateFrameBufferObj();
@@ -136,6 +146,7 @@ private:
     void delete_program(GLuint &program);
 
     GLuint m_program = 0;
+    GLuint m_program1 = 0;
 
     GLuint m_vertexShader = 0;
     GLuint m_pixelShader = 0;
@@ -155,13 +166,15 @@ private:
     GLuint m_textureIdV = 0;
 
     GLuint m_vertexPos = 0;
+    GLuint m_vertexPos1 = 0;
     GLuint m_textureCoordLoc = 0;
+    GLuint m_textureCoordLoc1 = 0;
+
     GLuint m_pic_textureCoordLoc = 0;
     GLint m_textureYLoc = 0;
     GLint m_textureULoc = 0;
     GLint m_textureVLoc = 0;
     GLuint m_texturePicLoc = 0;
-    GLint m_textureSize = 0;
 
     size_t m_width = 0;
     size_t m_height = 0;
@@ -173,6 +186,7 @@ private:
     bool isDirty;
 
     OpenGLShader *openGlShader = nullptr;
+    OpenGLShader *openGlShader1 = nullptr;
 
     EGLDisplay display = nullptr;
     EGLSurface winsurface = nullptr;
@@ -196,7 +210,6 @@ private:
     int picWidth, picHeight;
     unsigned char *picData;
 };
-
 
 
 #endif //MYYFFMPEG_GLDRAWTEXTVIDEORENDER_H

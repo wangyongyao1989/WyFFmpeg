@@ -584,16 +584,20 @@ extern "C"
 JNIEXPORT void JNICALL
 cpp_draw_text_surface_init(JNIEnv *env, jobject thiz, jint type,
                            jstring vertex,
-                           jstring frag) {
+                           jstring frag, jstring frag1) {
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
     const char *fragPath = env->GetStringUTFChars(frag, nullptr);
+    const char *fragPath1 = env->GetStringUTFChars(frag1, nullptr);
+
     if (gLDrawTextVideoRender == nullptr)
         gLDrawTextVideoRender = new GLDrawTextVideoRender();
 
-    gLDrawTextVideoRender->setSharderPath(vertexPath, fragPath);
+    gLDrawTextVideoRender->setSharderPath(vertexPath, fragPath, fragPath1);
 
     env->ReleaseStringUTFChars(vertex, vertexPath);
     env->ReleaseStringUTFChars(frag, fragPath);
+    env->ReleaseStringUTFChars(frag1, fragPath1);
+
 }
 
 extern "C"
@@ -780,6 +784,7 @@ static const JNINativeMethod methods[] = {
         /*********************** OpenGL GL视频中绘制文本并录制 *******************/
 
         {"native_draw_text_surface_init",               "(I"
+                                                        "Ljava/lang/String;"
                                                         "Ljava/lang/String;"
                                                         "Ljava/lang/String;)V",  (void *) cpp_draw_text_surface_init},
 

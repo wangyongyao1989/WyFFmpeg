@@ -3,12 +3,10 @@
 precision mediump float;
 
 in vec2 v_texcoord;
-in vec2 v_picTextureCoord;
 
 uniform lowp sampler2D s_textureY;
 uniform lowp sampler2D s_textureU;
 uniform lowp sampler2D s_textureV;
-uniform lowp sampler2D s_texturePic;
 
 out vec4 FragColor;
 
@@ -23,9 +21,9 @@ void main() {
      g = y - 0.344 * u - 0.714 * v;
      b = y + 1.770 * u;
 
-     //FragColor = vec4(r, g, b, 1.0f);
+     FragColor = vec4(r, g, b, 1.0f);
      //FragColor =  picTexture * vec4(r, g, b, 1.0f);
-     FragColor = mix(vec4(r, g, b, 1.0f),texture(s_texturePic, v_picTextureCoord) , 0.6);
+    //FragColor = mix(vec4(r, g, b, 1.0f),texture(s_texturePic, v_picTextureCoord) , 0.6);
     /* if (v_picTextureCoord.x > 0.7 && v_picTextureCoord.y > 0.7) {
          FragColor =  texture(s_texturePic, v_picTextureCoord) * vec4(r, g, b, 1.0f);
      } else{
