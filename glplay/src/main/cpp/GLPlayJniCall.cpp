@@ -579,7 +579,7 @@ cpp_surfaceview_new_video_stop_record(JNIEnv *env, jobject thiz) {
     eglsurfaceViewRender->stopEncoder();
 }
 
-/*********************** OpenGL GL视频中绘制文本并录制*******************/
+/*********************** OpenGL GL视频中绘制水印图片及文本并录制*******************/
 extern "C"
 JNIEXPORT void JNICALL
 cpp_draw_text_surface_init(JNIEnv *env, jobject thiz, jint type,
@@ -781,7 +781,7 @@ static const JNINativeMethod methods[] = {
         {"native_surfaceview_new_video_start_record",   "(Ljava/lang/String;)V", (void *) cpp_surfaceview_new_video_start_record},
         {"native_surfaceview_new_video_stop_record",    "()V",                   (void *) cpp_surfaceview_new_video_stop_record},
 
-        /*********************** OpenGL GL视频中绘制文本并录制 *******************/
+        /*********************** OpenGL GL视频中绘制水印图片及文本并录制*******************/
 
         {"native_draw_text_surface_init",               "(I"
                                                         "Ljava/lang/String;"
