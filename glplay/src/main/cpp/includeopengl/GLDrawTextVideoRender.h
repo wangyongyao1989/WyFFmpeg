@@ -24,6 +24,21 @@
 #include "TextureMovieEncoder2.h"
 #include <stb_image.h>
 
+#include <map>
+// FreeType
+#include "../includeopengl/freetype_2_9_1/ft2build.h"
+#include "../includeopengl/freetype_2_9_1/freetype/ftglyph.h"
+#include FT_FREETYPE_H
+
+
+/// Holds all state information relevant to a character as loaded using FreeType
+struct Character {
+    GLuint TextureID;   // ID handle of the glyph texture
+    glm::ivec2 Size;    // Size of glyph
+    glm::ivec2 Bearing;  // Offset from baseline to left/top of glyph
+    GLuint Advance;    // Horizontal offset to advance to next glyph
+};
+
 
 enum {
     MSG_Draw_Text_SurfaceCreated,
@@ -100,7 +115,10 @@ public:
 
     uint32_t getParameters();
 
-    bool setSharderPath(const char *vertexPath, const char *fragmentPath, const char *fragmentPath1);
+    bool
+    setSharderPath(const char *vertexPath, const char *fragmentPath, const char *fragmentPath1);
+
+    bool setTextSharderPath(const char *vertexPath, const char *fragmentPath,const char *freeTypePath);
 
     bool setPicTextPath(const char *picPath);
 
@@ -122,21 +140,30 @@ private:
 
     void OnSurfaceDestroyed();
 
-    bool CreateFrameBufferObj();
-
     bool createYUVTextures();
 
     void creatPicTexture();     //创建图片纹理
 
+    void bindTextVertexData();
+
+    void RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale,
+                    glm::vec3 color, glm::vec2 viewport);
+
+    void LoadFacesByASCII(const char *path);
+
     bool updateYUVTextures();
+
     void bindPicTexture();
 
-    void deleteTextures();
+    void deleteYUVTextures();
+
+    void deletePicTextures();
 
     int createYUVProgram();
 
     int createPicProgram();
 
+    int createTextProgram();
 
     GLuint useYUVProgram();
 
@@ -147,11 +174,11 @@ private:
     void checkGlError(const char *op);
 
 
-
     void delete_program(GLuint &program);
 
     GLuint m_yuv_program = 0;
     GLuint m_pic_program = 0;
+    GLuint m_text_program = 0;
 
     GLuint m_vertexShader = 0;
     GLuint m_pixelShader = 0;
@@ -192,6 +219,8 @@ private:
 
     OpenGLShader *yuvGLShader = nullptr;
     OpenGLShader *picGLShader = nullptr;
+    OpenGLShader *textGLShader = nullptr;
+
 
     EGLDisplay display = nullptr;
     EGLSurface winsurface = nullptr;
@@ -214,6 +243,13 @@ private:
     int picChannels;
     int picWidth, picHeight;
     unsigned char *picData;
+
+    map<GLchar, Character> Characters;
+    GLuint VAO = GL_NONE;
+    GLuint VBO = GL_NONE;
+
+    string freeTypePathString;
+
 };
 
 

@@ -326,6 +326,10 @@ public class OpenGLPlayCallJni {
         native_draw_text_surface_init(type, vertexPath, fragPath, fragPath1);
     }
 
+    public void glTextSharderPath(String vertexPath, String fragPath,String freeTypePath) {
+        native_text_sharder_path(vertexPath, fragPath,freeTypePath);
+    }
+
     public void glDrawTextPicPath(String vertexPath) {
         native_draw_text_pic_path(vertexPath);
     }
@@ -360,6 +364,8 @@ public class OpenGLPlayCallJni {
 
 
     private native void native_draw_text_surface_init(int type, String vertexPath, String fragPath, String fragPath1);
+
+    private native void native_text_sharder_path(String vertexPath, String fragPath,String freeTypePath);
 
     private native void native_draw_text_pic_path(String picPath);
 
