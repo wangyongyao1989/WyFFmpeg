@@ -9,6 +9,21 @@ set(distribution_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14")
 
+set(jnilibs ${CMAKE_SOURCE_DIR}/jniLibs)
+
+##添加 freetype 库
+add_library(freetype
+        STATIC
+        IMPORTED)
+set_target_properties(freetype
+        PROPERTIES
+        IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/jniLibs/${ANDROID_ABI}/libfreetype.a)
+
+include_directories(
+        includeopengl/freetype_2_9_1
+
+)
 
 add_library(
         glplay
@@ -69,6 +84,7 @@ target_link_libraries(
         vulkan
         mediandk
         log
+        freetype
         ${third-party-libs}
 
 )

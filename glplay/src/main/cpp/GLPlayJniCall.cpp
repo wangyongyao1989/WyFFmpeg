@@ -600,6 +600,28 @@ cpp_draw_text_surface_init(JNIEnv *env, jobject thiz, jint type,
 
 }
 
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_text_sharder_path(JNIEnv *env, jobject thiz,
+                      jstring vertex,
+                      jstring frag,
+                      jstring freeType) {
+    const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
+    const char *fragPath = env->GetStringUTFChars(frag, nullptr);
+    const char *freeTypePath = env->GetStringUTFChars(freeType, nullptr);
+
+    if (gLDrawTextVideoRender == nullptr)
+        gLDrawTextVideoRender = new GLDrawTextVideoRender();
+
+    gLDrawTextVideoRender->setTextSharderPath(vertexPath, fragPath, freeTypePath);
+
+    env->ReleaseStringUTFChars(vertex, vertexPath);
+    env->ReleaseStringUTFChars(frag, fragPath);
+    env->ReleaseStringUTFChars(freeType, freeTypePath);
+
+}
+
 extern "C"
 JNIEXPORT void JNICALL
 cpp_draw_text_pic_path(JNIEnv *env, jobject thiz, jstring picPath) {
@@ -787,6 +809,10 @@ static const JNINativeMethod methods[] = {
                                                         "Ljava/lang/String;"
                                                         "Ljava/lang/String;"
                                                         "Ljava/lang/String;)V",  (void *) cpp_draw_text_surface_init},
+        {"native_text_sharder_path",
+                                                        "(Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;)V",  (void *) cpp_text_sharder_path},
 
         {"native_draw_text_pic_path",                   "(Ljava/lang/String;)V", (void *) cpp_draw_text_pic_path},
         {"native_draw_text_surface_created",
