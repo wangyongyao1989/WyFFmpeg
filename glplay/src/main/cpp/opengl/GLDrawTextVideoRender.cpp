@@ -196,7 +196,21 @@ void GLDrawTextVideoRender::bindPicTexture() {
 }
 
 int
-GLDrawTextVideoRender::createProgram() {
+GLDrawTextVideoRender::createPicProgram() {
+    //创建图片水印着色程序
+    m_pic_program = picGLShader->createProgram();
+    if (!m_pic_program) {
+        LOGE("Could not create m_pic_program.");
+        return 0;
+    }
+    m_pic_vertexPos = (GLuint) glGetAttribLocation(m_pic_program, "position");
+    m_pic_textureCoordLoc = (GLuint) glGetAttribLocation(m_pic_program, "texcoord");
+    m_texturePicLoc = (GLuint) glGetUniformLocation(m_pic_program, "s_texturePic");
+    return m_pic_program;
+}
+
+int
+GLDrawTextVideoRender::createYUVProgram() {
 
     m_yuv_program = yuvGLShader->createProgram();
     m_vertexShader = yuvGLShader->vertexShader;
@@ -215,15 +229,15 @@ GLDrawTextVideoRender::createProgram() {
     m_textureVLoc = glGetUniformLocation(m_yuv_program, "s_textureV");
     m_yuv_textureCoordLoc = (GLuint) glGetAttribLocation(m_yuv_program, "texcoord");
 
-    //创建图片水印着色程序
-    m_pic_program = picGLShader->createProgram();
-    if (!m_pic_program) {
-        LOGE("Could not create program1.");
-        return 0;
-    }
-    m_pic_vertexPos = (GLuint) glGetAttribLocation(m_pic_program, "position");
-    m_pic_textureCoordLoc = (GLuint) glGetAttribLocation(m_pic_program, "texcoord");
-    m_texturePicLoc = (GLuint) glGetUniformLocation(m_pic_program, "s_texturePic");
+//    //创建图片水印着色程序
+//    m_pic_program = picGLShader->createProgram();
+//    if (!m_pic_program) {
+//        LOGE("Could not create program1.");
+//        return 0;
+//    }
+//    m_pic_vertexPos = (GLuint) glGetAttribLocation(m_pic_program, "position");
+//    m_pic_textureCoordLoc = (GLuint) glGetAttribLocation(m_pic_program, "texcoord");
+//    m_texturePicLoc = (GLuint) glGetUniformLocation(m_pic_program, "s_texturePic");
 
     return m_yuv_program;
 }
@@ -231,7 +245,7 @@ GLDrawTextVideoRender::createProgram() {
 
 
 GLuint GLDrawTextVideoRender::useYUVProgram() {
-    if (!m_yuv_program && !createProgram()) {
+    if (!m_yuv_program && !createYUVProgram()) {
         LOGE("Could not use program.");
         return 0;
     }
@@ -435,6 +449,7 @@ void GLDrawTextVideoRender::OnSurfaceChanged(int w, int h) {
     LOGE("Adjusting window offX:%d,offY:%d,off_right:%d,off_bottom:%d", offX, offY, off_right,
          off_bottom);
     useYUVProgram();
+    createPicProgram();
     createYUVTextures();
     creatPicTexture();
 }

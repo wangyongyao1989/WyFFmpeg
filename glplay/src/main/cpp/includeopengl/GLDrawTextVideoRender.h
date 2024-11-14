@@ -52,10 +52,10 @@ static const float EGLTextVerticek[12] = {
 };
 
 static const float EGLTextVerticek1[12] = {
-        -0.5f, 0.5f, 0,
-        -0.5f, -0.5f, 0,
-        0.5f, 0.5f, 0,
-        0.5f, -0.5f, 0
+        0.3f, -0.3f, 0,
+        0.3f, -0.8f, 0,
+        0.8f, -0.3f, 0,
+        0.8f, -0.8f, 0
 };
 
 // Texture coordinates for mapping entire texture.
@@ -133,7 +133,9 @@ private:
 
     void deleteTextures();
 
-    int createProgram();
+    int createYUVProgram();
+
+    int createPicProgram();
 
 
     GLuint useYUVProgram();
