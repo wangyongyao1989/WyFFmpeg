@@ -18,6 +18,7 @@ import com.example.myyffmpeg.databinding.FragmentOpenglCameraLayoutBinding;
 import com.example.myyffmpeg.utils.DirectoryPath;
 import com.wangyongyao.glplay.OpenGLPlayCallJni;
 import com.wangyongyao.glplay.view.GLCameraPreView;
+import com.wangyongyao.glplay.view.GLDrawTextSurfaceView;
 import com.wangyongyao.glplay.view.GLFlashLightView;
 import com.wangyongyao.glplay.view.WyyGLSurfaceView;
 import com.wangyongyao.glplay.view.GLTextureCPlusVideoPlayerView;
@@ -52,6 +53,9 @@ public class OpenGLCameraFragment extends BaseFragment {
     private WyyGLSurfaceViewNew mWyyGLSurfaceViewNew;
     private Button mBtnSurfaceNewRecord;
     private boolean isRecording;
+    private Button mBtnDrawTextSurface;
+    private Button mBtnDrawTextRecord;
+    private GLDrawTextSurfaceView mDrawTextSurfaceView;
 
 
     @Override
@@ -73,6 +77,8 @@ public class OpenGLCameraFragment extends BaseFragment {
         mBtnSurface = mBinding.btnSurface;
         mBtnSurfaceNew = mBinding.btnSurfaceNew;
         mBtnSurfaceNewRecord = mBinding.btnSurfaceNewRecord;
+        mBtnDrawTextSurface = mBinding.btnDrawTextSurface;
+        mBtnDrawTextRecord = mBinding.btnDrawTextRecord;
         mGlShow = mBinding.glShow;
     }
 
@@ -176,6 +182,39 @@ public class OpenGLCameraFragment extends BaseFragment {
                         , Toast.LENGTH_SHORT).show();
             }
         });
+
+        mBtnDrawTextSurface.setOnClickListener(view -> {
+            onDestroyGLView();
+            mGlShow.removeAllViews();
+            if (mDrawTextSurfaceView == null) {
+                mDrawTextSurfaceView = new GLDrawTextSurfaceView(getActivity(), mFFPlayCallJni);
+            }
+            mGlShow.addView(mDrawTextSurfaceView);
+        });
+
+        mBtnDrawTextRecord.setOnClickListener(v -> {
+            if (mDrawTextSurfaceView != null) {
+                if (isRecording) {
+                    mDrawTextSurfaceView.stopRecord();
+                    isRecording = false;
+                    mBtnDrawTextRecord.setText("GL绘制文本开始录制");
+                } else {
+                    @SuppressLint("SimpleDateFormat") SimpleDateFormat formatter
+                            = new SimpleDateFormat("yy_MM_dd_HH_mm_ss");
+                    Date curDate = new Date(System.currentTimeMillis());//获取当前时间
+                    String str = formatter.format(curDate);
+                    String videoDir = DirectoryPath.createVideoDir(getActivity());
+                    String videoName = videoDir + File.pathSeparator + str + ".mp4";
+                    mDrawTextSurfaceView.startRecord(videoName);
+                    isRecording = true;
+                    mBtnDrawTextRecord.setText("GL绘制文本停止录制");
+                }
+            } else {
+                Toast.makeText(getActivity(), "GL视频中绘制文本没开启"
+                        , Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 
     @SuppressLint("SetTextI18n")
