@@ -31,7 +31,6 @@ void GLDrawTextVideoRender::updateFrame(const draw_text_video_frame &frame) {
         m_pDataY = std::make_unique<uint8_t[]>(m_sizeY + m_sizeU + m_sizeV);
         m_pDataU = m_pDataY.get() + m_sizeY;
         m_pDataV = m_pDataU + m_sizeU;
-        isProgramChanged = true;
     }
 
     m_width = frame.width;
@@ -156,7 +155,7 @@ bool GLDrawTextVideoRender::createYUVTextures() {
     return true;
 }
 
-bool GLDrawTextVideoRender::updateTextures() {
+bool GLDrawTextVideoRender::updateYUVTextures() {
 
     if (!m_textureIdY && !m_textureIdU && !m_textureIdV) return false;
 //    LOGE("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
@@ -182,95 +181,89 @@ bool GLDrawTextVideoRender::updateTextures() {
                      GL_LUMINANCE, GL_UNSIGNED_BYTE, m_pDataV);
 
         isDirty = false;
-
-//        if (m_texturePicLoc) {
-//            // bind Texture
-//            glActiveTexture(GL_TEXTURE3);
-//            checkGlError("updateTextures glActiveTexture(GL_TEXTURE3)");
-//            glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
-//            checkGlError("updateTextures glBindTexture(");
-//        }
-
         return true;
     }
 
     return false;
 }
 
+void GLDrawTextVideoRender::bindPicTexture() {
+    if (m_texturePicLoc) {
+        // bind Texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+    }
+}
+
 int
 GLDrawTextVideoRender::createProgram() {
 
-    m_program = openGlShader->createProgram();
-    m_vertexShader = openGlShader->vertexShader;
-    m_pixelShader = openGlShader->fraShader;
-    LOGI("GLDrawTextVideoRender createProgram m_program:%d", m_program);
+    m_yuv_program = yuvGLShader->createProgram();
+    m_vertexShader = yuvGLShader->vertexShader;
+    m_pixelShader = yuvGLShader->fraShader;
+    LOGI("GLDrawTextVideoRender createProgram m_yuv_program:%d", m_yuv_program);
 
-    if (!m_program) {
+    if (!m_yuv_program) {
         LOGE("Could not create program.");
         return 0;
     }
 
     //Get Uniform Variables Location
-    m_vertexPos = (GLuint) glGetAttribLocation(m_program, "position");
-    m_textureYLoc = glGetUniformLocation(m_program, "s_textureY");
-    m_textureULoc = glGetUniformLocation(m_program, "s_textureU");
-    m_textureVLoc = glGetUniformLocation(m_program, "s_textureV");
+    m_yuv_vertexPos = (GLuint) glGetAttribLocation(m_yuv_program, "position");
+    m_textureYLoc = glGetUniformLocation(m_yuv_program, "s_textureY");
+    m_textureULoc = glGetUniformLocation(m_yuv_program, "s_textureU");
+    m_textureVLoc = glGetUniformLocation(m_yuv_program, "s_textureV");
+    m_yuv_textureCoordLoc = (GLuint) glGetAttribLocation(m_yuv_program, "texcoord");
 
-//    m_texturePicLoc = (GLuint) glGetUniformLocation(m_program, "s_texturePic");
-
-    m_textureCoordLoc = (GLuint) glGetAttribLocation(m_program, "texcoord");
-
-    //第二个这色器程序
-    m_program1 = openGlShader1->createProgram();
-
-    if (!m_program1) {
+    //创建图片水印着色程序
+    m_pic_program = picGLShader->createProgram();
+    if (!m_pic_program) {
         LOGE("Could not create program1.");
         return 0;
     }
+    m_pic_vertexPos = (GLuint) glGetAttribLocation(m_pic_program, "position");
+    m_pic_textureCoordLoc = (GLuint) glGetAttribLocation(m_pic_program, "texcoord");
+    m_texturePicLoc = (GLuint) glGetUniformLocation(m_pic_program, "s_texturePic");
 
-    m_vertexPos1 = (GLuint) glGetAttribLocation(m_program1, "position");
-    m_textureCoordLoc1 = (GLuint) glGetAttribLocation(m_program1, "texcoord");
-
-    m_texturePicLoc = (GLuint) glGetUniformLocation(m_program1, "s_texturePic");
-
-    return m_program;
+    return m_yuv_program;
 }
 
 
-GLuint GLDrawTextVideoRender::useProgram() {
-    if (!m_program && !createProgram()) {
+
+GLuint GLDrawTextVideoRender::useYUVProgram() {
+    if (!m_yuv_program && !createProgram()) {
         LOGE("Could not use program.");
         return 0;
     }
-
-//    if (isProgramChanged) {
-    glUseProgram(m_program);
-//        LOGE("glUseProgram(m_program)");
-
-    glVertexAttribPointer(m_vertexPos, 3, GL_FLOAT, GL_FALSE, 0, EGLTextVerticek);
-    glEnableVertexAttribArray(m_vertexPos);
+    glUseProgram(m_yuv_program);
+    glVertexAttribPointer(m_yuv_vertexPos, 3, GL_FLOAT, GL_FALSE, 0, EGLTextVerticek);
+    glEnableVertexAttribArray(m_yuv_vertexPos);
 
     glUniform1i(m_textureYLoc, 0);
     glUniform1i(m_textureULoc, 1);
     glUniform1i(m_textureVLoc, 2);
-    glVertexAttribPointer(m_textureCoordLoc, 3, GL_FLOAT, GL_FALSE, 0, EGLTextTextureCoord);
-    glEnableVertexAttribArray(m_textureCoordLoc);
-
-
-
-
-
-
-    isProgramChanged = false;
-//    }
-
-    return m_program;
+    glVertexAttribPointer(m_yuv_textureCoordLoc, 3, GL_FLOAT, GL_FALSE, 0, EGLTextTextureCoord);
+    glEnableVertexAttribArray(m_yuv_textureCoordLoc);
+    return m_yuv_program;
 }
 
+
+void GLDrawTextVideoRender::usePicProgram() {
+    glUseProgram(m_pic_program);
+    glVertexAttribPointer(m_pic_vertexPos, 3, GL_FLOAT, GL_FALSE, 0, EGLTextVerticek1);
+    glEnableVertexAttribArray(m_pic_vertexPos);
+
+    glUniform1i(m_texturePicLoc, 3);
+    glVertexAttribPointer(m_pic_textureCoordLoc, 3, GL_FLOAT, GL_FALSE, 0, EGLTextTextureCoord);
+    glEnableVertexAttribArray(m_pic_textureCoordLoc);
+}
+
+
 bool
-GLDrawTextVideoRender::setSharderPath(const char *vertexPath, const char *fragmentPath, const char *fragmentPath1) {
-    openGlShader->getSharderPath(vertexPath, fragmentPath);
-    openGlShader1->getSharderStringPath(vertexPath, fragmentPath1);
+GLDrawTextVideoRender::setSharderPath(const char *vertexPath, const char *fragmentPath,
+                                      const char *fragmentPath1) {
+    yuvGLShader->getSharderPath(vertexPath, fragmentPath);
+    picGLShader->getSharderStringPath(vertexPath, fragmentPath1);
     return 0;
 }
 
@@ -283,18 +276,19 @@ GLDrawTextVideoRender::setPicTextPath(const char *picPath) {
 }
 
 bool GLDrawTextVideoRender::setSharderStringPath(string vertexPath, string fragmentPath) {
-    openGlShader->getSharderStringPath(vertexPath, fragmentPath);
+    yuvGLShader->getSharderStringPath(vertexPath, fragmentPath);
     return 0;
 }
 
 GLDrawTextVideoRender::GLDrawTextVideoRender() {
-    openGlShader = new OpenGLShader();
-    openGlShader1 = new OpenGLShader();
+    yuvGLShader = new OpenGLShader();
+    picGLShader = new OpenGLShader();
 }
 
 GLDrawTextVideoRender::~GLDrawTextVideoRender() {
     deleteTextures();
-    delete_program(m_program);
+    delete_program(m_yuv_program);
+    delete_program(m_pic_program);
     m_vertexShader = 0;
     m_pixelShader = 0;
     if (m_pDataY) {
@@ -309,9 +303,14 @@ GLDrawTextVideoRender::~GLDrawTextVideoRender() {
         m_pDataV = nullptr;
     }
 
-    if (openGlShader) {
-        delete openGlShader;
-        openGlShader = nullptr;
+    if (yuvGLShader) {
+        delete yuvGLShader;
+        yuvGLShader = nullptr;
+    }
+
+    if (picGLShader) {
+        delete picGLShader;
+        picGLShader = nullptr;
     }
 
     if (display) {
@@ -368,7 +367,6 @@ void GLDrawTextVideoRender::deleteTextures() {
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, 0);
         glDeleteTextures(1, &m_textureIdV);
-
         m_textureIdV = 0;
     }
 }
@@ -436,7 +434,7 @@ void GLDrawTextVideoRender::OnSurfaceChanged(int w, int h) {
     //Adjusting window 1920x1104 to +14,+0 1252x720
     LOGE("Adjusting window offX:%d,offY:%d,off_right:%d,off_bottom:%d", offX, offY, off_right,
          off_bottom);
-    useProgram();
+    useYUVProgram();
     createYUVTextures();
     creatPicTexture();
 }
@@ -445,29 +443,12 @@ void GLDrawTextVideoRender::OnDrawFrame() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-//    glEnable(GL_BLEND);
-//    glBlendFunc(GL_NONE, GL_ONE_MINUS_SRC_ALPHA);
-
-    if (!updateTextures() || !useProgram()) return;
-
-    //窗口显示
+    //绘制YUV视频数据纹理
+    if (!updateYUVTextures() || !useYUVProgram()) return;
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    if (m_texturePicLoc) {
-        // bind Texture
-        glActiveTexture(GL_TEXTURE3);
-        checkGlError("updateTextures glActiveTexture(GL_TEXTURE3)");
-        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
-        checkGlError("updateTextures glBindTexture(");
-    }
-
-    glUseProgram(m_program1);
-    glVertexAttribPointer(m_vertexPos1, 3, GL_FLOAT, GL_FALSE, 0, EGLTextVerticek1);
-
-    glUniform1i(m_texturePicLoc, 3);
-    glVertexAttribPointer(m_pic_textureCoordLoc, 3, GL_FLOAT, GL_FALSE, 0, EGLPicTextureCoord);
-    glEnableVertexAttribArray(m_pic_textureCoordLoc);
-
+    //绘制图片水印数据纹理
+    bindPicTexture();
+    usePicProgram();
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 //    LOGE("OnDrawFrame thread:%ld", pthread_self());
@@ -507,9 +488,9 @@ void GLDrawTextVideoRender::OnSurfaceDestroyed() {
         m_pDataV = nullptr;
     }
 
-    if (openGlShader) {
-        delete openGlShader;
-        openGlShader = nullptr;
+    if (yuvGLShader) {
+        delete yuvGLShader;
+        yuvGLShader = nullptr;
     }
 
     if (display) {

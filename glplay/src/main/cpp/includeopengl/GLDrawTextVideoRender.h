@@ -128,25 +128,28 @@ private:
 
     void creatPicTexture();     //创建图片纹理
 
-    bool updateTextures();
+    bool updateYUVTextures();
+    void bindPicTexture();
 
     void deleteTextures();
 
     int createProgram();
 
-    GLuint useProgram();
+
+    GLuint useYUVProgram();
+
+    void usePicProgram();
 
     void printGLString(const char *name, GLenum s);
 
     void checkGlError(const char *op);
 
 
-    bool isProgramChanged = true;
 
     void delete_program(GLuint &program);
 
-    GLuint m_program = 0;
-    GLuint m_program1 = 0;
+    GLuint m_yuv_program = 0;
+    GLuint m_pic_program = 0;
 
     GLuint m_vertexShader = 0;
     GLuint m_pixelShader = 0;
@@ -165,12 +168,12 @@ private:
     GLuint m_textureIdU = 0;
     GLuint m_textureIdV = 0;
 
-    GLuint m_vertexPos = 0;
-    GLuint m_vertexPos1 = 0;
-    GLuint m_textureCoordLoc = 0;
-    GLuint m_textureCoordLoc1 = 0;
+    GLuint m_yuv_vertexPos = 0;
+    GLuint m_pic_vertexPos = 0;
 
+    GLuint m_yuv_textureCoordLoc = 0;
     GLuint m_pic_textureCoordLoc = 0;
+
     GLint m_textureYLoc = 0;
     GLint m_textureULoc = 0;
     GLint m_textureVLoc = 0;
@@ -185,8 +188,8 @@ private:
 
     bool isDirty;
 
-    OpenGLShader *openGlShader = nullptr;
-    OpenGLShader *openGlShader1 = nullptr;
+    OpenGLShader *yuvGLShader = nullptr;
+    OpenGLShader *picGLShader = nullptr;
 
     EGLDisplay display = nullptr;
     EGLSurface winsurface = nullptr;
