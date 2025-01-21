@@ -11,6 +11,7 @@
 #include "OpenglesSurfaceViewVideoRender.h"
 #include "EGLSurfaceViewVideoRender.h"
 #include "GLDrawTextVideoRender.h"
+#include "GLFboDrawTextVideoRender.h"
 
 #define LOG_TAG "wy"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -28,7 +29,7 @@ OpenglesTextureFilterRender *filterRender;
 OpenglesSurfaceViewVideoRender *surfaceViewRender;
 EGLSurfaceViewVideoRender *eglsurfaceViewRender;
 GLDrawTextVideoRender *gLDrawTextVideoRender;
-
+GLFboDrawTextVideoRender *glFboRender;
 
 
 /*********************** GL 聚光手电筒********************/
@@ -706,6 +707,133 @@ cpp_draw_text_surface_stop_record(JNIEnv *env, jobject thiz) {
     gLDrawTextVideoRender->stopEncoder();
 }
 
+/*********************** OpenGL 使用帧缓冲FBO在视频中绘制文本并录制*******************/
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_surface_init(JNIEnv *env, jobject thiz, jint type,
+                           jstring vertex,
+                           jstring frag, jstring frag1) {
+    const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
+    const char *fragPath = env->GetStringUTFChars(frag, nullptr);
+    const char *fragPath1 = env->GetStringUTFChars(frag1, nullptr);
+
+    if (glFboRender == nullptr)
+        glFboRender = new GLFboDrawTextVideoRender();
+
+    glFboRender->setSharderPath(vertexPath, fragPath, fragPath1);
+
+    env->ReleaseStringUTFChars(vertex, vertexPath);
+    env->ReleaseStringUTFChars(frag, fragPath);
+    env->ReleaseStringUTFChars(frag1, fragPath1);
+
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_sharder_path(JNIEnv *env, jobject thiz,
+                      jstring vertex,
+                      jstring frag,
+                      jstring freeType) {
+    const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
+    const char *fragPath = env->GetStringUTFChars(frag, nullptr);
+    const char *freeTypePath = env->GetStringUTFChars(freeType, nullptr);
+
+    if (glFboRender == nullptr)
+        glFboRender = new GLFboDrawTextVideoRender();
+
+    glFboRender->setTextSharderPath(vertexPath, fragPath, freeTypePath);
+
+    env->ReleaseStringUTFChars(vertex, vertexPath);
+    env->ReleaseStringUTFChars(frag, fragPath);
+    env->ReleaseStringUTFChars(freeType, freeTypePath);
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_pic_path(JNIEnv *env, jobject thiz, jstring picPath) {
+    const char *cPicPath = env->GetStringUTFChars(picPath, nullptr);
+    if (glFboRender == nullptr)
+        glFboRender = new GLFboDrawTextVideoRender();
+
+    glFboRender->setPicTextPath(cPicPath);
+
+    env->ReleaseStringUTFChars(picPath, cPicPath);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_surface_created(JNIEnv *env, jobject thiz,
+                              jobject surface,
+                              jobject assetManager) {
+    if (glFboRender != nullptr) {
+        ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
+        auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
+        glFboRender->surfaceCreated(window, aAssetManager);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_surface_changed(JNIEnv *env, jobject thiz,
+                              jint width,
+                              jint height) {
+    if (glFboRender != nullptr) {
+        glFboRender->surfaceChanged((size_t) width, (size_t) height);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_surface_render(JNIEnv *env, jobject thiz) {
+    if (glFboRender != nullptr) {
+        glFboRender->render();
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_surface_draw(JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height,
+                           jint rotation) {
+    jbyte *bufferPtr = env->GetByteArrayElements(data, nullptr);
+    jsize arrayLength = env->GetArrayLength(data);
+
+    if (glFboRender != nullptr) {
+
+        glFboRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
+                                    (size_t) height,
+                                    rotation);
+    }
+
+    env->ReleaseByteArrayElements(data, bufferPtr, 0);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_surface_destroy(JNIEnv *env, jobject thiz) {
+    if (glFboRender != nullptr)
+        glFboRender->release();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_surface_start_record(JNIEnv *env, jobject thiz, jstring recordPath) {
+
+    if (glFboRender == nullptr) return;
+    const char *path = env->GetStringUTFChars(recordPath, nullptr);
+    glFboRender->startEncoder(path);
+    env->ReleaseStringUTFChars(recordPath, path);
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_surface_stop_record(JNIEnv *env, jobject thiz) {
+    if (glFboRender == nullptr) return;
+    glFboRender->stopEncoder();
+}
+
 
 static const JNINativeMethod methods[] = {
         //GLCameraPre
@@ -826,6 +954,30 @@ static const JNINativeMethod methods[] = {
         {"native_draw_text_surface_destroy",            "()V",                   (void *) cpp_draw_text_surface_destroy},
         {"native_draw_text_surface_start_record",       "(Ljava/lang/String;)V", (void *) cpp_draw_text_surface_start_record},
         {"native_draw_text_surface_stop_record",        "()V",                   (void *) cpp_draw_text_surface_stop_record},
+
+        /*********************** OpenGL 使用帧缓冲FBO在视频中绘制文本并录制*******************/
+
+        {"native_fbo_surface_init",                     "(I"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;)V",  (void *) cpp_fbo_surface_init},
+        {"native_fbo_sharder_path",
+                                                        "(Ljava/lang/String;"
+                                                        "Ljava/lang/String;"
+                                                        "Ljava/lang/String;)V",  (void *) cpp_fbo_sharder_path},
+
+        {"native_fbo_pic_path",                         "(Ljava/lang/String;)V", (void *) cpp_fbo_pic_path},
+        {"native_fbo_surface_created",
+                                                        "(Landroid/view/Surface;"
+                                                        "Landroid/content/res"
+                                                        "/AssetManager;)V",      (void *) cpp_fbo_surface_created},
+
+        {"native_fbo_surface_changed",                  "(II)V",                 (void *) cpp_fbo_surface_changed},
+        {"native_fbo_surface_render",                   "()V",                   (void *) cpp_fbo_surface_render},
+        {"native_fbo_surface_draw",                     "([BIII)V",              (void *) cpp_fbo_surface_draw},
+        {"native_fbo_surface_destroy",                  "()V",                   (void *) cpp_fbo_surface_destroy},
+        {"native_fbo_surface_start_record",             "(Ljava/lang/String;)V", (void *) cpp_fbo_surface_start_record},
+        {"native_fbo_surface_stop_record",              "()V",                   (void *) cpp_fbo_surface_stop_record},
 
 };
 

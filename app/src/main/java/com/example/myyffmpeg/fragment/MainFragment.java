@@ -15,12 +15,12 @@ import com.example.myyffmpeg.databinding.FragmentMainLayoutBinding;
 
 public class MainFragment extends BaseFragment {
 
-
     private com.example.myyffmpeg.databinding.FragmentMainLayoutBinding mBinding;
     private Button mBtnFfPlay;
     private FFViewModel mFfViewModel;
     private Button mBtnFfRtmp;
     private Button mGlCamera;
+    private Button mBtnFfGlFbo;
 
     @Override
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
@@ -34,6 +34,7 @@ public class MainFragment extends BaseFragment {
         mBtnFfPlay = mBinding.btnFfPlay;
         mBtnFfRtmp = mBinding.btnFfRtmp;
         mGlCamera = mBinding.btnFfGlCamera;
+        mBtnFfGlFbo = mBinding.btnFfGlFbo;
     }
 
     @Override
@@ -57,6 +58,9 @@ public class MainFragment extends BaseFragment {
         });
         mGlCamera.setOnClickListener(view -> {
             mFfViewModel.getSwitchFragment().postValue(FFViewModel.FRAGMENT_STATUS.OPENGL_CAMERA);
+        });
+        mBtnFfGlFbo.setOnClickListener(view -> {
+            mFfViewModel.getSwitchFragment().postValue(FFViewModel.FRAGMENT_STATUS.OPENGL_CAMERA_FBO);
         });
     }
 }
