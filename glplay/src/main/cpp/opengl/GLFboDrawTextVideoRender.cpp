@@ -76,7 +76,7 @@ void GLFboDrawTextVideoRender::updateFrame(const fbo_video_frame &frame) {
 
 void
 GLFboDrawTextVideoRender::draw(uint8_t *buffer, size_t length, size_t width, size_t height,
-                            float rotation) {
+                               float rotation) {
     fbo_video_frame frame{};
     frame.width = width;
     frame.height = height;
@@ -275,7 +275,7 @@ void GLFboDrawTextVideoRender::usePicProgram() {
 
 bool
 GLFboDrawTextVideoRender::setSharderPath(const char *vertexPath, const char *fragmentPath,
-                                      const char *fragmentPath1) {
+                                         const char *fragmentPath1) {
     yuvGLShader->getSharderPath(vertexPath, fragmentPath);
     picGLShader->getSharderStringPath(vertexPath, fragmentPath1);
     return 0;
@@ -504,13 +504,21 @@ void GLFboDrawTextVideoRender::OnSurfaceChanged(int w, int h) {
 //    LOGE("Adjusting window offX:%d,offY:%d,off_right:%d,off_bottom:%d", offX, offY, off_right,
 //         off_bottom);
     // Set OpenGL options
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//    glEnable(GL_CULL_FACE);
+//    glEnable(GL_BLEND);
+//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+
+    //清屏
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    checkGlError("glClear");
+
+    //开启深度测试
+    glEnable(GL_DEPTH_TEST);
     useYUVProgram();
     createPicProgram();
     createTextProgram();
+
 
     createYUVTextures();
     creatPicTexture();
@@ -519,55 +527,18 @@ void GLFboDrawTextVideoRender::OnSurfaceChanged(int w, int h) {
     LoadFacesByASCII(freeTypePath);
     bindTextVertexData();
 
-    // screen quad VAO
-    glGenVertexArrays(1, &quadVAO);
-    glGenBuffers(1, &quadVBO);
-    glBindVertexArray(quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) 0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-                          (void *) (2 * sizeof(float)));
-
     createPostProcessingProgram();
+    bindPostProcessingVertexData();
 
-    //1.首先要创建一个帧缓冲对象，并绑定它，这些都很直观
-    glGenFramebuffers(1, &framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-    //2.接下来我们需要创建一个纹理图像，我们将它作为一个颜色附件附加到帧缓冲上。
-    // 我们将纹理的维度设置为窗口的宽度和高度，并且不初始化它的数据
-    glGenTextures(1, &textureColorbuffer);
-    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_backingWidth, m_backingHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer,
-                           0);
-
-    //3.创建渲染缓冲对象
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_backingWidth,
-                          m_backingHeight);
-    //4.将渲染缓冲对象附加到帧缓冲的深度和模板附件上
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
-                              rbo);
-    //5.最后，我们希望检查帧缓冲是否是完整的，如果不是，我们将打印错误信息
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        LOGE("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
 
 void GLFboDrawTextVideoRender::OnDrawFrame() {
 
-//    //绑定到帧缓冲区，像往常一样绘制场景以着色纹理
+    //绑定到帧缓冲区，像往常一样绘制场景以着色纹理
 //    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-//    //启用深度测试（禁用渲染屏幕空间四边形）
-//    glEnable(GL_DEPTH_TEST);
+    //启用深度测试（禁用渲染屏幕空间四边形）
+    glEnable(GL_DEPTH_TEST);
 
     // 确保清除帧缓冲区的内容
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -579,11 +550,14 @@ void GLFboDrawTextVideoRender::OnDrawFrame() {
     //绘制YUV视频数据纹理
     if (!updateYUVTextures() || !useYUVProgram()) return;
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+
 
     //绘制图片水印数据纹理
     bindPicTexture();
     usePicProgram();
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
 
     //绘制文字水印
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); //禁用byte-alignment限制
@@ -592,7 +566,8 @@ void GLFboDrawTextVideoRender::OnDrawFrame() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     checkGlError("glBlendFunc");
     glm::vec2 viewport(m_backingWidth, m_backingHeight);
-    RenderText("https://blog.csdn.net/wangyongyao1989", 300.0f, 500.0f, 1.0f, glm::vec3(0.8, 0.1f, 0.1f), viewport);
+    RenderText("https://blog.csdn.net/wangyongyao1989", 300.0f, 500.0f, 1.0f,
+               glm::vec3(0.8, 0.1f, 0.1f), viewport);
 
 
 //    //现在绑定回默认帧缓冲区，并使用附加的帧缓冲区颜色纹理绘制一个四边形平面
@@ -611,7 +586,7 @@ void GLFboDrawTextVideoRender::OnDrawFrame() {
 //    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 //    glDrawArrays(GL_TRIANGLES, 0, 6);
 
-   // LOGE("OnDrawFrame thread:%ld", pthread_self());
+    // LOGE("OnDrawFrame thread:%ld", pthread_self());
     if (m_TextureMovieEncoder2 != nullptr) {
         m_TextureMovieEncoder2->frameAvailableSoon();
     }
@@ -776,7 +751,7 @@ void GLFboDrawTextVideoRender::bindTextVertexData() {
 }
 
 void GLFboDrawTextVideoRender::RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale,
-                                       glm::vec3 color, glm::vec2 viewport) {
+                                          glm::vec3 color, glm::vec2 viewport) {
     // 激活对应的渲染状态
     textGLShader->use();
     checkGlError("drawTextShader->use()");
@@ -915,10 +890,60 @@ void GLFboDrawTextVideoRender::createPostProcessingProgram() {
     screenProgram = screenShader->createProgram();
     if (!screenProgram) {
         LOGE("Could not create screenProgram shaderId.");
-        return ;
+        return;
     }
-    screenShader->use();
-    screenShader->setInt("screenTexture", 0);
 }
 
+void GLFboDrawTextVideoRender::bindPostProcessingVertexData() {
+    screenShader->use();
+    screenShader->setInt("screenTexture", 0);
+    checkGlError("screenShader->setInt(screenTexture");
+
+
+    // screen quad VAO
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+    glBindVertexArray(quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices),
+                 &quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) 0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
+                          (void *) (2 * sizeof(float)));
+
+    screenShader->use();
+    screenShader->setInt("screenTexture", 0);
+    checkGlError("screenShader->setInt(screenTexture");
+
+    //1.首先要创建一个帧缓冲对象，并绑定它，这些都很直观
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    //2.接下来我们需要创建一个纹理图像，我们将它作为一个颜色附件附加到帧缓冲上。
+    // 我们将纹理的维度设置为窗口的宽度和高度，并且不初始化它的数据
+    glGenTextures(1, &textureColorbuffer);
+    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_backingWidth, m_backingHeight, 0, GL_RGB,
+                 GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer,
+                           0);
+
+    //3.创建渲染缓冲对象
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_backingWidth,
+                          m_backingHeight);
+    //4.将渲染缓冲对象附加到帧缓冲的深度和模板附件上
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
+                              rbo);
+    //5.最后，我们希望检查帧缓冲是否是完整的，如果不是，我们将打印错误信息
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+        LOGD("FRAMEBUFFER:: Framebuffer is complete!");
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
 

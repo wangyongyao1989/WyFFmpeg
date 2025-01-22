@@ -88,6 +88,29 @@ static const float EGLFboPicTextureCoord[12] = {
         1, 1, 0,
 };
 
+//const float quadVertices[] = {
+//        // positions   // texCoords
+//        -1.0f, 1.0f, 0.0f,
+//        -1.0f, -1.0f, 0.0f,
+//        1.0f, -1.0f, 0.0f,
+//
+//        -1.0f, 1.0f, 0.0f,
+//        1.0f, -1.0f, 0.0f,
+//        1.0f, 1.0f, 0.0F
+//};
+//
+//const float quadTextureCoord[] = {
+//        // positions   // texCoords
+//        0.0f, 1.0f, 0,
+//        0.0f, 0.0f, 0,
+//        1.0f, 0.0f, 0,
+//
+//        0.0f, 1.0f, 0,
+//        1.0f, 0.0f, 0,
+//        1.0f, 1.0f, 0
+//};
+
+
 // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
 const float quadVertices[] = {
         // positions   // texCoords
@@ -182,10 +205,12 @@ private:
 
     void createPostProcessingProgram();
 
+    void bindPostProcessingVertexData();
 
     GLuint useYUVProgram();
 
     void usePicProgram();
+
 
     void printGLString(const char *name, GLenum s);
 
@@ -217,14 +242,17 @@ private:
 
     GLuint m_yuv_vertexPos = 0;
     GLuint m_pic_vertexPos = 0;
+    GLuint m_fbo_vertexPos = 0;
 
     GLuint m_yuv_textureCoordLoc = 0;
     GLuint m_pic_textureCoordLoc = 0;
+    GLuint m_fbo_textureCoordLoc = 0;
 
     GLint m_textureYLoc = 0;
     GLint m_textureULoc = 0;
     GLint m_textureVLoc = 0;
     GLuint m_texturePicLoc = 0;
+    GLuint m_textureFboLoc = 0;
 
     size_t m_width = 0;
     size_t m_height = 0;
