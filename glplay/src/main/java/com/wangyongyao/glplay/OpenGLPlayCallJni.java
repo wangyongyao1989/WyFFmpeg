@@ -455,4 +455,68 @@ public class OpenGLPlayCallJni {
 
     private native void native_fbo_surface_stop_record();
 
+    /**
+     * 帧缓冲FBO——后期处理
+     */
+    public void setFBOPostProcessingGLSLPath(String fragString, String vertexString
+            , String fragScreenString, String vertexScreenString
+            , String picSrc1, String picSrc2
+            , String fragGrayScalePath
+            , String fragWeightedGrayPath
+            , String fragNuclearEffectPath
+    ) {
+        native_fbo_post_processing_set_glsl_path(fragString, vertexString
+                , fragScreenString, vertexScreenString
+                , picSrc1, picSrc2
+                , fragGrayScalePath
+                , fragWeightedGrayPath
+                , fragNuclearEffectPath
+        );
+    }
+
+    public boolean initFBOPostProcessing(int w, int h) {
+        return native_fbo_post_processing_init_opengl(w, h);
+    }
+
+    public void glFBOPostProcessingRenderFrame() {
+        native_fbo_post_processing_render_frame();
+    }
+
+    public void glFBOPostProcessingMoveXY(float dx, float dy, int action) {
+        native_fbo_post_processing_move_xy(dx, dy, action);
+    }
+
+    public void glFBOPostProcessingOnScale(float scaleFactor, float focusX, float focusY, int action) {
+        native_fbo_post_processing_on_scale(scaleFactor, focusX, focusY, action);
+    }
+
+    public void glFBOPostProcessingSetParameters(int params) {
+        native_fbo_post_processing_set_parameters(params);
+    }
+
+    public int glFBOPostProcessingGetParameters() {
+        return native_fbo_post_processing_get_parameters();
+    }
+
+    private native void native_fbo_post_processing_set_glsl_path(String fragPath, String vertexPath
+            , String fragScreenString, String vertexScreenString
+            , String picSrc1, String picSrc2
+            , String fragGrayScalePath
+            , String fragWeightedGrayPath
+            , String fragNuclearEffectPath
+
+    );
+
+    private native boolean native_fbo_post_processing_init_opengl(int width, int height);
+
+    private native void native_fbo_post_processing_render_frame();
+
+    private native void native_fbo_post_processing_move_xy(float dx, float dy, int action);
+
+    private native void native_fbo_post_processing_on_scale(float scaleFactor, float focusX, float focusY, int action);
+
+    private native void native_fbo_post_processing_set_parameters(int params);
+
+    private native int native_fbo_post_processing_get_parameters();
+
 }

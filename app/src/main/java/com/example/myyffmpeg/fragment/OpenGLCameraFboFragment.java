@@ -17,6 +17,7 @@ import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentGlCameraFboLayoutBinding;
 import com.example.myyffmpeg.utils.DirectoryPath;
 import com.wangyongyao.glplay.OpenGLPlayCallJni;
+import com.wangyongyao.glplay.view.GLFBOPostProcessingView;
 import com.wangyongyao.glplay.view.GLFboDrawTextSurfaceView;
 
 import java.io.File;
@@ -39,6 +40,10 @@ public class OpenGLCameraFboFragment extends BaseFragment {
     private OpenGLPlayCallJni mFFPlayCallJni;
     private Button mBtnFboRecord;
     private boolean isRecording;
+    private Button mBtnSenior7;
+    private Button mBtnSenior8;
+    private GLFBOPostProcessingView mGlView;
+    private int switchType;
 
 
     @Override
@@ -54,7 +59,8 @@ public class OpenGLCameraFboFragment extends BaseFragment {
         mBtnGlFboBack = mBinding.btnGlFboBack;
         mBtnFboPre = mBinding.btnCameraFboPre;
         mBtnFboRecord = mBinding.btnCameraFboRecord;
-
+        mBtnSenior7 = mBinding.btnSenior7;
+        mBtnSenior8 = mBinding.btnSenior8;
         mGlFboShow = mBinding.glFboShow;
     }
 
@@ -109,6 +115,44 @@ public class OpenGLCameraFboFragment extends BaseFragment {
             }
         });
 
+        mBtnSenior7.setOnClickListener(view -> {
+            mGlFboShow.removeAllViews();
+            mGlView = new GLFBOPostProcessingView(getActivity()
+                    , mFFPlayCallJni);
+            mGlFboShow.addView(mGlView);
+        });
+
+        mBtnSenior8.setOnClickListener(view -> {
+            if (mGlView == null) {
+                return;
+            }
+            mGlView.setFBOPostProcessingType(switchType);
+            int type = mGlView.getFBOPostProcessingType();
+            switchBtnSenior7UI(type);
+            switchType++;
+        });
+
+    }
+
+    private void switchBtnSenior7UI(int type) {
+        switch (type) {
+            case 0: {
+                mBtnSenior7.setText("反相");
+            }
+            break;
+            case 1: {
+                mBtnSenior7.setText("图像灰度化");
+            }
+            break;
+            case 2: {
+                mBtnSenior7.setText("灰度化加权");
+            }
+            break;
+            case 3: {
+                mBtnSenior7.setText("核效果");
+            }
+            break;
+        }
     }
 
     private void onDestroyGLView() {

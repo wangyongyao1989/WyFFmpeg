@@ -36,6 +36,26 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="HardcodedText" />
 
+    <Button
+        android:id="@+id/btn_senior7"
+        android:layout_width="90dp"
+        android:layout_height="40dp"
+        android:text="FBO后期处理"
+        android:textSize="8sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_gl_fbo_back"
+        tools:ignore="HardcodedText,SmallSp" />
+
+    <Button
+        android:id="@+id/btn_senior8"
+        android:layout_width="90dp"
+        android:layout_height="40dp"
+        android:text="后期处理切换"
+        android:textSize="8sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_senior7"
+        tools:ignore="HardcodedText,SmallSp" />
+
 
     <FrameLayout
         android:id="@+id/gl_fbo_show"
