@@ -711,8 +711,8 @@ cpp_draw_text_surface_stop_record(JNIEnv *env, jobject thiz) {
 extern "C"
 JNIEXPORT void JNICALL
 cpp_fbo_surface_init(JNIEnv *env, jobject thiz, jint type,
-                           jstring vertex,
-                           jstring frag, jstring frag1) {
+                     jstring vertex,
+                     jstring frag, jstring frag1) {
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
     const char *fragPath = env->GetStringUTFChars(frag, nullptr);
     const char *fragPath1 = env->GetStringUTFChars(frag1, nullptr);
@@ -732,9 +732,9 @@ cpp_fbo_surface_init(JNIEnv *env, jobject thiz, jint type,
 extern "C"
 JNIEXPORT void JNICALL
 cpp_fbo_sharder_path(JNIEnv *env, jobject thiz,
-                      jstring vertex,
-                      jstring frag,
-                      jstring freeType) {
+                     jstring vertex,
+                     jstring frag,
+                     jstring freeType) {
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
     const char *fragPath = env->GetStringUTFChars(frag, nullptr);
     const char *freeTypePath = env->GetStringUTFChars(freeType, nullptr);
@@ -764,9 +764,25 @@ cpp_fbo_pic_path(JNIEnv *env, jobject thiz, jstring picPath) {
 
 extern "C"
 JNIEXPORT void JNICALL
+cpp_fbo_screen_path(JNIEnv *env, jobject thiz, jstring vScreen, jstring fScreen) {
+    const char *vScreenPath = env->GetStringUTFChars(vScreen, nullptr);
+    const char *fScreenPath = env->GetStringUTFChars(fScreen, nullptr);
+
+    if (glFboRender == nullptr)
+        glFboRender = new GLFboDrawTextVideoRender();
+
+    glFboRender->setScreenSharderPath(vScreenPath, fScreenPath);
+
+    env->ReleaseStringUTFChars(vScreen, vScreenPath);
+    env->ReleaseStringUTFChars(fScreen, fScreenPath);
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
 cpp_fbo_surface_created(JNIEnv *env, jobject thiz,
-                              jobject surface,
-                              jobject assetManager) {
+                        jobject surface,
+                        jobject assetManager) {
     if (glFboRender != nullptr) {
         ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
         auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
@@ -777,8 +793,8 @@ cpp_fbo_surface_created(JNIEnv *env, jobject thiz,
 extern "C"
 JNIEXPORT void JNICALL
 cpp_fbo_surface_changed(JNIEnv *env, jobject thiz,
-                              jint width,
-                              jint height) {
+                        jint width,
+                        jint height) {
     if (glFboRender != nullptr) {
         glFboRender->surfaceChanged((size_t) width, (size_t) height);
     }
@@ -795,15 +811,15 @@ cpp_fbo_surface_render(JNIEnv *env, jobject thiz) {
 extern "C"
 JNIEXPORT void JNICALL
 cpp_fbo_surface_draw(JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height,
-                           jint rotation) {
+                     jint rotation) {
     jbyte *bufferPtr = env->GetByteArrayElements(data, nullptr);
     jsize arrayLength = env->GetArrayLength(data);
 
     if (glFboRender != nullptr) {
 
         glFboRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
-                                    (size_t) height,
-                                    rotation);
+                          (size_t) height,
+                          rotation);
     }
 
     env->ReleaseByteArrayElements(data, bufferPtr, 0);
@@ -965,8 +981,10 @@ static const JNINativeMethod methods[] = {
                                                         "(Ljava/lang/String;"
                                                         "Ljava/lang/String;"
                                                         "Ljava/lang/String;)V",  (void *) cpp_fbo_sharder_path},
-
         {"native_fbo_pic_path",                         "(Ljava/lang/String;)V", (void *) cpp_fbo_pic_path},
+        {"native_fbo_screen_path",
+                                                        "(Ljava/lang/String;"
+                                                        "Ljava/lang/String;)V",  (void *) cpp_fbo_screen_path},
         {"native_fbo_surface_created",
                                                         "(Landroid/view/Surface;"
                                                         "Landroid/content/res"

@@ -283,9 +283,15 @@ GLFboDrawTextVideoRender::setSharderPath(const char *vertexPath, const char *fra
 
 bool
 GLFboDrawTextVideoRender::setTextSharderPath(const char *vertexPath, const char *fragmentPath,
-                                          const char *freeTypePath) {
+                                             const char *freeTypePath) {
     textGLShader->getSharderPath(vertexPath, fragmentPath);
     freeTypePathString = freeTypePath;
+    return 0;
+}
+
+bool
+GLFboDrawTextVideoRender::setScreenSharderPath(const char *vertexPath, const char *fragmentPath) {
+    screenShader->getSharderPath(vertexPath, fragmentPath);
     return 0;
 }
 
@@ -305,6 +311,7 @@ GLFboDrawTextVideoRender::GLFboDrawTextVideoRender() {
     yuvGLShader = new OpenGLShader();
     picGLShader = new OpenGLShader();
     textGLShader = new OpenGLShader();
+    screenShader = new OpenGLShader();
 }
 
 GLFboDrawTextVideoRender::~GLFboDrawTextVideoRender() {
@@ -314,6 +321,8 @@ GLFboDrawTextVideoRender::~GLFboDrawTextVideoRender() {
     delete_program(m_pic_program);
     m_vertexShader = 0;
     m_pixelShader = 0;
+    screenProgram = 0;
+
     if (m_pDataY) {
         m_pDataY = nullptr;
     }
@@ -339,6 +348,11 @@ GLFboDrawTextVideoRender::~GLFboDrawTextVideoRender() {
     if (textGLShader) {
         delete textGLShader;
         textGLShader = nullptr;
+    }
+
+    if (screenShader) {
+        delete screenShader;
+        screenShader = nullptr;
     }
 
     if (display) {
@@ -376,6 +390,11 @@ GLFboDrawTextVideoRender::~GLFboDrawTextVideoRender() {
     for (iter = Characters.begin(); iter != Characters.end(); iter++) {
         glDeleteTextures(1, &Characters[iter->first].TextureID);
     }
+
+    glDeleteVertexArrays(1, &quadVAO);
+    glDeleteBuffers(1, &quadVBO);
+    glDeleteRenderbuffers(1, &rbo);
+    glDeleteFramebuffers(1, &framebuffer);
 
 }
 
@@ -482,8 +501,8 @@ void GLFboDrawTextVideoRender::OnSurfaceChanged(int w, int h) {
     off_right = offX + outWidth;
     off_bottom = offY + outHeight;
     //Adjusting window 1920x1104 to +14,+0 1252x720
-    LOGE("Adjusting window offX:%d,offY:%d,off_right:%d,off_bottom:%d", offX, offY, off_right,
-         off_bottom);
+//    LOGE("Adjusting window offX:%d,offY:%d,off_right:%d,off_bottom:%d", offX, offY, off_right,
+//         off_bottom);
     // Set OpenGL options
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
@@ -499,15 +518,68 @@ void GLFboDrawTextVideoRender::OnSurfaceChanged(int w, int h) {
     const char *freeTypePath = freeTypePathString.data();
     LoadFacesByASCII(freeTypePath);
     bindTextVertexData();
+
+    // screen quad VAO
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+    glBindVertexArray(quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) 0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
+                          (void *) (2 * sizeof(float)));
+
+    createPostProcessingProgram();
+
+    //1.首先要创建一个帧缓冲对象，并绑定它，这些都很直观
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    //2.接下来我们需要创建一个纹理图像，我们将它作为一个颜色附件附加到帧缓冲上。
+    // 我们将纹理的维度设置为窗口的宽度和高度，并且不初始化它的数据
+    glGenTextures(1, &textureColorbuffer);
+    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_backingWidth, m_backingHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer,
+                           0);
+
+    //3.创建渲染缓冲对象
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_backingWidth,
+                          m_backingHeight);
+    //4.将渲染缓冲对象附加到帧缓冲的深度和模板附件上
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
+                              rbo);
+    //5.最后，我们希望检查帧缓冲是否是完整的，如果不是，我们将打印错误信息
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        LOGE("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
 
 void GLFboDrawTextVideoRender::OnDrawFrame() {
+
+//    //绑定到帧缓冲区，像往常一样绘制场景以着色纹理
+//    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+//    //启用深度测试（禁用渲染屏幕空间四边形）
+//    glEnable(GL_DEPTH_TEST);
+
+    // 确保清除帧缓冲区的内容
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
     //绘制YUV视频数据纹理
     if (!updateYUVTextures() || !useYUVProgram()) return;
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
     //绘制图片水印数据纹理
     bindPicTexture();
     usePicProgram();
@@ -523,7 +595,23 @@ void GLFboDrawTextVideoRender::OnDrawFrame() {
     RenderText("https://blog.csdn.net/wangyongyao1989", 300.0f, 500.0f, 1.0f, glm::vec3(0.8, 0.1f, 0.1f), viewport);
 
 
-//    LOGE("OnDrawFrame thread:%ld", pthread_self());
+//    //现在绑定回默认帧缓冲区，并使用附加的帧缓冲区颜色纹理绘制一个四边形平面
+//    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//    //禁用深度测试，这样屏幕空间四边形就不会因为深度测试而被丢弃。
+//    glDisable(GL_DEPTH_TEST);
+//
+//    // 清除所有相关缓冲区
+//    // 将透明颜色设置为白色（实际上并没有必要，因为我们无论如何都看不到四边形后面）
+//    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+//    glClear(GL_COLOR_BUFFER_BIT);
+//
+//    screenShader->use();
+//    glBindVertexArray(quadVAO);
+//    //使用颜色附着纹理作为四边形平面的纹理
+//    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+//    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+   // LOGE("OnDrawFrame thread:%ld", pthread_self());
     if (m_TextureMovieEncoder2 != nullptr) {
         m_TextureMovieEncoder2->frameAvailableSoon();
     }
@@ -547,6 +635,7 @@ void GLFboDrawTextVideoRender::OnDrawFrame() {
 void GLFboDrawTextVideoRender::OnSurfaceDestroyed() {
     m_vertexShader = 0;
     m_pixelShader = 0;
+    screenProgram = 0;
 
     if (m_pDataY) {
         m_pDataY = nullptr;
@@ -585,6 +674,10 @@ void GLFboDrawTextVideoRender::OnSurfaceDestroyed() {
 
     quit();
 
+    glDeleteVertexArrays(1, &quadVAO);
+    glDeleteBuffers(1, &quadVBO);
+    glDeleteRenderbuffers(1, &rbo);
+    glDeleteFramebuffers(1, &framebuffer);
 }
 
 void GLFboDrawTextVideoRender::printGLString(const char *name, GLenum s) {
@@ -697,8 +790,8 @@ void GLFboDrawTextVideoRender::RenderText(std::string text, GLfloat x, GLfloat y
     // 遍历文本中所有的字符
     std::string::const_iterator c;
 
-    LOGE("RenderText x:%f == y:%f", x, y);
-    LOGE("RenderText viewportX:%f == viewportY:%f", viewport.x, viewport.y);
+//    LOGE("RenderText x:%f == y:%f", x, y);
+//    LOGE("RenderText viewportX:%f == viewportY:%f", viewport.x, viewport.y);
 
     for (c = text.begin(); c != text.end(); c++) {
         FboCharacter ch = Characters[*c];
@@ -815,6 +908,17 @@ void GLFboDrawTextVideoRender::LoadFacesByASCII(const char *path) {
     FT_Done_FreeType(ft);
     LOGE("FT_Done_FreeType");
 
+}
+
+void GLFboDrawTextVideoRender::createPostProcessingProgram() {
+
+    screenProgram = screenShader->createProgram();
+    if (!screenProgram) {
+        LOGE("Could not create screenProgram shaderId.");
+        return ;
+    }
+    screenShader->use();
+    screenShader->setInt("screenTexture", 0);
 }
 
 

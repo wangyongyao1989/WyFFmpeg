@@ -1,11 +1,13 @@
 package com.example.myyffmpeg.fragment;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,8 +15,13 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentGlCameraFboLayoutBinding;
+import com.example.myyffmpeg.utils.DirectoryPath;
 import com.wangyongyao.glplay.OpenGLPlayCallJni;
 import com.wangyongyao.glplay.view.GLFboDrawTextSurfaceView;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * author : wangyongyao https://github.com/wangyongyao1989
@@ -30,6 +37,8 @@ public class OpenGLCameraFboFragment extends BaseFragment {
     private FrameLayout mGlFboShow;
     private GLFboDrawTextSurfaceView mFboDrawTextSurfaceView;
     private OpenGLPlayCallJni mFFPlayCallJni;
+    private Button mBtnFboRecord;
+    private boolean isRecording;
 
 
     @Override
@@ -44,6 +53,7 @@ public class OpenGLCameraFboFragment extends BaseFragment {
     public void initView() {
         mBtnGlFboBack = mBinding.btnGlFboBack;
         mBtnFboPre = mBinding.btnCameraFboPre;
+        mBtnFboRecord = mBinding.btnCameraFboRecord;
 
         mGlFboShow = mBinding.glFboShow;
     }
@@ -74,6 +84,29 @@ public class OpenGLCameraFboFragment extends BaseFragment {
                 mFboDrawTextSurfaceView = new GLFboDrawTextSurfaceView(getActivity(), mFFPlayCallJni);
             }
             mGlFboShow.addView(mFboDrawTextSurfaceView);
+        });
+
+        mBtnFboRecord.setOnClickListener(v -> {
+            if (mFboDrawTextSurfaceView != null) {
+                if (isRecording) {
+                    mFboDrawTextSurfaceView.stopRecord();
+                    isRecording = false;
+                    mBtnFboRecord.setText("开始视频录制");
+                } else {
+                    @SuppressLint("SimpleDateFormat") SimpleDateFormat formatter
+                            = new SimpleDateFormat("yy_MM_dd_HH_mm_ss");
+                    Date curDate = new Date(System.currentTimeMillis());//获取当前时间
+                    String str = formatter.format(curDate);
+                    String videoDir = DirectoryPath.createVideoDir(getActivity());
+                    String videoName = videoDir + File.pathSeparator + str + ".mp4";
+                    mFboDrawTextSurfaceView.startRecord(videoName);
+                    isRecording = true;
+                    mBtnFboRecord.setText("停止视频录制");
+                }
+            } else {
+                Toast.makeText(getActivity(), "GL FBO摄像头预览没开启"
+                        , Toast.LENGTH_SHORT).show();
+            }
         });
 
     }

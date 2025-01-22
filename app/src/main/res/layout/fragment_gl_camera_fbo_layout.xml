@@ -21,8 +21,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="5dp"
-        android:text="摄像头预览"
+        android:text="GL FBO摄像头预览"
         app:layout_constraintStart_toEndOf="@+id/btn_gl_fbo_back"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="HardcodedText" />
+
+    <Button
+        android:id="@+id/btn_camera_fbo_record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:text="视频录制"
+        app:layout_constraintStart_toEndOf="@+id/btn_camera_fbo_pre"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="HardcodedText" />
 

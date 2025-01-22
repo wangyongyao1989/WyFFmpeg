@@ -79,6 +79,14 @@ public class GLFboDrawTextSurfaceView extends SurfaceView implements SurfaceHold
                 , "yao.jpg");
         mJniCall.glFboPicPath(picPath);
 
+        String vertexScreenPath = OpenGLPlayFileUtils.getModelFilePath(mContext
+                , "fbo_screen_vertex.glsl");
+
+        String fragGrayScalePath = OpenGLPlayFileUtils.getModelFilePath(mContext
+                , "fbo_post_gray_scale_fragment.glsl");
+
+        mJniCall.glFBOPostProcessingPath(vertexScreenPath, fragGrayScalePath);
+
     }
 
 

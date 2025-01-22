@@ -397,6 +397,12 @@ public class OpenGLPlayCallJni {
         native_fbo_pic_path(vertexPath);
     }
 
+
+    public void glFBOPostProcessingPath(String vScreenPath, String fScreenPath) {
+        native_fbo_screen_path(vScreenPath, fScreenPath);
+    }
+
+
     public void glFboSurfaceCreated(Surface surface, AssetManager assetManager) {
         native_fbo_surface_created(surface, assetManager);
     }
@@ -431,6 +437,9 @@ public class OpenGLPlayCallJni {
     private native void native_fbo_sharder_path(String vertexPath, String fragPath, String freeTypePath);
 
     private native void native_fbo_pic_path(String picPath);
+
+    private native void native_fbo_screen_path(String vScreenPath, String fScreenPath);
+
 
     private native void native_fbo_surface_created(Surface surface, AssetManager assetManager);
 

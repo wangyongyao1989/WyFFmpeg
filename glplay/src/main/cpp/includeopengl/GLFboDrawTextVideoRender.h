@@ -88,6 +88,18 @@ static const float EGLFboPicTextureCoord[12] = {
         1, 1, 0,
 };
 
+// vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+const float quadVertices[] = {
+        // positions   // texCoords
+        -1.0f, 1.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, 1.0f, 0.0f,
+
+        -1.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, -1.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 1.0f, 1.0f
+};
+
 static const size_t BIT_RATE_FBO = 4000000;   // 4Mbps
 static const size_t VIDEO_WIDTH_FBO = 1280;
 static const size_t VIDEO_HEIGHT_FBO = 720;
@@ -118,7 +130,10 @@ public:
     bool
     setSharderPath(const char *vertexPath, const char *fragmentPath, const char *fragmentPath1);
 
-    bool setTextSharderPath(const char *vertexPath, const char *fragmentPath,const char *freeTypePath);
+    bool
+    setTextSharderPath(const char *vertexPath, const char *fragmentPath, const char *freeTypePath);
+
+    bool setScreenSharderPath(const char *vertexPath, const char *fragmentPath);
 
     bool setPicTextPath(const char *picPath);
 
@@ -164,6 +179,9 @@ private:
     int createPicProgram();
 
     int createTextProgram();
+
+    void createPostProcessingProgram();
+
 
     GLuint useYUVProgram();
 
@@ -220,6 +238,7 @@ private:
     OpenGLShader *yuvGLShader = nullptr;
     OpenGLShader *picGLShader = nullptr;
     OpenGLShader *textGLShader = nullptr;
+    OpenGLShader *screenShader = nullptr;
 
 
     EGLDisplay display = nullptr;
@@ -249,6 +268,16 @@ private:
     GLuint VBO = GL_NONE;
 
     string freeTypePathString;
+
+    unsigned int quadVAO;
+    unsigned int quadVBO;
+
+    unsigned int framebuffer;
+    unsigned int rbo;
+    unsigned int textureColorbuffer;
+
+    GLuint screenProgram;
+
 
 };
 
