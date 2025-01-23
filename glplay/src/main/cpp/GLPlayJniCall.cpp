@@ -543,9 +543,12 @@ cpp_fbo_ps_surface_created(JNIEnv *env, jobject thiz,
 extern "C"
 JNIEXPORT void JNICALL
 cpp_fbo_post_processing_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag, jstring vertex,
-                                         jstring fragScreen, jstring vertexScreen, jstring picsrc1,
-                                         jstring picsrc2, jstring fragGrayScale,
-                                         jstring fragWeightedGray, jstring fragNuclearEffect,
+                                         jstring fragScreen, jstring vertexScreen,
+                                         jstring picsrc1, jstring picsrc2,
+                                         jstring fragOpposition,
+                                         jstring fragGrayScale,
+                                         jstring fragWeightedGray,
+                                         jstring fragNuclearEffect,
                                          jstring vYUV, jstring fYUV
 ) {
     const char *fragPath = env->GetStringUTFChars(frag, nullptr);
@@ -555,6 +558,7 @@ cpp_fbo_post_processing_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag
     const char *picsrc1Path = env->GetStringUTFChars(picsrc1, nullptr);
     const char *picsrc2Path = env->GetStringUTFChars(picsrc2, nullptr);
 
+    const char *fragOppositionPath = env->GetStringUTFChars(fragOpposition, nullptr);
     const char *fragGrayScalePath = env->GetStringUTFChars(fragGrayScale, nullptr);
     const char *fragWeightedGrayPath = env->GetStringUTFChars(fragWeightedGray, nullptr);
     const char *fragNuclearEffectPath = env->GetStringUTFChars(fragNuclearEffect, nullptr);
@@ -569,6 +573,8 @@ cpp_fbo_post_processing_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag
 
     string sVertexScreenPath(vertexScreenPath);
     string sFragScreenPath(fragScreenPath);
+    string sFragOppositionPath(fragOppositionPath);
+
     string sFragGrayScalePath(fragGrayScalePath);
     string sFragWeightedGrayPath(fragWeightedGrayPath);
     string sFragNuclearEffectPath(fragNuclearEffectPath);
@@ -576,6 +582,7 @@ cpp_fbo_post_processing_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag
     vector<string> sFragPathes;
 
     sFragPathes.push_back(sFragScreenPath);
+    sFragPathes.push_back(sFragOppositionPath);
     sFragPathes.push_back(sFragGrayScalePath);
     sFragPathes.push_back(sFragWeightedGrayPath);
     sFragPathes.push_back(sFragNuclearEffectPath);
@@ -592,6 +599,11 @@ cpp_fbo_post_processing_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag
     env->ReleaseStringUTFChars(vertexScreen, vertexScreenPath);
     env->ReleaseStringUTFChars(picsrc1, picsrc1Path);
     env->ReleaseStringUTFChars(picsrc2, picsrc2Path);
+
+    env->ReleaseStringUTFChars(fragOpposition, picsrc2Path);
+    env->ReleaseStringUTFChars(fragGrayScale, fragGrayScalePath);
+    env->ReleaseStringUTFChars(fragWeightedGray, fragWeightedGrayPath);
+    env->ReleaseStringUTFChars(fragNuclearEffect, fragNuclearEffectPath);
 
     env->ReleaseStringUTFChars(vYUV, vYUVPath);
     env->ReleaseStringUTFChars(fYUV, fYUVPath);
@@ -1132,6 +1144,7 @@ static const JNINativeMethod methods[] = {
         {"native_fbo_post_processing_init_opengl",      "(II)Z",                 (void *) cpp_fbo_post_processing_init_opengl},
         {"native_fbo_post_processing_render_frame",     "()V",                   (void *) cpp_fbo_post_processing_render_frame},
         {"native_fbo_post_processing_set_glsl_path",    "(Ljava/lang/String"
+                                                        ";Ljava/lang/String"
                                                         ";Ljava/lang/String"
                                                         ";Ljava/lang/String"
                                                         ";Ljava/lang/String"

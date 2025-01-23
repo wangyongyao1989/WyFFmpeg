@@ -67,11 +67,12 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
         String picSrc2 = OpenGLPlayFileUtils.getModelFilePath(mContext
                 , "metal.png");
 
-        String fragScreenPath = OpenGLPlayFileUtils.getModelFilePath(mContext
-                , "fbo_post_opposition_fragment.glsl");
         String vertexScreenPath = OpenGLPlayFileUtils.getModelFilePath(mContext
                 , "fbo_screen_vertex.glsl");
-
+        String fragScreenPath = OpenGLPlayFileUtils.getModelFilePath(mContext
+                , "fbo_screen_fragment.glsl");
+        String fragOppositionPath = OpenGLPlayFileUtils.getModelFilePath(mContext
+                , "fbo_post_opposition_fragment.glsl");
         String fragGrayScalePath = OpenGLPlayFileUtils.getModelFilePath(mContext
                 , "fbo_post_gray_scale_fragment.glsl");
         String fragWeightedGrayPath = OpenGLPlayFileUtils.getModelFilePath(mContext
@@ -88,6 +89,7 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
             mJniCall.setFBOPostProcessingGLSLPath(fragPath, vertexPath
                     , fragScreenPath, vertexScreenPath
                     , picSrc1, picSrc2
+                    , fragOppositionPath
                     , fragGrayScalePath
                     , fragWeightedGrayPath
                     , fragNuclearEffectPath
@@ -100,7 +102,7 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
     }
 
     public void setFBOPostProcessingType(int type) {
-        int typeVaule = type % 4;
+        int typeVaule = type % 5;
         if (mJniCall != null) {
             mJniCall.glFBOPostProcessingSetParameters(typeVaule);
         }

@@ -137,18 +137,22 @@ public class OpenGLCameraFboFragment extends BaseFragment {
     private void switchBtnSenior7UI(int type) {
         switch (type) {
             case 0: {
-                mBtnSenior7.setText("反相");
+                mBtnSenior7.setText("正常");
             }
             break;
             case 1: {
-                mBtnSenior7.setText("图像灰度化");
+                mBtnSenior7.setText("反相");
             }
             break;
             case 2: {
-                mBtnSenior7.setText("灰度化加权");
+                mBtnSenior7.setText("图像灰度化");
             }
             break;
             case 3: {
+                mBtnSenior7.setText("灰度化加权");
+            }
+            break;
+            case 4: {
                 mBtnSenior7.setText("核效果");
             }
             break;

@@ -527,8 +527,8 @@ void GLFboDrawTextVideoRender::OnSurfaceChanged(int w, int h) {
     LoadFacesByASCII(freeTypePath);
     bindTextVertexData();
 
-    createPostProcessingProgram();
-    bindPostProcessingVertexData();
+//    createPostProcessingProgram();
+//    bindPostProcessingVertexData();
 
 
 }

@@ -161,9 +161,6 @@ void GLFBOPostProcessing::renderFrame() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-
-
     fBOShader->use();
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = mCamera.GetViewMatrix();
@@ -182,15 +179,25 @@ void GLFBOPostProcessing::renderFrame() {
     model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
     fBOShader->setMat4("model", model);
     glDrawArrays(GL_TRIANGLES, 0, 36);
+
     // floor
     glBindVertexArray(planeVAO);
     glBindTexture(GL_TEXTURE_2D, floorTexture);
     fBOShader->setMat4("model", glm::mat4(1.0f));
     glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
+//    glBindVertexArray(0);
 
-        //绘制YUV视频数据纹理
+    //绘制YUV视频数据纹理
+    yuvGLShader->use();
+    glm::mat4 model1 = glm::mat4(1.0f);
+    glm::mat4 view1 = mCamera.GetViewMatrix();
+    glm::mat4 projection1 = glm::perspective(glm::radians(mCamera.Zoom),
+                                            (float) screenW / (float) screenH, 0.1f, 100.0f);
+    yuvGLShader->setMat4("view", view1);
+    yuvGLShader->setMat4("projection", projection1);
     if (!updateYUVTextures() || !useYUVProgram()) return;
+    model1 = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+    yuvGLShader->setMat4("model", model1);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 
@@ -406,8 +413,6 @@ void GLFBOPostProcessing::OnSurfaceCreated() {
 }
 
 
-
-
 void GLFBOPostProcessing::surfaceCreated(ANativeWindow *window, AAssetManager *assetManager) {
     m_ANWindow = window;
     postMessage(MSG_PS_SurfaceCreated, false);
@@ -448,7 +453,7 @@ void GLFBOPostProcessing::handleMessage(LooperMessage *msg) {
 
 void
 GLFBOPostProcessing::draw(uint8_t *buffer, size_t length, size_t width, size_t height,
-                               float rotation) {
+                          float rotation) {
     ps_video_frame frame{};
     frame.width = width;
     frame.height = height;
@@ -575,9 +580,9 @@ bool GLFBOPostProcessing::createYUVTextures() {
 bool GLFBOPostProcessing::updateYUVTextures() {
 
     if (!m_textureIdY && !m_textureIdU && !m_textureIdV) return false;
-    LOGE("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
-         m_textureIdY,
-         m_textureIdU, m_textureIdV, isDirty);
+//    LOGE("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
+//         m_textureIdY,
+//         m_textureIdU, m_textureIdV, isDirty);
 
     if (isDirty) {
         glActiveTexture(GL_TEXTURE0);
