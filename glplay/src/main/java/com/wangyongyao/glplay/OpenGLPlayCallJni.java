@@ -474,6 +474,10 @@ public class OpenGLPlayCallJni {
         );
     }
 
+    public void glPSSurfaceCreated(Surface surface, AssetManager assetManager) {
+        native_fbo_ps_surface_created(surface, assetManager);
+    }
+
     public boolean initFBOPostProcessing(int w, int h) {
         return native_fbo_post_processing_init_opengl(w, h);
     }
@@ -508,6 +512,8 @@ public class OpenGLPlayCallJni {
     );
 
     private native boolean native_fbo_post_processing_init_opengl(int width, int height);
+
+    private native void native_fbo_ps_surface_created(Surface surface, AssetManager assetManager);
 
     private native void native_fbo_post_processing_render_frame();
 

@@ -499,7 +499,7 @@ JNIEXPORT jboolean JNICALL
 cpp_fbo_post_processing_init_opengl(JNIEnv *env, jobject thiz, jint width, jint height) {
     if (postProcessing == nullptr)
         postProcessing = new GLFBOPostProcessing();
-    postProcessing->setupGraphics(width, height);
+    postProcessing->surfaceChanged(width, height);
     return 0;
 }
 
@@ -507,8 +507,20 @@ extern "C"
 JNIEXPORT void JNICALL
 cpp_fbo_post_processing_render_frame(JNIEnv *env, jobject thiz) {
     if (postProcessing == nullptr) return;
-    postProcessing->renderFrame();
+    postProcessing->render();
 
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_ps_surface_created(JNIEnv *env, jobject thiz,
+                           jobject surface,
+                           jobject assetManager) {
+    if (postProcessing != nullptr) {
+        ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
+        auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
+        postProcessing->surfaceCreated(window, aAssetManager);
+    }
 }
 
 extern "C"
@@ -1105,21 +1117,24 @@ static const JNINativeMethod methods[] = {
         {"native_fbo_surface_stop_record",              "()V",                   (void *) cpp_fbo_surface_stop_record},
 
         /*********************** GL 帧缓冲FBO——后期处理********************/
-        {"native_fbo_post_processing_init_opengl",    "(II)Z",                 (void *) cpp_fbo_post_processing_init_opengl},
-        {"native_fbo_post_processing_render_frame",   "()V",                   (void *) cpp_fbo_post_processing_render_frame},
-        {"native_fbo_post_processing_set_glsl_path",  "(Ljava/lang/String"
-                                                      ";Ljava/lang/String"
-                                                      ";Ljava/lang/String"
-                                                      ";Ljava/lang/String"
-                                                      ";Ljava/lang/String"
-                                                      ";Ljava/lang/String"
-                                                      ";Ljava/lang/String"
-                                                      ";Ljava/lang/String"
-                                                      ";Ljava/lang/String;)V", (void *) cpp_fbo_post_processing_frag_vertex_path},
-        {"native_fbo_post_processing_move_xy",        "(FFI)V",                (void *) cpp_fbo_post_processing_move_xy},
-        {"native_fbo_post_processing_on_scale",       "(FFFI)V",               (void *) cpp_fbo_post_processing_on_scale},
-        {"native_fbo_post_processing_set_parameters", "(I)V",                  (void *) cpp_fbo_post_processing_setParameters},
-        {"native_fbo_post_processing_get_parameters", "()I",                   (void *) cpp_fbo_post_processing_getParameters},
+        {"native_fbo_ps_surface_created",               "(Landroid/view/Surface;"
+                                                        "Landroid/content/res"
+                                                        "/AssetManager;)V",      (void *) cpp_fbo_ps_surface_created},
+        {"native_fbo_post_processing_init_opengl",      "(II)Z",                 (void *) cpp_fbo_post_processing_init_opengl},
+        {"native_fbo_post_processing_render_frame",     "()V",                   (void *) cpp_fbo_post_processing_render_frame},
+        {"native_fbo_post_processing_set_glsl_path",    "(Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String;)V", (void *) cpp_fbo_post_processing_frag_vertex_path},
+        {"native_fbo_post_processing_move_xy",          "(FFI)V",                (void *) cpp_fbo_post_processing_move_xy},
+        {"native_fbo_post_processing_on_scale",         "(FFFI)V",               (void *) cpp_fbo_post_processing_on_scale},
+        {"native_fbo_post_processing_set_parameters",   "(I)V",                  (void *) cpp_fbo_post_processing_setParameters},
+        {"native_fbo_post_processing_get_parameters",   "()I",                   (void *) cpp_fbo_post_processing_getParameters},
 
 };
 

@@ -15,15 +15,26 @@
 #include <vector>
 #include <stb_image.h>
 #include <jni.h>
+#include "EglCore.h"
+#include "WindowSurface.h"
+#include "Looper.h"
+#include "VideoEncoderCore.h"
+#include "TextureMovieEncoder2.h"
 
 
 #include "OpenGLCamera3D.h"
 #include "OpenGLShader.h"
 
 
-
 using namespace std;
 using namespace glm;
+
+enum {
+    MSG_PS_SurfaceCreated,
+    MSG_PS_SurfaceChanged,
+    MSG_PS_DrawFrame,
+    MSG_PS_SurfaceDestroyed,
+};
 
 
 const float PostProcessingVertices[] = {
@@ -95,7 +106,7 @@ const float PostProcessingQuadVertices[] = {
         1.0f, 1.0f, 1.0f, 1.0f
 };
 
-class GLFBOPostProcessing {
+class GLFBOPostProcessing : public Looper {
 private:
     unsigned int cubeTexture;
     unsigned int floorTexture;
@@ -123,7 +134,6 @@ private:
     unsigned int textureColorbuffer;
 
 
-
     string colorVertexCode;
     string colorFragmentCode;
 
@@ -135,6 +145,12 @@ private:
     GLuint screenProgram;
     string m_vertexStringPath;
     vector<string> m_fragmentStringPathes;
+
+    EglCore *m_EglCore = nullptr;
+    WindowSurface *m_WindowSurface = nullptr;
+    EGLSurface winsurface = nullptr;
+
+    ANativeWindow *m_ANWindow = nullptr;
 
     void delete_program(GLuint &program);
 
@@ -174,4 +190,15 @@ public:
 
     size_t m_prevFilter = 0;
 
+    void handleMessage(LooperMessage *msg);
+
+    void OnSurfaceCreated();
+
+    void surfaceCreated(ANativeWindow *window, AAssetManager *assetManager);
+
+    void surfaceChanged(size_t width, size_t height);
+
+    void render();
+
+    void release();
 };

@@ -34,7 +34,8 @@ bool GLFBOPostProcessing::setupGraphics(int w, int h) {
     glGenBuffers(1, &cubeVBO);
     glBindVertexArray(cubeVAO);
     glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(PostProcessingVertices), &PostProcessingVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(PostProcessingVertices), &PostProcessingVertices,
+                 GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(1);
@@ -47,7 +48,8 @@ bool GLFBOPostProcessing::setupGraphics(int w, int h) {
     glGenBuffers(1, &planeVBO);
     glBindVertexArray(planeVAO);
     glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(PostProcessingPlaneVertices), &PostProcessingPlaneVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(PostProcessingPlaneVertices), &PostProcessingPlaneVertices,
+                 GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(1);
@@ -135,12 +137,15 @@ bool GLFBOPostProcessing::setupGraphics(int w, int h) {
 }
 
 void GLFBOPostProcessing::renderFrame() {
+//    LOGE("renderFrame=========");
+
     if (m_filter != m_prevFilter) {
         m_prevFilter = m_filter;
         if (m_filter >= 0 && m_filter < m_fragmentStringPathes.size()) {
             delete_program(screenProgram);
             LOGI("render---m_filter：%d", m_filter);
-            screenShader->getSharderStringPath(m_vertexStringPath, m_fragmentStringPathes.at(m_prevFilter));
+            screenShader->getSharderStringPath(m_vertexStringPath,
+                                               m_fragmentStringPathes.at(m_prevFilter));
             createPostProcessingProgram();
         }
     }
@@ -194,8 +199,12 @@ void GLFBOPostProcessing::renderFrame() {
     //使用颜色附着纹理作为四边形平面的纹理
     glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
     glDrawArrays(GL_TRIANGLES, 0, 6);
-
     checkGlError("glDrawArrays");
+
+
+    //切换到m_WindowSurface
+    m_WindowSurface->makeCurrent();
+    m_WindowSurface->swapBuffers();
 }
 
 bool GLFBOPostProcessing::setSharderPath(const char *vertexPath, const char *fragmentPath) {
@@ -204,9 +213,9 @@ bool GLFBOPostProcessing::setSharderPath(const char *vertexPath, const char *fra
 }
 
 
-
 bool
-GLFBOPostProcessing::setSharderScreenPathes(string vertexScreenPath, vector<string> fragmentScreenPathes) {
+GLFBOPostProcessing::setSharderScreenPathes(string vertexScreenPath,
+                                            vector<string> fragmentScreenPathes) {
     screenShader->getSharderStringPath(vertexScreenPath, fragmentScreenPathes.front());
     m_vertexStringPath = vertexScreenPath;
     m_fragmentStringPathes = fragmentScreenPathes;
@@ -230,7 +239,8 @@ void GLFBOPostProcessing::setMoveXY(float dx, float dy, int actionMode) {
     mCamera.ProcessXYMovement(xoffset, yoffset);
 }
 
-void GLFBOPostProcessing::setOnScale(float scaleFactor, float focusX, float focusY, int actionMode) {
+void
+GLFBOPostProcessing::setOnScale(float scaleFactor, float focusX, float focusY, int actionMode) {
     float scale;
     if (actionMode == 1 || actionMode == 3) {
         scale = 45.0f;
@@ -268,6 +278,19 @@ GLFBOPostProcessing::~GLFBOPostProcessing() {
     glDeleteRenderbuffers(1, &rbo);
     glDeleteFramebuffers(1, &framebuffer);
 
+    if (winsurface) {
+        winsurface = nullptr;
+    }
+
+    if (m_EglCore) {
+        delete m_EglCore;
+        m_EglCore = nullptr;
+    }
+
+    if (m_WindowSurface) {
+        delete m_WindowSurface;
+        m_WindowSurface = nullptr;
+    }
 
     fBOShader = nullptr;
     screenShader = nullptr;
@@ -341,7 +364,7 @@ void GLFBOPostProcessing::createPostProcessingProgram() {
     screenProgram = screenShader->createProgram();
     if (!screenProgram) {
         LOGE("Could not create screenProgram shaderId.");
-        return ;
+        return;
     }
     screenShader->use();
     screenShader->setInt("screenTexture", 0);
@@ -352,5 +375,63 @@ void GLFBOPostProcessing::delete_program(GLuint &program) {
         glUseProgram(0);
         glDeleteProgram(program);
         program = 0;
+    }
+}
+
+void GLFBOPostProcessing::OnSurfaceCreated() {
+    m_EglCore = new EglCore(eglGetCurrentContext(), FLAG_RECORDABLE);
+    if (!m_EglCore) {
+        LOGE("new EglCore failed!");
+        return;
+    }
+
+    LOGE("OnSurfaceCreated m_ANWindow:%p", m_ANWindow);
+
+    m_WindowSurface = new WindowSurface(m_EglCore, m_ANWindow);
+    if (!m_EglCore) {
+        LOGE("new WindowSurface failed!");
+        return;
+    }
+    m_WindowSurface->makeCurrent();
+}
+
+
+
+
+void GLFBOPostProcessing::surfaceCreated(ANativeWindow *window, AAssetManager *assetManager) {
+    m_ANWindow = window;
+    postMessage(MSG_PS_SurfaceCreated, false);
+}
+
+void GLFBOPostProcessing::surfaceChanged(size_t width, size_t height) {
+    postMessage(MSG_PS_SurfaceChanged, width, height);
+}
+
+void GLFBOPostProcessing::render() {
+    postMessage(MSG_PS_DrawFrame, false);
+}
+
+void GLFBOPostProcessing::release() {
+    postMessage(MSG_PS_SurfaceDestroyed, false);
+}
+
+void GLFBOPostProcessing::handleMessage(LooperMessage *msg) {
+    Looper::handleMessage(msg);
+    switch (msg->what) {
+        case MSG_PS_SurfaceCreated: {
+            OnSurfaceCreated();
+        }
+            break;
+        case MSG_PS_SurfaceChanged:
+            setupGraphics(msg->arg1, msg->arg2);
+            break;
+        case MSG_PS_DrawFrame:
+            renderFrame();
+            break;
+        case MSG_PS_SurfaceDestroyed:
+//            OnSurfaceDestroyed();
+            break;
+        default:
+            break;
     }
 }
