@@ -36,6 +36,17 @@ enum {
     MSG_PS_SurfaceDestroyed,
 };
 
+struct ps_video_frame {
+    size_t width;
+    size_t height;
+    size_t stride_y;
+    size_t stride_uv;
+    uint8_t *y;
+    uint8_t *u;
+    uint8_t *v;
+};
+
+
 
 const float PostProcessingVertices[] = {
         // positions          // texture Coords
@@ -115,9 +126,6 @@ private:
     int screenW, screenH;
     int width1, height1, nrChannels1;
     int width2, height2, nrChannels2;
-    double timeValue;
-    float lastX, lastY;
-    int mActionMode;
 
 
     unsigned int cubeVAO;
@@ -170,9 +178,6 @@ public:
 
     void setPicPath(const char *pic1, const char *pic2);
 
-    void setMoveXY(float dx, float dy, int actionMode);
-
-    void setOnScale(float scaleFactor, float focusX, float focusY, int actionMode);
 
     void printGLString(const char *name, GLenum s);
 
@@ -201,4 +206,25 @@ public:
     void render();
 
     void release();
+
+    void draw(uint8_t *buffer, size_t length, size_t width, size_t height, float rotation);
+    void updateFrame(const ps_video_frame &frame);
+
+    size_t m_sizeY = 0;
+    size_t m_sizeU = 0;
+    size_t m_sizeV = 0;
+
+    std::unique_ptr<uint8_t[]> m_pDataY = nullptr;
+
+    uint8_t *m_pDataU = nullptr;
+    uint8_t *m_pDataV = nullptr;
+
+    __unused  size_t m_length = 0;
+
+    size_t m_width = 0;
+    size_t m_height = 0;
+    bool isDirty;
+
+
+
 };

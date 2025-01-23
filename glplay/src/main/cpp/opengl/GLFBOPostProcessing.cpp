@@ -137,7 +137,6 @@ bool GLFBOPostProcessing::setupGraphics(int w, int h) {
 }
 
 void GLFBOPostProcessing::renderFrame() {
-//    LOGE("renderFrame=========");
 
     if (m_filter != m_prevFilter) {
         m_prevFilter = m_filter;
@@ -229,32 +228,6 @@ void GLFBOPostProcessing::setPicPath(const char *pic1, const char *pic2) {
     data2 = stbi_load(pic2, &width2, &height2, &nrChannels2, 0);
 }
 
-void GLFBOPostProcessing::setMoveXY(float dx, float dy, int actionMode) {
-    LOGI("setMoveXY dx:%f,dy:%f,actionMode:%d", dy, dy, actionMode);
-    float xoffset = dx - lastX;
-    float yoffset = lastY - dy; // reversed since y-coordinates go from bottom to top
-    lastX = dx;
-    lastY = dy;
-    mActionMode = actionMode;
-    mCamera.ProcessXYMovement(xoffset, yoffset);
-}
-
-void
-GLFBOPostProcessing::setOnScale(float scaleFactor, float focusX, float focusY, int actionMode) {
-    float scale;
-    if (actionMode == 1 || actionMode == 3) {
-        scale = 45.0f;
-    } else {
-        if (scaleFactor > 1) {
-            scale = (scaleFactor - 1) * 1000 + 45;
-        } else {
-            scale = 50 - (1 - scaleFactor) * 1000;
-        }
-    }
-    LOGI("setOnScale scale:%f", scale);
-    mCamera.ProcessScroll(scale);
-}
-
 
 GLFBOPostProcessing::GLFBOPostProcessing() {
     fBOShader = new OpenGLShader();
@@ -290,6 +263,19 @@ GLFBOPostProcessing::~GLFBOPostProcessing() {
     if (m_WindowSurface) {
         delete m_WindowSurface;
         m_WindowSurface = nullptr;
+    }
+
+
+    if (m_pDataY) {
+        m_pDataY = nullptr;
+    }
+    if (m_pDataU) {
+        delete m_pDataU;
+        m_pDataU = nullptr;
+    }
+    if (m_pDataV) {
+        delete m_pDataV;
+        m_pDataV = nullptr;
     }
 
     fBOShader = nullptr;
@@ -434,4 +420,71 @@ void GLFBOPostProcessing::handleMessage(LooperMessage *msg) {
         default:
             break;
     }
+}
+
+void
+GLFBOPostProcessing::draw(uint8_t *buffer, size_t length, size_t width, size_t height,
+                               float rotation) {
+    ps_video_frame frame{};
+    frame.width = width;
+    frame.height = height;
+    frame.stride_y = width;
+    frame.stride_uv = width / 2;
+    frame.y = buffer;
+    frame.u = buffer + width * height;
+    frame.v = buffer + width * height * 5 / 4;
+
+    updateFrame(frame);
+}
+
+void GLFBOPostProcessing::updateFrame(const ps_video_frame &frame) {
+    m_sizeY = frame.width * frame.height;
+    m_sizeU = frame.width * frame.height / 4;
+    m_sizeV = frame.width * frame.height / 4;
+
+    if (m_pDataY == nullptr || m_width != frame.width || m_height != frame.height) {
+        m_pDataY = std::make_unique<uint8_t[]>(m_sizeY + m_sizeU + m_sizeV);
+        m_pDataU = m_pDataY.get() + m_sizeY;
+        m_pDataV = m_pDataU + m_sizeU;
+    }
+
+    m_width = frame.width;
+    m_height = frame.height;
+
+    if (m_width == frame.stride_y) {
+        memcpy(m_pDataY.get(), frame.y, m_sizeY);
+    } else {
+        uint8_t *pSrcY = frame.y;
+        uint8_t *pDstY = m_pDataY.get();
+
+        for (int h = 0; h < m_height; h++) {
+            memcpy(pDstY, pSrcY, m_width);
+
+            pSrcY += frame.stride_y;
+            pDstY += m_width;
+        }
+    }
+
+    if (m_width / 2 == frame.stride_uv) {
+        memcpy(m_pDataU, frame.u, m_sizeU);
+        memcpy(m_pDataV, frame.v, m_sizeV);
+    } else {
+        uint8_t *pSrcU = frame.u;
+        uint8_t *pSrcV = frame.v;
+        uint8_t *pDstU = m_pDataU;
+        uint8_t *pDstV = m_pDataV;
+
+        for (int h = 0; h < m_height / 2; h++) {
+            memcpy(pDstU, pSrcU, m_width / 2);
+            memcpy(pDstV, pSrcV, m_width / 2);
+
+            pDstU += m_width / 2;
+            pDstV += m_width / 2;
+
+            pSrcU += frame.stride_uv;
+            pSrcV += frame.stride_uv;
+        }
+    }
+
+    isDirty = true;
 }

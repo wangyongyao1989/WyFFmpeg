@@ -486,12 +486,8 @@ public class OpenGLPlayCallJni {
         native_fbo_post_processing_render_frame();
     }
 
-    public void glFBOPostProcessingMoveXY(float dx, float dy, int action) {
-        native_fbo_post_processing_move_xy(dx, dy, action);
-    }
-
-    public void glFBOPostProcessingOnScale(float scaleFactor, float focusX, float focusY, int action) {
-        native_fbo_post_processing_on_scale(scaleFactor, focusX, focusY, action);
+    public void glFboPostProcessingSurfaceDraw(byte[] data, int width, int height, int rotation) {
+        native_fbo_ps_surface_draw(data, width, height, rotation);
     }
 
     public void glFBOPostProcessingSetParameters(int params) {
@@ -517,9 +513,8 @@ public class OpenGLPlayCallJni {
 
     private native void native_fbo_post_processing_render_frame();
 
-    private native void native_fbo_post_processing_move_xy(float dx, float dy, int action);
+    private native void native_fbo_ps_surface_draw(byte[] data, int width, int height, int rotation);
 
-    private native void native_fbo_post_processing_on_scale(float scaleFactor, float focusX, float focusY, int action);
 
     private native void native_fbo_post_processing_set_parameters(int params);
 

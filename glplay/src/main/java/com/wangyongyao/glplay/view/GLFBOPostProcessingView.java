@@ -30,17 +30,9 @@ import com.wangyongyao.glplay.utils.OpenGLPlayFileUtils;
 public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolder.Callback , GLCamera2Listener {
     private static String TAG = GLFBOPostProcessingView.class.getSimpleName();
 
-    private GestureDetector gestureDetector;
-    private ScaleGestureDetector scaleGestureDetector;
 
     private OpenGLPlayCallJni mJniCall;
     private Context mContext;
-    private boolean isScaleGesture;
-
-    private float downX;
-    private float downY;
-    private int mWidth;
-    private int mHeight;
 
     private SurfaceHolder mHolder;
     private Surface mSurface;
@@ -98,38 +90,6 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
         }
 
 
-        gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener());
-        scaleGestureDetector = new ScaleGestureDetector(getContext()
-                , new ScaleGestureDetector.OnScaleGestureListener() {
-            @Override
-            public boolean onScale(ScaleGestureDetector detector) {
-                // 处理缩放事件
-                float scaleFactor = detector.getScaleFactor();
-                mJniCall.glFBOPostProcessingOnScale(scaleFactor, detector.getFocusX()
-                        , detector.getFocusY(), 2);
-                return true;
-            }
-
-            @Override
-            public boolean onScaleBegin(ScaleGestureDetector detector) {
-                // 开始缩放事件
-//                Log.e(TAG, "onScaleBegin: " + detector);
-                mJniCall.glFBOPostProcessingOnScale(detector.getScaleFactor(), detector.getFocusX()
-                        , detector.getFocusY(), 1);
-                return true;
-            }
-
-            @Override
-            public void onScaleEnd(ScaleGestureDetector detector) {
-                // 结束缩放事件
-//                Log.e(TAG, "onScaleEnd: " + detector);
-                mJniCall.glFBOPostProcessingOnScale(detector.getScaleFactor(), detector.getFocusX()
-                        , detector.getFocusY(), 3);
-                isScaleGesture = false;
-            }
-        });
-
-
     }
 
     public void setFBOPostProcessingType(int type) {
@@ -174,50 +134,6 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
     }
 
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if (isScaleGesture) {
-            gestureDetector.onTouchEvent(event);
-            scaleGestureDetector.onTouchEvent(event);
-            return true;
-        }
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_POINTER_2_DOWN: {
-                isScaleGesture = true;
-            }
-            break;
-            case MotionEvent.ACTION_POINTER_2_UP: {
-                isScaleGesture = false;
-            }
-            break;
-            case MotionEvent.ACTION_DOWN: {
-//                Log.e(TAG, "onTouchEvent: " + event.getAction());
-                downX = event.getX();
-                downY = event.getY();
-                mJniCall.glFBOPostProcessingMoveXY(0, 0, 1);
-            }
-            break;
-            case MotionEvent.ACTION_MOVE: {
-//                Log.e(TAG, "onTouchEvent: " + event.getAction());
-                float dx = event.getX() - downX;
-                float dy = event.getY() - downY;
-//                Log.e(TAG, "ACTION_MOVE:dx= "
-//                        + dx + "==dy:" + dy);
-                mJniCall.glFBOPostProcessingMoveXY(dx, dy, 2);
-            }
-            break;
-            case MotionEvent.ACTION_UP: {
-//                Log.e(TAG, "onTouchEvent: " + event.getAction());
-                downX = 0;
-                downY = 0;
-                mJniCall.glFBOPostProcessingMoveXY(0, 0, 3);
-            }
-            break;
-        }
-
-
-        return true;
-    }
 
     @Override
     public void onCameraOpened(Size previewSize, int displayOrientation) {
@@ -227,6 +143,7 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
     @Override
     public void onPreviewFrame(byte[] yuvData, int width, int height) {
         if (mJniCall != null) {
+            mJniCall.glFboPostProcessingSurfaceDraw(yuvData, width, height, 90);
             mJniCall.glFBOPostProcessingRenderFrame();
         }
     }
