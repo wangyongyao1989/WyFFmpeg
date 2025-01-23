@@ -1,5 +1,5 @@
 //  Author : wangyongyao https://github.com/wangyongyao1989
-// Created by MMM on 2024/9/5.
+// Created by MMM on 2025/1/23.
 //
 
 #include <android/native_window.h>
@@ -18,9 +18,9 @@ bool GLFBOPostProcessing::setupGraphics(int w, int h) {
     }
 
 
-//    glViewport(0, 0, w, h);
-//    checkGlError("glViewport");
-//    LOGI("glViewport successed!");
+    glViewport(0, 0, w, h);
+    checkGlError("glViewport");
+    LOGI("glViewport successed!");
 
     //清屏
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -116,7 +116,7 @@ bool GLFBOPostProcessing::setupGraphics(int w, int h) {
     // 我们将纹理的维度设置为窗口的宽度和高度，并且不初始化它的数据
     glGenTextures(1, &textureColorbuffer);
     glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenW /2, screenH /2, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenW , screenH , 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer,
@@ -155,7 +155,7 @@ void GLFBOPostProcessing::renderFrame() {
     //绑定到帧缓冲区，像往常一样绘制场景以着色纹理
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     //启用深度测试（禁用渲染屏幕空间四边形）
-//    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
 
     // 确保清除帧缓冲区的内容
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -182,26 +182,25 @@ void GLFBOPostProcessing::renderFrame() {
     fBOShader->setMat4("model", model);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
-//    // floor
-//    glBindVertexArray(planeVAO);
-//    glBindTexture(GL_TEXTURE_2D, floorTexture);
-//    fBOShader->setMat4("model", glm::mat4(1.0f));
-//    glDrawArrays(GL_TRIANGLES, 0, 6);
-//    glBindVertexArray(0);
+    // floor
+    glBindVertexArray(planeVAO);
+    glBindTexture(GL_TEXTURE_2D, floorTexture);
+    fBOShader->setMat4("model", glm::mat4(1.0f));
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
 
     //绘制YUV视频数据纹理
     yuvGLShader->use();
     glm::mat4 model1 = glm::mat4(1.0f);
     glm::mat4 view1 = mCamera.GetViewMatrix();
     glm::mat4 projection1 = glm::perspective(glm::radians(mCamera.Zoom),
-                                            (float) screenW / (float) screenH, 0.1f, 100.0f);
+                                             (float) screenW / (float) screenH, 0.1f, 100.0f);
     yuvGLShader->setMat4("view", view1);
     yuvGLShader->setMat4("projection", projection1);
     if (!updateYUVTextures() || !useYUVProgram()) return;
-    model1 = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+    model1 = glm::translate(model1, glm::vec3(-1.0f, 0.0f, -1.0f));
     yuvGLShader->setMat4("model", model1);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
 
     //现在绑定回默认帧缓冲区，并使用附加的帧缓冲区颜色纹理绘制一个四边形平面
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -210,8 +209,8 @@ void GLFBOPostProcessing::renderFrame() {
 
     // 清除所有相关缓冲区
     // 将透明颜色设置为白色（实际上并没有必要，因为我们无论如何都看不到四边形后面）
-//    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-//    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     screenShader->use();
     glBindVertexArray(quadVAO);
