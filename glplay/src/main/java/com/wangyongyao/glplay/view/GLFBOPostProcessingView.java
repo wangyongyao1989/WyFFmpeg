@@ -27,7 +27,7 @@ import com.wangyongyao.glplay.utils.OpenGLPlayFileUtils;
  * Create Time : 2025/1/16
  * Descibe : AndroidLearnOpenGL com.wangyongyao.views
  */
-public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolder.Callback , GLCamera2Listener {
+public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolder.Callback, GLCamera2Listener {
     private static String TAG = GLFBOPostProcessingView.class.getSimpleName();
 
 
@@ -79,6 +79,11 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
         String fragNuclearEffectPath = OpenGLPlayFileUtils.getModelFilePath(mContext
                 , "fbo_post_nuclear_effect_fragment.glsl");
 
+        String fYUVPath = OpenGLPlayFileUtils.getModelFilePath(mContext
+                , "draw_text_video_play_frament.glsl");
+        String vYUVPath = OpenGLPlayFileUtils.getModelFilePath(mContext
+                , "draw_text_video_play_vert.glsl");
+
         if (mJniCall != null) {
             mJniCall.setFBOPostProcessingGLSLPath(fragPath, vertexPath
                     , fragScreenPath, vertexScreenPath
@@ -86,6 +91,8 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
                     , fragGrayScalePath
                     , fragWeightedGrayPath
                     , fragNuclearEffectPath
+                    , vYUVPath
+                    , fYUVPath
             );
         }
 
@@ -132,7 +139,6 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
             mJniCall.glFboSurfaceDestroy();
         }
     }
-
 
 
     @Override

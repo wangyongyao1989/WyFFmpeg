@@ -464,6 +464,8 @@ public class OpenGLPlayCallJni {
             , String fragGrayScalePath
             , String fragWeightedGrayPath
             , String fragNuclearEffectPath
+            , String vYUVPath
+            , String fYUVPath
     ) {
         native_fbo_post_processing_set_glsl_path(fragString, vertexString
                 , fragScreenString, vertexScreenString
@@ -471,6 +473,8 @@ public class OpenGLPlayCallJni {
                 , fragGrayScalePath
                 , fragWeightedGrayPath
                 , fragNuclearEffectPath
+                , vYUVPath
+                , fYUVPath
         );
     }
 
@@ -504,7 +508,8 @@ public class OpenGLPlayCallJni {
             , String fragGrayScalePath
             , String fragWeightedGrayPath
             , String fragNuclearEffectPath
-
+            , String vYUVPath
+            , String fYUVPath
     );
 
     private native boolean native_fbo_post_processing_init_opengl(int width, int height);

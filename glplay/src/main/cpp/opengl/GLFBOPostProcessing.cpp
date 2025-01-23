@@ -29,6 +29,9 @@ bool GLFBOPostProcessing::setupGraphics(int w, int h) {
     //开启深度测试
     glEnable(GL_DEPTH_TEST);
 
+    useYUVProgram();
+    createYUVTextures();
+
     // cube VAO
     glGenVertexArrays(1, &cubeVAO);
     glGenBuffers(1, &cubeVBO);
@@ -158,6 +161,9 @@ void GLFBOPostProcessing::renderFrame() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+
+
     fBOShader->use();
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = mCamera.GetViewMatrix();
@@ -181,6 +187,11 @@ void GLFBOPostProcessing::renderFrame() {
     glBindTexture(GL_TEXTURE_2D, floorTexture);
     fBOShader->setMat4("model", glm::mat4(1.0f));
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+
+        //绘制YUV视频数据纹理
+    if (!updateYUVTextures() || !useYUVProgram()) return;
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 
     //现在绑定回默认帧缓冲区，并使用附加的帧缓冲区颜色纹理绘制一个四边形平面
@@ -211,6 +222,10 @@ bool GLFBOPostProcessing::setSharderPath(const char *vertexPath, const char *fra
     return 0;
 }
 
+bool GLFBOPostProcessing::setYUVSharderPath(const char *vertexPath, const char *fragmentPath) {
+    yuvGLShader->getSharderPath(vertexPath, fragmentPath);
+    return 0;
+}
 
 bool
 GLFBOPostProcessing::setSharderScreenPathes(string vertexScreenPath,
@@ -232,6 +247,7 @@ void GLFBOPostProcessing::setPicPath(const char *pic1, const char *pic2) {
 GLFBOPostProcessing::GLFBOPostProcessing() {
     fBOShader = new OpenGLShader();
     screenShader = new OpenGLShader;
+    yuvGLShader = new OpenGLShader();
 }
 
 GLFBOPostProcessing::~GLFBOPostProcessing() {
@@ -296,6 +312,14 @@ GLFBOPostProcessing::~GLFBOPostProcessing() {
 
     colorVertexCode.clear();
     colorFragmentCode.clear();
+
+    deleteYUVTextures();
+
+    if (yuvGLShader) {
+        delete yuvGLShader;
+        yuvGLShader = nullptr;
+    }
+
 }
 
 void GLFBOPostProcessing::printGLString(const char *name, GLenum s) {
@@ -487,4 +511,160 @@ void GLFBOPostProcessing::updateFrame(const ps_video_frame &frame) {
     }
 
     isDirty = true;
+}
+
+
+bool GLFBOPostProcessing::createYUVTextures() {
+    auto widthY = (GLsizei) m_width;
+    auto heightY = (GLsizei) m_height;
+
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &m_textureIdY);
+    glBindTexture(GL_TEXTURE_2D, m_textureIdY);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, widthY, heightY, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,
+                 nullptr);
+
+    if (!m_textureIdY) {
+        LOGE("OpenGL Error Create Y texture");
+        return false;
+    }
+
+    GLsizei widthU = (GLsizei) m_width / 2;
+    GLsizei heightU = (GLsizei) m_height / 2;
+
+    glActiveTexture(GL_TEXTURE1);
+    glGenTextures(1, &m_textureIdU);
+    glBindTexture(GL_TEXTURE_2D, m_textureIdU);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, widthU, heightU, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,
+                 nullptr);
+
+    if (!m_textureIdU) {
+        LOGE("OpenGL Error Create U texture");
+        return false;
+    }
+
+    GLsizei widthV = (GLsizei) m_width / 2;
+    GLsizei heightV = (GLsizei) m_height / 2;
+
+    glActiveTexture(GL_TEXTURE2);
+    glGenTextures(1, &m_textureIdV);
+    glBindTexture(GL_TEXTURE_2D, m_textureIdV);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, widthV, heightV, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,
+                 nullptr);
+
+    if (!m_textureIdV) {
+        LOGE("OpenGL Error Create V texture");
+        return false;
+    }
+
+    return true;
+}
+
+bool GLFBOPostProcessing::updateYUVTextures() {
+
+    if (!m_textureIdY && !m_textureIdU && !m_textureIdV) return false;
+    LOGE("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
+         m_textureIdY,
+         m_textureIdU, m_textureIdV, isDirty);
+
+    if (isDirty) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_textureIdY);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, (GLsizei) m_width, (GLsizei) m_height, 0,
+                     GL_LUMINANCE, GL_UNSIGNED_BYTE, m_pDataY.get());
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, m_textureIdU);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, (GLsizei) m_width / 2, (GLsizei) m_height / 2,
+                     0,
+                     GL_LUMINANCE, GL_UNSIGNED_BYTE, m_pDataU);
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, m_textureIdV);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, (GLsizei) m_width / 2, (GLsizei) m_height / 2,
+                     0,
+                     GL_LUMINANCE, GL_UNSIGNED_BYTE, m_pDataV);
+
+        isDirty = false;
+        return true;
+    }
+
+    return false;
+}
+
+void GLFBOPostProcessing::deleteYUVTextures() {
+    if (m_textureIdY) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDeleteTextures(1, &m_textureIdY);
+
+        m_textureIdY = 0;
+    }
+
+    if (m_textureIdU) {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDeleteTextures(1, &m_textureIdU);
+
+        m_textureIdU = 0;
+    }
+
+    if (m_textureIdV) {
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDeleteTextures(1, &m_textureIdV);
+        m_textureIdV = 0;
+    }
+}
+
+int
+GLFBOPostProcessing::createYUVProgram() {
+
+    //创建YUV视频通道着色器程序
+    m_yuv_program = yuvGLShader->createProgram();
+    LOGI("GLFboDrawTextVideoRender createProgram m_yuv_program:%d", m_yuv_program);
+
+    if (!m_yuv_program) {
+        LOGE("Could not create program.");
+        return 0;
+    }
+
+    //Get Uniform Variables Location
+    m_yuv_vertexPos = (GLuint) glGetAttribLocation(m_yuv_program, "position");
+    m_textureYLoc = glGetUniformLocation(m_yuv_program, "s_textureY");
+    m_textureULoc = glGetUniformLocation(m_yuv_program, "s_textureU");
+    m_textureVLoc = glGetUniformLocation(m_yuv_program, "s_textureV");
+    m_yuv_textureCoordLoc = (GLuint) glGetAttribLocation(m_yuv_program, "texcoord");
+
+    return m_yuv_program;
+}
+
+GLuint GLFBOPostProcessing::useYUVProgram() {
+    if (!m_yuv_program && !createYUVProgram()) {
+        LOGE("Could not use program.");
+        return 0;
+    }
+
+    glUseProgram(m_yuv_program);
+    glVertexAttribPointer(m_yuv_vertexPos, 3, GL_FLOAT, GL_FALSE, 0, FboPsVerticek);
+    glEnableVertexAttribArray(m_yuv_vertexPos);
+
+    glUniform1i(m_textureYLoc, 0);
+    glUniform1i(m_textureULoc, 1);
+    glUniform1i(m_textureVLoc, 2);
+    glVertexAttribPointer(m_yuv_textureCoordLoc, 3, GL_FLOAT, GL_FALSE, 0, FboPsTextureCoord);
+    glEnableVertexAttribArray(m_yuv_textureCoordLoc);
+    return m_yuv_program;
 }

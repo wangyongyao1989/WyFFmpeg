@@ -545,7 +545,8 @@ JNIEXPORT void JNICALL
 cpp_fbo_post_processing_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag, jstring vertex,
                                          jstring fragScreen, jstring vertexScreen, jstring picsrc1,
                                          jstring picsrc2, jstring fragGrayScale,
-                                         jstring fragWeightedGray, jstring fragNuclearEffect
+                                         jstring fragWeightedGray, jstring fragNuclearEffect,
+                                         jstring vYUV, jstring fYUV
 ) {
     const char *fragPath = env->GetStringUTFChars(frag, nullptr);
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
@@ -557,6 +558,9 @@ cpp_fbo_post_processing_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag
     const char *fragGrayScalePath = env->GetStringUTFChars(fragGrayScale, nullptr);
     const char *fragWeightedGrayPath = env->GetStringUTFChars(fragWeightedGray, nullptr);
     const char *fragNuclearEffectPath = env->GetStringUTFChars(fragNuclearEffect, nullptr);
+
+    const char *vYUVPath = env->GetStringUTFChars(vYUV, nullptr);
+    const char *fYUVPath = env->GetStringUTFChars(fYUV, nullptr);
 
     if (postProcessing == nullptr) {
         postProcessing = new GLFBOPostProcessing();
@@ -580,6 +584,8 @@ cpp_fbo_post_processing_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag
 
     postProcessing->setPicPath(picsrc1Path, picsrc2Path);
 
+    postProcessing->setYUVSharderPath(vYUVPath, fYUVPath);
+
     env->ReleaseStringUTFChars(frag, fragPath);
     env->ReleaseStringUTFChars(vertex, vertexPath);
     env->ReleaseStringUTFChars(fragScreen, fragScreenPath);
@@ -587,6 +593,8 @@ cpp_fbo_post_processing_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag
     env->ReleaseStringUTFChars(picsrc1, picsrc1Path);
     env->ReleaseStringUTFChars(picsrc2, picsrc2Path);
 
+    env->ReleaseStringUTFChars(vYUV, vYUVPath);
+    env->ReleaseStringUTFChars(fYUV, fYUVPath);
 }
 
 
@@ -1124,6 +1132,8 @@ static const JNINativeMethod methods[] = {
         {"native_fbo_post_processing_init_opengl",      "(II)Z",                 (void *) cpp_fbo_post_processing_init_opengl},
         {"native_fbo_post_processing_render_frame",     "()V",                   (void *) cpp_fbo_post_processing_render_frame},
         {"native_fbo_post_processing_set_glsl_path",    "(Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
                                                         ";Ljava/lang/String"
                                                         ";Ljava/lang/String"
                                                         ";Ljava/lang/String"

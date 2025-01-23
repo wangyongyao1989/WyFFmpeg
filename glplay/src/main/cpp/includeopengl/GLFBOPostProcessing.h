@@ -46,6 +46,21 @@ struct ps_video_frame {
     uint8_t *v;
 };
 
+// Vertices for a full screen quad.
+const float FboPsVerticek[12] = {
+        -1.f, 1.f, 0,
+        -1.f, -1.f, 0,
+        1.f, 1.f, 0,
+        1.f, -1.f, 0
+};
+
+// Texture coordinates for mapping entire texture.
+const float FboPsTextureCoord[12] = {
+        0, 0, 0,
+        0, 1, 0,
+        1, 0, 0,
+        1, 1, 0,
+};
 
 
 const float PostProcessingVertices[] = {
@@ -208,6 +223,7 @@ public:
     void release();
 
     void draw(uint8_t *buffer, size_t length, size_t width, size_t height, float rotation);
+
     void updateFrame(const ps_video_frame &frame);
 
     size_t m_sizeY = 0;
@@ -225,6 +241,29 @@ public:
     size_t m_height = 0;
     bool isDirty;
 
+    bool createYUVTextures();
 
+    bool updateYUVTextures();
+
+    int createYUVProgram();
+
+    void deleteYUVTextures();
+
+    GLuint useYUVProgram();
+
+    OpenGLShader *yuvGLShader = nullptr;
+
+    GLuint m_textureIdY = 0;
+    GLuint m_textureIdU = 0;
+    GLuint m_textureIdV = 0;
+
+    GLuint m_yuv_program = 0;
+    GLuint m_yuv_vertexPos = 0;
+    GLint m_textureYLoc = 0;
+    GLint m_textureULoc = 0;
+    GLint m_textureVLoc = 0;
+    GLuint m_yuv_textureCoordLoc = 0;
+
+    bool setYUVSharderPath(const char *vertexPath, const char *fragmentPath);
 
 };
