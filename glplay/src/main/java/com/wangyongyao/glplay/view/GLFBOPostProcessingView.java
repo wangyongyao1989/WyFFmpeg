@@ -81,9 +81,9 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
                 , "fbo_post_nuclear_effect_fragment.glsl");
 
         String fYUVPath = OpenGLPlayFileUtils.getModelFilePath(mContext
-                , "draw_text_video_play_frament.glsl");
+                , "fbo_video_play_frament.glsl");
         String vYUVPath = OpenGLPlayFileUtils.getModelFilePath(mContext
-                , "draw_text_video_play_vert.glsl");
+                , "fbo_video_play_vert.glsl");
 
         if (mJniCall != null) {
             mJniCall.setFBOPostProcessingGLSLPath(fragPath, vertexPath
