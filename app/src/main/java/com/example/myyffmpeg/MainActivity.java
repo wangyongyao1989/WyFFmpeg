@@ -20,6 +20,7 @@ import android.widget.FrameLayout;
 import com.example.myyffmpeg.databinding.ActivityMainBinding;
 import com.example.myyffmpeg.fragment.FFmpegPlayFragment;
 import com.example.myyffmpeg.fragment.MainFragment;
+import com.example.myyffmpeg.fragment.OpenGLCameraFboFragment;
 import com.example.myyffmpeg.fragment.OpenGLCameraFragment;
 import com.example.myyffmpeg.fragment.RtmpFragment;
 
@@ -33,9 +34,11 @@ public class MainActivity extends AppCompatActivity {
     private FFViewModel mFfViewModel;
     private RtmpFragment mRtmpFragment;
     private OpenGLCameraFragment mGLCameraFragment;
+    private OpenGLCameraFboFragment mFboFragment;
 
     private FrameLayout mFlRtmp;
     private FrameLayout mFlGlCamera;
+    private FrameLayout mFlGlFbo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         mFlPlay = mBinding.flPlay;
         mFlRtmp = mBinding.flRtmp;
         mFlGlCamera = mBinding.flGlCamera;
+        mFlGlFbo = mBinding.flGlFbo;
 
     }
 
@@ -135,6 +139,16 @@ public class MainActivity extends AppCompatActivity {
                 fragmentTransaction.commit();
             }
             break;
+            case OPENGL_CAMERA_FBO: {
+                if (mFboFragment == null) {
+                    mFboFragment = new OpenGLCameraFboFragment();
+                    fragmentTransaction
+                            .add(mFlGlFbo.getId(), mFboFragment);
+                }
+                fragmentTransaction.show(mFboFragment);
+                fragmentTransaction.commit();
+            }
+            break;
         }
     }
 
@@ -150,6 +164,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mGLCameraFragment != null) {
             ftr.hide(mGLCameraFragment);
+        }
+        if (mFboFragment != null) {
+            ftr.hide(mFboFragment);
         }
     }
 

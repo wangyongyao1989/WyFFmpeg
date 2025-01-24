@@ -11,6 +11,7 @@
 #include "OpenglesSurfaceViewVideoRender.h"
 #include "EGLSurfaceViewVideoRender.h"
 #include "GLDrawTextVideoRender.h"
+#include "GLFBOPostProcessing.h"
 
 #define LOG_TAG "wy"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -28,8 +29,7 @@ OpenglesTextureFilterRender *filterRender;
 OpenglesSurfaceViewVideoRender *surfaceViewRender;
 EGLSurfaceViewVideoRender *eglsurfaceViewRender;
 GLDrawTextVideoRender *gLDrawTextVideoRender;
-
-
+GLFBOPostProcessing *postProcessing;
 
 /*********************** GL 聚光手电筒********************/
 
@@ -490,6 +490,145 @@ cpp_surfaceview_video_getParameters(JNIEnv *env, jobject thiz) {
 }
 
 
+/*********************** GL 帧缓冲FBO——后期处理********************/
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_post_processing_frag_vertex_path(JNIEnv *env, jobject thiz,
+                                         jstring fragScreen, jstring vertexScreen,
+                                         jstring fragOpposition,
+                                         jstring fragGrayScale,
+                                         jstring fragWeightedGray,
+                                         jstring fragNuclearEffect,
+                                         jstring vYUV, jstring fYUV,
+                                         jstring picsrc3,
+                                         jstring picVertex, jstring picFrag
+) {
+    const char *fragScreenPath = env->GetStringUTFChars(fragScreen, nullptr);
+    const char *vertexScreenPath = env->GetStringUTFChars(vertexScreen, nullptr);
+
+    const char *fragOppositionPath = env->GetStringUTFChars(fragOpposition, nullptr);
+    const char *fragGrayScalePath = env->GetStringUTFChars(fragGrayScale, nullptr);
+    const char *fragWeightedGrayPath = env->GetStringUTFChars(fragWeightedGray, nullptr);
+    const char *fragNuclearEffectPath = env->GetStringUTFChars(fragNuclearEffect, nullptr);
+
+    const char *vYUVPath = env->GetStringUTFChars(vYUV, nullptr);
+    const char *fYUVPath = env->GetStringUTFChars(fYUV, nullptr);
+    const char *pic3Path = env->GetStringUTFChars(picsrc3, nullptr);
+    const char *picVertexPath = env->GetStringUTFChars(picVertex, nullptr);
+    const char *picFragPath = env->GetStringUTFChars(picFrag, nullptr);
+
+    if (postProcessing == nullptr) {
+        postProcessing = new GLFBOPostProcessing();
+    }
+
+    string sVertexScreenPath(vertexScreenPath);
+    string sFragScreenPath(fragScreenPath);
+    string sFragOppositionPath(fragOppositionPath);
+
+    string sFragGrayScalePath(fragGrayScalePath);
+    string sFragWeightedGrayPath(fragWeightedGrayPath);
+    string sFragNuclearEffectPath(fragNuclearEffectPath);
+
+    vector<string> sFragPathes;
+
+    sFragPathes.push_back(sFragScreenPath);
+    sFragPathes.push_back(sFragOppositionPath);
+    sFragPathes.push_back(sFragGrayScalePath);
+    sFragPathes.push_back(sFragWeightedGrayPath);
+    sFragPathes.push_back(sFragNuclearEffectPath);
+
+    postProcessing->setSharderScreenPathes(sVertexScreenPath, sFragPathes);
+
+    postProcessing->setPicPath(pic3Path);
+    postProcessing->setPicSharderPath(picVertexPath, picFragPath);
+
+    postProcessing->setYUVSharderPath(vYUVPath, fYUVPath);
+
+    env->ReleaseStringUTFChars(fragScreen, fragScreenPath);
+    env->ReleaseStringUTFChars(vertexScreen, vertexScreenPath);
+
+    env->ReleaseStringUTFChars(fragOpposition, fragOppositionPath);
+    env->ReleaseStringUTFChars(fragGrayScale, fragGrayScalePath);
+    env->ReleaseStringUTFChars(fragWeightedGray, fragWeightedGrayPath);
+    env->ReleaseStringUTFChars(fragNuclearEffect, fragNuclearEffectPath);
+
+    env->ReleaseStringUTFChars(vYUV, vYUVPath);
+    env->ReleaseStringUTFChars(fYUV, fYUVPath);
+    env->ReleaseStringUTFChars(picsrc3, pic3Path);
+    env->ReleaseStringUTFChars(picVertex, picVertexPath);
+    env->ReleaseStringUTFChars(picFrag, picFragPath);
+
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+cpp_fbo_post_processing_init_opengl(JNIEnv *env, jobject thiz, jint width, jint height) {
+    if (postProcessing == nullptr)
+        postProcessing = new GLFBOPostProcessing();
+    postProcessing->surfaceChanged(width, height);
+    return 0;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_ps_surface_created(JNIEnv *env, jobject thiz,
+                           jobject surface,
+                           jobject assetManager) {
+    if (postProcessing != nullptr) {
+        ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
+        auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
+        postProcessing->surfaceCreated(window, aAssetManager);
+    }
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_post_processing_render_frame(JNIEnv *env, jobject thiz) {
+    if (postProcessing == nullptr) return;
+    postProcessing->render();
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_ps_surface_draw(JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height,
+                        jint rotation) {
+    jbyte *bufferPtr = env->GetByteArrayElements(data, nullptr);
+    jsize arrayLength = env->GetArrayLength(data);
+
+    if (postProcessing != nullptr) {
+
+        postProcessing->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
+                             (size_t) height,
+                             rotation);
+    }
+
+    env->ReleaseByteArrayElements(data, bufferPtr, 0);
+}
+
+
+
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_post_processing_setParameters(JNIEnv *env, jobject thiz, jint p) {
+    if (postProcessing != nullptr) {
+        postProcessing->setParameters((uint32_t) p);
+    }
+
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+cpp_fbo_post_processing_getParameters(JNIEnv *env, jobject thiz) {
+    if (postProcessing != nullptr) {
+        return postProcessing->getParameters();
+    }
+    return 0;
+
+}
+
+
 /*********************** OpenGL SurfaceViewNew显示视频并录制*******************/
 extern "C"
 JNIEXPORT void JNICALL
@@ -707,6 +846,7 @@ cpp_draw_text_surface_stop_record(JNIEnv *env, jobject thiz) {
 }
 
 
+
 static const JNINativeMethod methods[] = {
         //GLCameraPre
         {"native_camera_pre_init_opengl",               "()I",                   (void *) cpp_camera_pre_init_opengl},
@@ -826,6 +966,28 @@ static const JNINativeMethod methods[] = {
         {"native_draw_text_surface_destroy",            "()V",                   (void *) cpp_draw_text_surface_destroy},
         {"native_draw_text_surface_start_record",       "(Ljava/lang/String;)V", (void *) cpp_draw_text_surface_start_record},
         {"native_draw_text_surface_stop_record",        "()V",                   (void *) cpp_draw_text_surface_stop_record},
+
+
+        /*********************** GL 帧缓冲FBO——后期处理********************/
+        {"native_fbo_post_processing_set_glsl_path",    "(Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String;)V", (void *) cpp_fbo_post_processing_frag_vertex_path},
+        {"native_fbo_post_processing_init_opengl",      "(II)Z",                 (void *) cpp_fbo_post_processing_init_opengl},
+        {"native_fbo_ps_surface_created",               "(Landroid/view/Surface;"
+                                                        "Landroid/content/res"
+                                                        "/AssetManager;)V",      (void *) cpp_fbo_ps_surface_created},
+        {"native_fbo_post_processing_render_frame",     "()V",                   (void *) cpp_fbo_post_processing_render_frame},
+        {"native_fbo_ps_surface_draw",                  "([BIII)V",              (void *) cpp_fbo_ps_surface_draw},
+        {"native_fbo_post_processing_set_parameters",   "(I)V",                  (void *) cpp_fbo_post_processing_setParameters},
+        {"native_fbo_post_processing_get_parameters",   "()I",                   (void *) cpp_fbo_post_processing_getParameters},
 
 };
 

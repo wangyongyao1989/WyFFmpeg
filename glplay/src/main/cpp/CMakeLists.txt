@@ -43,6 +43,7 @@ add_library(
         opengl/OpenglesSurfaceViewVideoRender.cpp
         opengl/EGLSurfaceViewVideoRender.cpp
         opengl/GLDrawTextVideoRender.cpp
+        opengl/GLFBOPostProcessing.cpp
 
         WyyEGL/EglCore.cpp
         WyyEGL/EglSurfaceBase.cpp

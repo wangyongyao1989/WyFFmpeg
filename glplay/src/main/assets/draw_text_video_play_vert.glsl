@@ -8,4 +8,3 @@ void main() {
     v_texcoord = texcoord;      //YUV纹理数据的输入
     gl_Position =  position;
 }
-

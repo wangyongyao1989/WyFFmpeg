@@ -326,8 +326,8 @@ public class OpenGLPlayCallJni {
         native_draw_text_surface_init(type, vertexPath, fragPath, fragPath1);
     }
 
-    public void glTextSharderPath(String vertexPath, String fragPath,String freeTypePath) {
-        native_text_sharder_path(vertexPath, fragPath,freeTypePath);
+    public void glTextSharderPath(String vertexPath, String fragPath, String freeTypePath) {
+        native_text_sharder_path(vertexPath, fragPath, freeTypePath);
     }
 
     public void glDrawTextPicPath(String vertexPath) {
@@ -365,7 +365,7 @@ public class OpenGLPlayCallJni {
 
     private native void native_draw_text_surface_init(int type, String vertexPath, String fragPath, String fragPath1);
 
-    private native void native_text_sharder_path(String vertexPath, String fragPath,String freeTypePath);
+    private native void native_text_sharder_path(String vertexPath, String fragPath, String freeTypePath);
 
     private native void native_draw_text_pic_path(String picPath);
 
@@ -382,5 +382,87 @@ public class OpenGLPlayCallJni {
     private native void native_draw_text_surface_start_record(String recordPath);
 
     private native void native_draw_text_surface_stop_record();
+
+
+
+    /**
+     * 帧缓冲FBO——后期处理
+     */
+    public void setFBOPostProcessingGLSLPath(
+            String fragScreenString, String vertexScreenString
+            , String fragOppositionPath
+            , String fragGrayScalePath
+            , String fragWeightedGrayPath
+            , String fragNuclearEffectPath
+            , String vYUVPath
+            , String fYUVPath
+            , String picPath
+            , String picVertexPath
+            , String picFragPath
+
+    ) {
+        native_fbo_post_processing_set_glsl_path(
+                fragScreenString, vertexScreenString
+                , fragOppositionPath
+                , fragGrayScalePath
+                , fragWeightedGrayPath
+                , fragNuclearEffectPath
+                , vYUVPath
+                , fYUVPath
+                , picPath
+                , picVertexPath
+                , picFragPath
+        );
+    }
+
+    public void glPSSurfaceCreated(Surface surface, AssetManager assetManager) {
+        native_fbo_ps_surface_created(surface, assetManager);
+    }
+
+    public boolean initFBOPostProcessing(int w, int h) {
+        return native_fbo_post_processing_init_opengl(w, h);
+    }
+
+    public void glFBOPostProcessingRenderFrame() {
+        native_fbo_post_processing_render_frame();
+    }
+
+    public void glFboPostProcessingSurfaceDraw(byte[] data, int width, int height, int rotation) {
+        native_fbo_ps_surface_draw(data, width, height, rotation);
+    }
+
+    public void glFBOPostProcessingSetParameters(int params) {
+        native_fbo_post_processing_set_parameters(params);
+    }
+
+    public int glFBOPostProcessingGetParameters() {
+        return native_fbo_post_processing_get_parameters();
+    }
+
+    private native void native_fbo_post_processing_set_glsl_path(
+            String fragScreenString, String vertexScreenString
+            , String fragOppositionPath
+            , String fragGrayScalePath
+            , String fragWeightedGrayPath
+            , String fragNuclearEffectPath
+            , String vYUVPath
+            , String fYUVPath
+            , String picPath
+            , String picVertexPath
+            , String picFragPath
+    );
+
+    private native boolean native_fbo_post_processing_init_opengl(int width, int height);
+
+    private native void native_fbo_ps_surface_created(Surface surface, AssetManager assetManager);
+
+    private native void native_fbo_post_processing_render_frame();
+
+    private native void native_fbo_ps_surface_draw(byte[] data, int width, int height, int rotation);
+
+
+    private native void native_fbo_post_processing_set_parameters(int params);
+
+    private native int native_fbo_post_processing_get_parameters();
 
 }
