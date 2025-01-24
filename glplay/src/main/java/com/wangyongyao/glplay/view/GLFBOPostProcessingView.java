@@ -58,15 +58,6 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
         //注册SurfaceHolder的回调方法
         mHolder.addCallback(this);
 
-        String fragPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "fbo_fragment.glsl");
-        String vertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext, "fbo_vertex.glsl");
-
-
-        String picSrc1 = OpenGLPlayFileUtils.getModelFilePath(mContext
-                , "diffuse_map_container2.png");
-        String picSrc2 = OpenGLPlayFileUtils.getModelFilePath(mContext
-                , "metal.png");
-
         String vertexScreenPath = OpenGLPlayFileUtils.getModelFilePath(mContext
                 , "fbo_screen_vertex.glsl");
         String fragScreenPath = OpenGLPlayFileUtils.getModelFilePath(mContext
@@ -92,9 +83,8 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
                 , "draw_pic_frament.glsl");
 
         if (mJniCall != null) {
-            mJniCall.setFBOPostProcessingGLSLPath(fragPath, vertexPath
-                    , fragScreenPath, vertexScreenPath
-                    , picSrc1, picSrc2
+            mJniCall.setFBOPostProcessingGLSLPath(
+                     fragScreenPath, vertexScreenPath
                     , fragOppositionPath
                     , fragGrayScalePath
                     , fragWeightedGrayPath

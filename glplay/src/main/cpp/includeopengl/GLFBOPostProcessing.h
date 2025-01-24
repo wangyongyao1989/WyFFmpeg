@@ -25,7 +25,6 @@
 #include "OpenGLCamera3D.h"
 #include "OpenGLShader.h"
 
-
 using namespace std;
 using namespace glm;
 
@@ -63,75 +62,6 @@ const float FboPsTextureCoord[12] = {
 };
 
 
-const float PostProcessingVertices[] = {
-        // positions          // texture Coords
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-        0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-        0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-
-        -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-        -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-        -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-
-        0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-        0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-
-        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-        0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
-        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
-};
-
-const float PostProcessingPlaneVertices[] = {
-        // positions          // texture Coords (note we set these higher than 1
-        // (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
-        5.0f, -0.5f, 5.0f, 2.0f, 0.0f,
-        -5.0f, -0.5f, 5.0f, 0.0f, 0.0f,
-        -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
-
-        5.0f, -0.5f, 5.0f, 2.0f, 0.0f,
-        -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
-        5.0f, -0.5f, -5.0f, 2.0f, 2.0f
-};
-
-// vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-const float PostProcessingQuadVertices[] = {
-        // positions   // texCoords
-        -1.0f, 1.0f, 0.0f, 1.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f,
-        1.0f, -1.0f, 1.0f, 0.0f,
-
-        -1.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, -1.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 1.0f, 1.0f
-};
-
 const float PostProcessingQuadVertices1[] = {
         // positions
         -1.0f, 1.0f, 0.0f,
@@ -144,14 +74,14 @@ const float PostProcessingQuadVertices1[] = {
 };
 
 const float PostProcessingQuadTextCoord[] = {
-         // texCoords
-        0.0f, 1.0f,0.0f,
-        0.0f, 0.0f,0.0f,
-        1.0f, 0.0f,0.0f,
+        // texCoords
+        0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
 
-        0.0f, 1.0f,0.0f,
-        1.0f, 0.0f,0.0f,
-        1.0f, 1.0f,0.0f
+        0.0f, 1.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+        1.0f, 1.0f, 0.0f
 };
 
 static const float EGLFboPSTextVerticek1[12] = {
@@ -171,44 +101,48 @@ static const float EGLFboPSTextTextureCoord[12] = {
 
 
 class GLFBOPostProcessing : public Looper {
+
+public:
+
+    GLFBOPostProcessing();
+
+    ~GLFBOPostProcessing();
+
+    bool setSharderScreenPathes(string vertexScreenPath, vector<string> fragmentScreenPathes);
+
+    void setPicPath(const char *pic);
+
+    bool setupGraphics(int w, int h);
+
+    bool setPicSharderPath(const char *vertexPath, const char *fragmentPath);
+
+    bool setYUVSharderPath(const char *vertexPath, const char *fragmentPath);
+
+    void surfaceChanged(size_t width, size_t height);
+
+    void surfaceCreated(ANativeWindow *window, AAssetManager *assetManager);
+
+    void draw(uint8_t *buffer, size_t length, size_t width, size_t height, float rotation);
+
+
+    void setParameters(uint32_t i);
+
+    jint getParameters();
+
+    void render();
+
+    void release();
+
+
 private:
-    unsigned int cubeTexture;
-    unsigned int floorTexture;
-    unsigned char *data1 = nullptr;
-    unsigned char *data2 = nullptr;
     int screenW, screenH;
-    int width1, height1, nrChannels1;
-    int width2, height2, nrChannels2;
-
-    unsigned char *picData = nullptr;
-    int picWidth, picHeight, picChannels;
-    unsigned int yaoTexture;
-
-    unsigned int cubeVAO;
-    unsigned int cubeVBO;
-
-    unsigned int planeVAO;
-    unsigned int planeVBO;
-
-    unsigned int quadVAO;
-    unsigned int quadVBO;
-
     unsigned int framebuffer;
     unsigned int rbo;
-    unsigned int textureColorbuffer;
-
-
-    string colorVertexCode;
-    string colorFragmentCode;
+    unsigned int fboTexture;
 
     // camera
     OpenGLCamera3D mCamera;
-    OpenGLShader *fBOShader;
-    OpenGLShader *screenShader;
-    OpenGLShader *picGLShader = nullptr;
 
-
-    GLuint screenProgram;
     string m_vertexStringPath;
     vector<string> m_fragmentStringPathes;
 
@@ -218,83 +152,23 @@ private:
 
     ANativeWindow *m_ANWindow = nullptr;
 
-    void delete_program(GLuint &program);
-
-public:
-
-    GLFBOPostProcessing();
-
-    ~GLFBOPostProcessing();
-
-    bool setupGraphics(int w, int h);
-
-    void renderFrame();
-
-    bool setSharderPath(const char *vertexPath, const char *fragmentPath);
-
-    bool setSharderScreenPathes(string vertexScreenPath, vector<string> fragmentScreenPathes);
-
-    void setPicPath(const char *pic1, const char *pic2, const char *pic3);
-
-
-    void printGLString(const char *name, GLenum s);
-
-    void checkGlError(const char *op);
-
-    int loadTexture(unsigned char *data, int width, int height, GLenum format);
-
-    void createPostProcessingProgram();
-
-    void setParameters(uint32_t i);
-
-    jint getParameters();
-
-    size_t m_filter = 0;
-
-    size_t m_prevFilter = 0;
+    void OnSurfaceCreated();
 
     void handleMessage(LooperMessage *msg);
 
-    void OnSurfaceCreated();
+    void renderFrame();
 
-    void surfaceCreated(ANativeWindow *window, AAssetManager *assetManager);
-
-    void surfaceChanged(size_t width, size_t height);
-
-    void render();
-
-    void release();
-
-    void draw(uint8_t *buffer, size_t length, size_t width, size_t height, float rotation);
-
-    void updateFrame(const ps_video_frame &frame);
-
+    //YUV
     size_t m_sizeY = 0;
     size_t m_sizeU = 0;
     size_t m_sizeV = 0;
-
     std::unique_ptr<uint8_t[]> m_pDataY = nullptr;
-
     uint8_t *m_pDataU = nullptr;
     uint8_t *m_pDataV = nullptr;
-
     __unused  size_t m_length = 0;
-
     size_t m_width = 0;
     size_t m_height = 0;
     bool isDirty;
-
-    bool createYUVTextures();
-
-    bool updateYUVTextures();
-
-    int createYUVProgram();
-
-    void deleteYUVTextures();
-
-    GLuint useYUVProgram();
-
-    OpenGLShader *yuvGLShader = nullptr;
 
     GLuint m_textureIdY = 0;
     GLuint m_textureIdU = 0;
@@ -306,29 +180,59 @@ public:
     GLint m_textureULoc = 0;
     GLint m_textureVLoc = 0;
     GLuint m_yuv_textureCoordLoc = 0;
+    OpenGLShader *yuvGLShader = nullptr;
 
-    bool setYUVSharderPath(const char *vertexPath, const char *fragmentPath);
 
-    void bindPicTexture();
+    GLuint useYUVProgram();
 
-    void deletePicTextures();
+    int createYUVProgram();
 
-    int createPicProgram();
+    void deleteYUVTextures();
 
-    void creatPicTexture();
+    bool createYUVTextures();
 
-    void usePicProgram();
+    bool updateYUVTextures();
 
-    bool setPicSharderPath(const char *vertexPath, const char *fragmentPath);
+    void updateFrame(const ps_video_frame &frame);
 
-    void useFBOProgram();
+    void delete_program(GLuint &program);
 
+    //图片纹理
+    unsigned char *picData = nullptr;
+    int picWidth, picHeight, picChannels;
+    OpenGLShader *picGLShader = nullptr;
     GLuint m_pic_program = 0;
     GLuint m_pic_vertexPos = 0;
     GLuint m_pic_textureCoordLoc = 0;
     GLuint m_texturePicLoc = 0;
 
+    void usePicProgram();
+
+    void bindPicTexture();
+
+    void deletePicTextures();
+
+
+    //帧缓冲FBO
+    size_t m_filter = 0;
+    size_t m_prevFilter = 0;
     GLuint m_screen_vertexPos = 0;
     GLuint m_screen_textureCoordLoc = 0;
     GLuint m_textureScreenLoc = 0;
+    OpenGLShader *screenShader;
+    GLuint screenProgram;
+    void createFBOProgram();
+
+    int createPicProgram();
+
+    void creatPicTexture();
+
+    void useFBOProgram();
+
+    void creatFBOTexture();
+
+    //打印
+    void printGLString(const char *name, GLenum s);
+
+    void checkGlError(const char *op);
 };

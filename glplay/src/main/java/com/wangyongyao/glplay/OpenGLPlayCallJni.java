@@ -458,9 +458,8 @@ public class OpenGLPlayCallJni {
     /**
      * 帧缓冲FBO——后期处理
      */
-    public void setFBOPostProcessingGLSLPath(String fragString, String vertexString
-            , String fragScreenString, String vertexScreenString
-            , String picSrc1, String picSrc2
+    public void setFBOPostProcessingGLSLPath(
+            String fragScreenString, String vertexScreenString
             , String fragOppositionPath
             , String fragGrayScalePath
             , String fragWeightedGrayPath
@@ -472,9 +471,8 @@ public class OpenGLPlayCallJni {
             , String picFragPath
 
     ) {
-        native_fbo_post_processing_set_glsl_path(fragString, vertexString
-                , fragScreenString, vertexScreenString
-                , picSrc1, picSrc2
+        native_fbo_post_processing_set_glsl_path(
+                fragScreenString, vertexScreenString
                 , fragOppositionPath
                 , fragGrayScalePath
                 , fragWeightedGrayPath
@@ -511,9 +509,8 @@ public class OpenGLPlayCallJni {
         return native_fbo_post_processing_get_parameters();
     }
 
-    private native void native_fbo_post_processing_set_glsl_path(String fragPath, String vertexPath
-            , String fragScreenString, String vertexScreenString
-            , String picSrc1, String picSrc2
+    private native void native_fbo_post_processing_set_glsl_path(
+            String fragScreenString, String vertexScreenString
             , String fragOppositionPath
             , String fragGrayScalePath
             , String fragWeightedGrayPath

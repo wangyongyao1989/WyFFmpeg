@@ -583,7 +583,7 @@ void GLFboDrawTextVideoRender::OnDrawFrame() {
 //    screenShader->use();
 //    glBindVertexArray(quadVAO);
 //    //使用颜色附着纹理作为四边形平面的纹理
-//    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+//    glBindTexture(GL_TEXTURE_2D, fboTexture);
 //    glDrawArrays(GL_TRIANGLES, 0, 6);
 
     // LOGE("OnDrawFrame thread:%ld", pthread_self());
