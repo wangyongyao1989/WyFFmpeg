@@ -27,84 +27,88 @@ bool GLFBOPostProcessing::setupGraphics(int w, int h) {
     checkGlError("glClear");
 
     //开启深度测试
-    glEnable(GL_DEPTH_TEST);
+//    glEnable(GL_DEPTH_TEST);
 
     useYUVProgram();
     createYUVTextures();
 
-    // cube VAO
-    glGenVertexArrays(1, &cubeVAO);
-    glGenBuffers(1, &cubeVBO);
-    glBindVertexArray(cubeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(PostProcessingVertices), &PostProcessingVertices,
-                 GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                          (void *) (3 * sizeof(float)));
-    glBindVertexArray(0);
+    createPicProgram();
+    creatPicTexture();
 
-    // plane VAO
-    glGenVertexArrays(1, &planeVAO);
-    glGenBuffers(1, &planeVBO);
-    glBindVertexArray(planeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(PostProcessingPlaneVertices), &PostProcessingPlaneVertices,
-                 GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                          (void *) (3 * sizeof(float)));
-    glBindVertexArray(0);
 
+//    // cube VAO
+//    glGenVertexArrays(1, &cubeVAO);
+//    glGenBuffers(1, &cubeVBO);
+//    glBindVertexArray(cubeVAO);
+//    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+//    glBufferData(GL_ARRAY_BUFFER, sizeof(PostProcessingVertices), &PostProcessingVertices,
+//                 GL_STATIC_DRAW);
+//    glEnableVertexAttribArray(0);
+//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
+//    glEnableVertexAttribArray(1);
+//    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+//                          (void *) (3 * sizeof(float)));
+//    glBindVertexArray(0);
+//
+//    // plane VAO
+//    glGenVertexArrays(1, &planeVAO);
+//    glGenBuffers(1, &planeVBO);
+//    glBindVertexArray(planeVAO);
+//    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+//    glBufferData(GL_ARRAY_BUFFER, sizeof(PostProcessingPlaneVertices), &PostProcessingPlaneVertices,
+//                 GL_STATIC_DRAW);
+//    glEnableVertexAttribArray(0);
+//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
+//    glEnableVertexAttribArray(1);
+//    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+//                          (void *) (3 * sizeof(float)));
+//    glBindVertexArray(0);
+//
     // screen quad VAO
-    glGenVertexArrays(1, &quadVAO);
-    glGenBuffers(1, &quadVBO);
-    glBindVertexArray(quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(PostProcessingQuadVertices),
-                 &PostProcessingQuadVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) 0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-                          (void *) (2 * sizeof(float)));
+//    glGenVertexArrays(1, &quadVAO);
+//    glGenBuffers(1, &quadVBO);
+//    glBindVertexArray(quadVAO);
+//    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+//    glBufferData(GL_ARRAY_BUFFER, sizeof(PostProcessingQuadVertices),
+//                 &PostProcessingQuadVertices, GL_STATIC_DRAW);
+//    glEnableVertexAttribArray(0);
+//    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) 0);
+//    glEnableVertexAttribArray(1);
+//    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
+//                          (void *) (2 * sizeof(float)));
 
-
-    // load and create a texture
-    LOGI("load and create a texture!");
-    GLenum format;
-    if (nrChannels1 == 1) {
-        format = GL_RED;
-    } else if (nrChannels1 == 3) {
-        format = GL_RGB;
-    } else if (nrChannels1 == 4) {
-        format = GL_RGBA;
-    }
-//    LOGI("texture1 format==%d", format);
-    if (data1) {
-        cubeTexture = loadTexture(data1, width1, height1, format);
-    }
-
-    if (nrChannels2 == 1) {
-        format = GL_RED;
-    } else if (nrChannels2 == 3) {
-        format = GL_RGB;
-    } else if (nrChannels2 == 4) {
-        format = GL_RGBA;
-    }
-    if (data2) {
-        floorTexture = loadTexture(data2, width2, height2, format);
-    }
-
-
-    // shader configuration
-    // --------------------
-    fBOShader->use();
-    fBOShader->setInt("texture1", 0);
+//
+//    // load and create a texture
+//    LOGI("load and create a texture!");
+//    GLenum format;
+//    if (nrChannels1 == 1) {
+//        format = GL_RED;
+//    } else if (nrChannels1 == 3) {
+//        format = GL_RGB;
+//    } else if (nrChannels1 == 4) {
+//        format = GL_RGBA;
+//    }
+////    LOGI("texture1 format==%d", format);
+//    if (data1) {
+//        cubeTexture = loadTexture(data1, width1, height1, format);
+//    }
+//
+//    if (nrChannels2 == 1) {
+//        format = GL_RED;
+//    } else if (nrChannels2 == 3) {
+//        format = GL_RGB;
+//    } else if (nrChannels2 == 4) {
+//        format = GL_RGBA;
+//    }
+//    if (data2) {
+//        floorTexture = loadTexture(data2, width2, height2, format);
+//    }
+//
+//
+//    // shader configuration
+//    // --------------------
+//    fBOShader->use();
+//    fBOShader->setInt("texture1", 0);
 
     createPostProcessingProgram();
 
@@ -116,7 +120,7 @@ bool GLFBOPostProcessing::setupGraphics(int w, int h) {
     // 我们将纹理的维度设置为窗口的宽度和高度，并且不初始化它的数据
     glGenTextures(1, &textureColorbuffer);
     glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenW , screenH , 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenW, screenH, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer,
@@ -162,32 +166,33 @@ void GLFBOPostProcessing::renderFrame() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-    //todo 为甚注释掉这段代码YUV数据绘制不显示？？？？？
-    fBOShader->use();
-    glm::mat4 model = glm::mat4(1.0f);
-    glm::mat4 view = mCamera.GetViewMatrix();
-    glm::mat4 projection = glm::perspective(glm::radians(mCamera.Zoom),
-                                            (float) screenW / (float) screenH, 0.1f, 100.0f);
-    fBOShader->setMat4("view", view);
-    fBOShader->setMat4("projection", projection);
-    // cubes
-    glBindVertexArray(cubeVAO);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, cubeTexture);
-    model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
-    fBOShader->setMat4("model", model);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-    fBOShader->setMat4("model", model);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+//    //todo 为甚注释掉这段代码YUV数据绘制不显示？？？？？
+//    fBOShader->use();
+//    glm::mat4 model = glm::mat4(1.0f);
+//    glm::mat4 view = mCamera.GetViewMatrix();
+//    glm::mat4 projection = glm::perspective(glm::radians(mCamera.Zoom),
+//                                            (float) screenW / (float) screenH, 0.1f, 100.0f);
+//    fBOShader->setMat4("view", view);
+//    fBOShader->setMat4("projection", projection);
+//    // cubes
+//    glBindVertexArray(cubeVAO);
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, cubeTexture);
+//    model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+//    fBOShader->setMat4("model", model);
+//    glDrawArrays(GL_TRIANGLES, 0, 36);
+//    model = glm::mat4(1.0f);
+//    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+//    fBOShader->setMat4("model", model);
+//    glDrawArrays(GL_TRIANGLES, 0, 36);
+//
+//    // floor
+//    glBindVertexArray(planeVAO);
+//    glBindTexture(GL_TEXTURE_2D, floorTexture);
+//    fBOShader->setMat4("model", glm::mat4(1.0f));
+//    glDrawArrays(GL_TRIANGLES, 0, 6);
+//    glBindVertexArray(0);
 
-    // floor
-    glBindVertexArray(planeVAO);
-    glBindTexture(GL_TEXTURE_2D, floorTexture);
-    fBOShader->setMat4("model", glm::mat4(1.0f));
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
 
     //绘制YUV视频数据纹理
     yuvGLShader->use();
@@ -198,9 +203,15 @@ void GLFBOPostProcessing::renderFrame() {
     yuvGLShader->setMat4("view", view1);
     yuvGLShader->setMat4("projection", projection1);
     if (!updateYUVTextures() || !useYUVProgram()) return;
-    model1 = glm::translate(model1, glm::vec3(-1.0f, 0.0f, -1.0f));
+    model1 = glm::scale(model1, glm::vec3(6.0f, 4.0f, 1.0f));
     yuvGLShader->setMat4("model", model1);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    //绘制图片水印数据纹理
+    bindPicTexture();
+    usePicProgram();
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
 
     //现在绑定回默认帧缓冲区，并使用附加的帧缓冲区颜色纹理绘制一个四边形平面
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -213,7 +224,8 @@ void GLFBOPostProcessing::renderFrame() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     screenShader->use();
-    glBindVertexArray(quadVAO);
+    useFBOProgram();
+//    glBindVertexArray(quadVAO);
     //使用颜色附着纹理作为四边形平面的纹理
     glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
     glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -235,6 +247,11 @@ bool GLFBOPostProcessing::setYUVSharderPath(const char *vertexPath, const char *
     return 0;
 }
 
+bool GLFBOPostProcessing::setPicSharderPath(const char *vertexPath, const char *fragmentPath) {
+    picGLShader->getSharderStringPath(vertexPath, fragmentPath);
+    return 0;
+}
+
 bool
 GLFBOPostProcessing::setSharderScreenPathes(string vertexScreenPath,
                                             vector<string> fragmentScreenPathes) {
@@ -244,11 +261,13 @@ GLFBOPostProcessing::setSharderScreenPathes(string vertexScreenPath,
     return 0;
 }
 
-void GLFBOPostProcessing::setPicPath(const char *pic1, const char *pic2) {
+void GLFBOPostProcessing::setPicPath(const char *pic1, const char *pic2, const char *pic3) {
     LOGI("setPicPath pic1==%s", pic1);
     LOGI("setPicPath pic2==%s", pic2);
     data1 = stbi_load(pic1, &width1, &height1, &nrChannels1, 0);
     data2 = stbi_load(pic2, &width2, &height2, &nrChannels2, 0);
+    picData = stbi_load(pic3, &picWidth, &picHeight, &picChannels, 0);
+
 }
 
 
@@ -256,11 +275,17 @@ GLFBOPostProcessing::GLFBOPostProcessing() {
     fBOShader = new OpenGLShader();
     screenShader = new OpenGLShader;
     yuvGLShader = new OpenGLShader();
+    picGLShader = new OpenGLShader();
+
 }
 
 GLFBOPostProcessing::~GLFBOPostProcessing() {
     cubeTexture = 0;
     floorTexture = 0;
+    yaoTexture = 0;
+    deletePicTextures();
+    delete_program(m_pic_program);
+
     textureColorbuffer = 0;
 
     //析构函数中释放资源
@@ -316,6 +341,16 @@ GLFBOPostProcessing::~GLFBOPostProcessing() {
     if (data2) {
         stbi_image_free(data2);
         data2 = nullptr;
+    }
+
+    if (picData) {
+        stbi_image_free(picData);
+        picData = nullptr;
+    }
+
+    if (picGLShader) {
+        delete picGLShader;
+        picGLShader = nullptr;
     }
 
     colorVertexCode.clear();
@@ -384,6 +419,11 @@ void GLFBOPostProcessing::createPostProcessingProgram() {
         LOGE("Could not create screenProgram shaderId.");
         return;
     }
+
+    m_screen_vertexPos = (GLuint) glGetAttribLocation(screenProgram, "aPos");
+    m_screen_textureCoordLoc = (GLuint) glGetAttribLocation(screenProgram, "aTexCoords");
+    m_textureScreenLoc = (GLuint) glGetAttribLocation(screenProgram, "screenTexture");
+
     screenShader->use();
     screenShader->setInt("screenTexture", 0);
 }
@@ -673,4 +713,90 @@ GLuint GLFBOPostProcessing::useYUVProgram() {
     glVertexAttribPointer(m_yuv_textureCoordLoc, 3, GL_FLOAT, GL_FALSE, 0, FboPsTextureCoord);
     glEnableVertexAttribArray(m_yuv_textureCoordLoc);
     return m_yuv_program;
+}
+
+int
+GLFBOPostProcessing::createPicProgram() {
+    //创建图片水印着色程序
+    m_pic_program = picGLShader->createProgram();
+    if (!m_pic_program) {
+        LOGE("Could not create m_pic_program.");
+        return 0;
+    }
+    m_pic_vertexPos = (GLuint) glGetAttribLocation(m_pic_program, "position");
+    m_pic_textureCoordLoc = (GLuint) glGetAttribLocation(m_pic_program, "texcoord");
+    m_texturePicLoc = (GLuint) glGetUniformLocation(m_pic_program, "s_texturePic");
+    return m_pic_program;
+}
+
+void GLFBOPostProcessing::usePicProgram() {
+    glUseProgram(m_pic_program);
+    glVertexAttribPointer(m_pic_vertexPos, 3, GL_FLOAT, GL_FALSE, 0, EGLFboPSTextVerticek1);
+    glEnableVertexAttribArray(m_pic_vertexPos);
+
+    glUniform1i(m_texturePicLoc, 3);
+    glVertexAttribPointer(m_pic_textureCoordLoc, 3, GL_FLOAT, GL_FALSE, 0,
+                          EGLFboPSTextTextureCoord);
+    glEnableVertexAttribArray(m_pic_textureCoordLoc);
+}
+
+void GLFBOPostProcessing::useFBOProgram() {
+    glUseProgram(screenProgram);
+    glVertexAttribPointer(m_screen_vertexPos, 3, GL_FLOAT, GL_FALSE, 0, PostProcessingQuadVertices1);
+    glEnableVertexAttribArray(m_screen_vertexPos);
+
+    glUniform1i(m_textureScreenLoc, 3);
+    glVertexAttribPointer(m_screen_textureCoordLoc, 3, GL_FLOAT, GL_FALSE, 0,
+                          PostProcessingQuadTextCoord);
+    glEnableVertexAttribArray(m_screen_textureCoordLoc);
+}
+
+void GLFBOPostProcessing::deletePicTextures() {
+    if (m_texturePicLoc) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDeleteTextures(1, &m_texturePicLoc);
+        m_texturePicLoc = 0;
+    }
+
+}
+
+void GLFBOPostProcessing::bindPicTexture() {
+    if (m_texturePicLoc) {
+        // bind Texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+    }
+}
+
+void GLFBOPostProcessing::creatPicTexture() {
+
+    if (picData) {
+        GLenum format = 0;
+        if (picChannels == 1) {
+            format = GL_RED;
+        } else if (picChannels == 3) {
+            format = GL_RGB;
+        } else if (picChannels == 4) {
+            format = GL_RGBA;
+        }
+        glGenTextures(1, &m_texturePicLoc);
+        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, picWidth, picHeight, 0, format, GL_UNSIGNED_BYTE,
+                     picData);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        stbi_image_free(picData);
+    } else {
+        LOGE("creatPicTexture picData  =(null)");
+        stbi_image_free(picData);
+    }
+
+    if (!m_texturePicLoc) {
+        LOGE("creatPicTexture Error Create PIC texture");
+    }
+
 }

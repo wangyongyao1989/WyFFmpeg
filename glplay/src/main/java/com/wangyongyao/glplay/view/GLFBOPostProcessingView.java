@@ -84,6 +84,12 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
                 , "fbo_video_play_frament.glsl");
         String vYUVPath = OpenGLPlayFileUtils.getModelFilePath(mContext
                 , "fbo_video_play_vert.glsl");
+        String picPath = OpenGLPlayFileUtils.getModelFilePath(mContext
+                , "yao.jpg");
+        String picVertexPath = OpenGLPlayFileUtils.getModelFilePath(mContext
+                , "draw_text_video_play_vert.glsl");
+        String picFragPath = OpenGLPlayFileUtils.getModelFilePath(mContext
+                , "draw_pic_frament.glsl");
 
         if (mJniCall != null) {
             mJniCall.setFBOPostProcessingGLSLPath(fragPath, vertexPath
@@ -95,6 +101,9 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
                     , fragNuclearEffectPath
                     , vYUVPath
                     , fYUVPath
+                    , picPath
+                    , picVertexPath
+                    , picFragPath
             );
         }
 

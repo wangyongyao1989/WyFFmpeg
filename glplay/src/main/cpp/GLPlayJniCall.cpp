@@ -549,7 +549,9 @@ cpp_fbo_post_processing_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag
                                          jstring fragGrayScale,
                                          jstring fragWeightedGray,
                                          jstring fragNuclearEffect,
-                                         jstring vYUV, jstring fYUV
+                                         jstring vYUV, jstring fYUV,
+                                         jstring picsrc3,
+                                         jstring picVertex, jstring picFrag
 ) {
     const char *fragPath = env->GetStringUTFChars(frag, nullptr);
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
@@ -565,6 +567,9 @@ cpp_fbo_post_processing_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag
 
     const char *vYUVPath = env->GetStringUTFChars(vYUV, nullptr);
     const char *fYUVPath = env->GetStringUTFChars(fYUV, nullptr);
+    const char *pic3Path = env->GetStringUTFChars(picsrc3, nullptr);
+    const char *picVertexPath = env->GetStringUTFChars(picVertex, nullptr);
+    const char *picFragPath = env->GetStringUTFChars(picFrag, nullptr);
 
     if (postProcessing == nullptr) {
         postProcessing = new GLFBOPostProcessing();
@@ -589,7 +594,8 @@ cpp_fbo_post_processing_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag
 
     postProcessing->setSharderScreenPathes(sVertexScreenPath, sFragPathes);
 
-    postProcessing->setPicPath(picsrc1Path, picsrc2Path);
+    postProcessing->setPicPath(picsrc1Path, picsrc2Path,pic3Path);
+    postProcessing->setPicSharderPath(picVertexPath,picFragPath);
 
     postProcessing->setYUVSharderPath(vYUVPath, fYUVPath);
 
@@ -607,6 +613,10 @@ cpp_fbo_post_processing_frag_vertex_path(JNIEnv *env, jobject thiz, jstring frag
 
     env->ReleaseStringUTFChars(vYUV, vYUVPath);
     env->ReleaseStringUTFChars(fYUV, fYUVPath);
+    env->ReleaseStringUTFChars(picsrc3, pic3Path);
+    env->ReleaseStringUTFChars(picVertex, picVertexPath);
+    env->ReleaseStringUTFChars(picFrag, picFragPath);
+
 }
 
 
@@ -1144,6 +1154,9 @@ static const JNINativeMethod methods[] = {
         {"native_fbo_post_processing_init_opengl",      "(II)Z",                 (void *) cpp_fbo_post_processing_init_opengl},
         {"native_fbo_post_processing_render_frame",     "()V",                   (void *) cpp_fbo_post_processing_render_frame},
         {"native_fbo_post_processing_set_glsl_path",    "(Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
+                                                        ";Ljava/lang/String"
                                                         ";Ljava/lang/String"
                                                         ";Ljava/lang/String"
                                                         ";Ljava/lang/String"

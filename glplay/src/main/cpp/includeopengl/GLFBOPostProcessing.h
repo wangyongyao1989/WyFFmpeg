@@ -132,6 +132,44 @@ const float PostProcessingQuadVertices[] = {
         1.0f, 1.0f, 1.0f, 1.0f
 };
 
+const float PostProcessingQuadVertices1[] = {
+        // positions
+        -1.0f, 1.0f, 0.0f,
+        -1.0f, -1.0f, 0.0f,
+        1.0f, -1.0f, 0.0f,
+
+        -1.0f, 1.0f, 0.0f,
+        1.0f, -1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,
+};
+
+const float PostProcessingQuadTextCoord[] = {
+         // texCoords
+        0.0f, 1.0f,0.0f,
+        0.0f, 0.0f,0.0f,
+        1.0f, 0.0f,0.0f,
+
+        0.0f, 1.0f,0.0f,
+        1.0f, 0.0f,0.0f,
+        1.0f, 1.0f,0.0f
+};
+
+static const float EGLFboPSTextVerticek1[12] = {
+        0.3f, -0.3f, 0,
+        0.3f, -0.8f, 0,
+        0.8f, -0.3f, 0,
+        0.8f, -0.8f, 0
+};
+
+// Texture coordinates for mapping entire texture.
+static const float EGLFboPSTextTextureCoord[12] = {
+        0, 0, 0,
+        0, 1, 0,
+        1, 0, 0,
+        1, 1, 0,
+};
+
+
 class GLFBOPostProcessing : public Looper {
 private:
     unsigned int cubeTexture;
@@ -142,6 +180,9 @@ private:
     int width1, height1, nrChannels1;
     int width2, height2, nrChannels2;
 
+    unsigned char *picData = nullptr;
+    int picWidth, picHeight, picChannels;
+    unsigned int yaoTexture;
 
     unsigned int cubeVAO;
     unsigned int cubeVBO;
@@ -164,6 +205,8 @@ private:
     OpenGLCamera3D mCamera;
     OpenGLShader *fBOShader;
     OpenGLShader *screenShader;
+    OpenGLShader *picGLShader = nullptr;
+
 
     GLuint screenProgram;
     string m_vertexStringPath;
@@ -191,7 +234,7 @@ public:
 
     bool setSharderScreenPathes(string vertexScreenPath, vector<string> fragmentScreenPathes);
 
-    void setPicPath(const char *pic1, const char *pic2);
+    void setPicPath(const char *pic1, const char *pic2, const char *pic3);
 
 
     void printGLString(const char *name, GLenum s);
@@ -266,4 +309,26 @@ public:
 
     bool setYUVSharderPath(const char *vertexPath, const char *fragmentPath);
 
+    void bindPicTexture();
+
+    void deletePicTextures();
+
+    int createPicProgram();
+
+    void creatPicTexture();
+
+    void usePicProgram();
+
+    bool setPicSharderPath(const char *vertexPath, const char *fragmentPath);
+
+    void useFBOProgram();
+
+    GLuint m_pic_program = 0;
+    GLuint m_pic_vertexPos = 0;
+    GLuint m_pic_textureCoordLoc = 0;
+    GLuint m_texturePicLoc = 0;
+
+    GLuint m_screen_vertexPos = 0;
+    GLuint m_screen_textureCoordLoc = 0;
+    GLuint m_textureScreenLoc = 0;
 };
