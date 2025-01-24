@@ -137,7 +137,7 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
         if (mJniCall != null) {
-            mJniCall.glFboSurfaceDestroy();
+//            mJniCall.glBOPostProcessingDestroy();
         }
     }
 

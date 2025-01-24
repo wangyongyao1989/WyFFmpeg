@@ -383,77 +383,7 @@ public class OpenGLPlayCallJni {
 
     private native void native_draw_text_surface_stop_record();
 
-    /*********************** GL 使用帧缓冲FBO在视频中绘制文本并录制********************/
 
-    public void glFboInit(int type, String vertexPath, String fragPath, String fragPath1) {
-        native_fbo_surface_init(type, vertexPath, fragPath, fragPath1);
-    }
-
-    public void glFboTextPath(String vertexPath, String fragPath, String freeTypePath) {
-        native_fbo_sharder_path(vertexPath, fragPath, freeTypePath);
-    }
-
-    public void glFboPicPath(String vertexPath) {
-        native_fbo_pic_path(vertexPath);
-    }
-
-
-    public void glFBOPostProcessingPath(String vScreenPath, String fScreenPath) {
-        native_fbo_screen_path(vScreenPath, fScreenPath);
-    }
-
-
-    public void glFboSurfaceCreated(Surface surface, AssetManager assetManager) {
-        native_fbo_surface_created(surface, assetManager);
-    }
-
-    public void glFboSurfaceChanged(int width, int height) {
-        native_fbo_surface_changed(width, height);
-    }
-
-    public void glFboSurfaceRender() {
-        native_fbo_surface_render();
-    }
-
-    public void glFboSurfaceDraw(byte[] data, int width, int height, int rotation) {
-        native_fbo_surface_draw(data, width, height, rotation);
-    }
-
-    public void glFboSurfaceDestroy() {
-        native_fbo_surface_destroy();
-    }
-
-    public void glFboSurfaceStartRecord(String recordPath) {
-        native_fbo_surface_start_record(recordPath);
-    }
-
-    public void glFboSurfaceStopRecord() {
-        native_fbo_surface_stop_record();
-    }
-
-
-    private native void native_fbo_surface_init(int type, String vertexPath, String fragPath, String fragPath1);
-
-    private native void native_fbo_sharder_path(String vertexPath, String fragPath, String freeTypePath);
-
-    private native void native_fbo_pic_path(String picPath);
-
-    private native void native_fbo_screen_path(String vScreenPath, String fScreenPath);
-
-
-    private native void native_fbo_surface_created(Surface surface, AssetManager assetManager);
-
-    private native void native_fbo_surface_changed(int width, int height);
-
-    private native void native_fbo_surface_render();
-
-    private native void native_fbo_surface_draw(byte[] data, int width, int height, int rotation);
-
-    private native void native_fbo_surface_destroy();
-
-    private native void native_fbo_surface_start_record(String recordPath);
-
-    private native void native_fbo_surface_stop_record();
 
     /**
      * 帧缓冲FBO——后期处理
