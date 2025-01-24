@@ -6,36 +6,19 @@ in vec2 TexCoords;
 
 uniform sampler2D screenTexture;
 
-const float offset = 1.0 / 300.0;
+float weight[5] = float[](0.227027f, 0.1945946f, 0.1216216f, 0.054054f, 0.016216f);
 
 void main()
-{           //核效果
-               vec2 offsets[9] = vec2[](
-               vec2(-offset,  offset), // 左上
-               vec2( 0.0f,    offset), // 正上
-               vec2( offset,  offset), // 右上
-               vec2(-offset,  0.0f),   // 左
-               vec2( 0.0f,    0.0f),   // 中
-               vec2( offset,  0.0f),   // 右
-               vec2(-offset, -offset), // 左下
-               vec2( 0.0f,   -offset), // 正下
-               vec2( offset, -offset)  // 右下
-           );
+{
+    vec2 texOffset = vec2(1.0) / vec2(textureSize(screenTexture, 0)); // 获取纹理的像素大小
+    vec3 result = texture(screenTexture, TexCoords).rgb * weight[0]; // 中心像素
 
-           float kernel[9] = float[](
-               -1, -1, -1,
-               -1,  9, -1,
-               -1, -1, -1
-           );
+    // 水平模糊
+    for (int i = 1; i < 5; ++i) {
+        float offset = texOffset.x * float(i);
+        result += texture(screenTexture, TexCoords + vec2(offset, 0.0)).rgb * weight[i];
+        result += texture(screenTexture, TexCoords - vec2(offset, 0.0)).rgb * weight[i];
+    }
 
-           vec3 sampleTex[9];
-           for(int i = 0; i < 9; i++)
-           {
-               sampleTex[i] = vec3(texture(screenTexture, TexCoords.st + offsets[i]));
-           }
-           vec3 col = vec3(0.0);
-           for(int i = 0; i < 9; i++)
-               col += sampleTex[i] * kernel[i];
-
-           FragColor = vec4(col, 1.0);
+    FragColor = vec4(result, 1.0);
 }
