@@ -2,6 +2,7 @@ package com.example.myyffmpeg.fragment;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,10 +16,13 @@ import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentHevcH265LayoutBinding;
 import com.example.myyffmpeg.utils.DirectoryPath;
 import com.example.myyffmpeg.utils.FileUtils;
+import com.wangyongyao.h265.H265NALParser;
 import com.wangyongyao.h265.HevcToMp4Converter;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -29,6 +33,7 @@ import java.util.Date;
  */
 public class HevcH265Fragment extends BaseFragment {
 
+    private static final String TAG = HevcH265Fragment.class.getSimpleName();
     private com.example.myyffmpeg.databinding.FragmentHevcH265LayoutBinding mBinding;
     private Button mH265Back;
     private FFViewModel mFfViewModel;
@@ -77,10 +82,12 @@ public class HevcH265Fragment extends BaseFragment {
         String str = formatter.format(curDate);
         String videoDir = DirectoryPath.createVideoDir(getActivity());
         String videoName = videoDir + File.pathSeparator + str + ".mp4";
+//
+//        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "codec1.h265");
+        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "output.h265");
+        HevcToMp4Converter hevcToMp4Converter = new HevcToMp4Converter();
+        hevcToMp4Converter.convert(h265FilePath, videoName);
 
-        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "codec1.h265");
-
-        HevcToMp4Converter.convert(h265FilePath, videoName);
 
     }
 }
