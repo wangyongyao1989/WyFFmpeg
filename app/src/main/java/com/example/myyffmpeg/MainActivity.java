@@ -19,6 +19,7 @@ import android.widget.FrameLayout;
 
 import com.example.myyffmpeg.databinding.ActivityMainBinding;
 import com.example.myyffmpeg.fragment.FFmpegPlayFragment;
+import com.example.myyffmpeg.fragment.HevcH265Fragment;
 import com.example.myyffmpeg.fragment.MainFragment;
 import com.example.myyffmpeg.fragment.OpenGLCameraFboFragment;
 import com.example.myyffmpeg.fragment.OpenGLCameraFragment;
@@ -35,10 +36,12 @@ public class MainActivity extends AppCompatActivity {
     private RtmpFragment mRtmpFragment;
     private OpenGLCameraFragment mGLCameraFragment;
     private OpenGLCameraFboFragment mFboFragment;
+    private HevcH265Fragment mHevcH265Fragment;
 
     private FrameLayout mFlRtmp;
     private FrameLayout mFlGlCamera;
     private FrameLayout mFlGlFbo;
+    private FrameLayout mFlHevcH265;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         mFfViewModel = ViewModelProviders.of(this).get(FFViewModel.class);
 
         mFfViewModel.getSwitchFragment().observe(this, fragmentStatus -> {
-                selectionFragment(fragmentStatus);
+            selectionFragment(fragmentStatus);
         });
     }
 
@@ -85,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
         mFlRtmp = mBinding.flRtmp;
         mFlGlCamera = mBinding.flGlCamera;
         mFlGlFbo = mBinding.flGlFbo;
+        mFlHevcH265 = mBinding.flHevcH265;
 
     }
 
@@ -149,6 +153,16 @@ public class MainActivity extends AppCompatActivity {
                 fragmentTransaction.commit();
             }
             break;
+            case HEVC_H265: {
+                if (mHevcH265Fragment == null) {
+                    mHevcH265Fragment = new HevcH265Fragment();
+                    fragmentTransaction
+                            .add(mFlHevcH265.getId(), mHevcH265Fragment);
+                }
+                fragmentTransaction.show(mHevcH265Fragment);
+                fragmentTransaction.commit();
+            }
+            break;
         }
     }
 
@@ -167,6 +181,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mFboFragment != null) {
             ftr.hide(mFboFragment);
+        }
+        if (mHevcH265Fragment != null) {
+            ftr.hide(mHevcH265Fragment);
         }
     }
 

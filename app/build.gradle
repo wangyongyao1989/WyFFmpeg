@@ -58,5 +58,6 @@ dependencies {
     implementation project(':rtmplive')
     implementation project(':glplay')
     implementation project(':ffmpegplay')
+    implementation project(':h265')
 
 }
