@@ -16,13 +16,10 @@ import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentHevcH265LayoutBinding;
 import com.example.myyffmpeg.utils.DirectoryPath;
 import com.example.myyffmpeg.utils.FileUtils;
-import com.wangyongyao.h265.H265NALParser;
-import com.wangyongyao.h265.HevcToMp4Converter;
+import com.wangyongyao.h265.H265CallJni;
+import com.wangyongyao.h265.nal.HevcToMp4Converter2222;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -38,6 +35,8 @@ public class HevcH265Fragment extends BaseFragment {
     private Button mH265Back;
     private FFViewModel mFfViewModel;
     private Button mBtnHecToMp4;
+    private H265CallJni mH265CallJni;
+    private Button mBtnHevc1;
 
 
     @Override
@@ -52,11 +51,12 @@ public class HevcH265Fragment extends BaseFragment {
     public void initView() {
         mH265Back = mBinding.btnHevcH265Back;
         mBtnHecToMp4 = mBinding.btnHevcToMp4;
+        mBtnHevc1 = mBinding.btnHevc1;
     }
 
     @Override
     public void initData() {
-
+        mH265CallJni = new H265CallJni();
     }
 
     @Override
@@ -73,6 +73,11 @@ public class HevcH265Fragment extends BaseFragment {
         mBtnHecToMp4.setOnClickListener(view -> {
             HevcToMP4();
         });
+
+        mBtnHevc1.setOnClickListener(view -> {
+            mH265CallJni.testH265();
+        });
+
     }
 
     private void HevcToMP4() {
@@ -85,9 +90,12 @@ public class HevcH265Fragment extends BaseFragment {
 //
 //        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "codec1.h265");
         String h265FilePath = FileUtils.getModelFilePath(getActivity(), "output.h265");
-        HevcToMp4Converter hevcToMp4Converter = new HevcToMp4Converter();
-        hevcToMp4Converter.convert(h265FilePath, videoName);
+//        HevcToMp4Converter hevcToMp4Converter = new HevcToMp4Converter();
+//        hevcToMp4Converter.convert(h265FilePath, videoName);
+//        H265ToMp4Converter.convert(h265FilePath, videoName);
 
+        Log.e(TAG, "videoName: " + videoName);
+        HevcToMp4Converter2222.convert( h265FilePath, videoName);
 
     }
 }

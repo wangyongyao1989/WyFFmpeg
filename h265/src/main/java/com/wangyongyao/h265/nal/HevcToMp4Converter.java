@@ -1,4 +1,4 @@
-package com.wangyongyao.h265;
+package com.wangyongyao.h265.nal;
 
 
 import android.media.MediaCodec;
@@ -178,6 +178,9 @@ public class HevcToMp4Converter {
                 case NAL_UNIT_TYPE_SPS:
                     Log.d(TAG, "Successfully NAL_UNIT_TYPE_SPS ");
                     sps = ByteBuffer.wrap(nal.data);
+                    byte[] spsArrays = sps.array();
+                    Log.d(TAG, "NAL_UNIT_TYPE_SPS ===:"+ Arrays.toString(spsArrays));
+
                     H265NALParser.parseSPS(vps.array());
                     break;
                 case NAL_UNIT_TYPE_PPS:
