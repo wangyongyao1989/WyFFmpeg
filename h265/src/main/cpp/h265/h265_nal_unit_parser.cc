@@ -14,6 +14,8 @@
 #include "../h265include/h265nal/h265_nal_unit_header_parser.h"
 #include "../h265include/h265nal/h265_nal_unit_payload_parser.h"
 
+#include "HevcLogUtils.h"
+
 namespace h265nal {
 
 // General note: this is based off the 2016/12 version of the H.265 standard.

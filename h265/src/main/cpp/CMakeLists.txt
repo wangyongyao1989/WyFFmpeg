@@ -54,6 +54,9 @@ add_library(
 
         h265/bit_buffer.cc
 
+        HevcNalParse.cpp
+
+
         h265nal.cc
 
 

@@ -12,10 +12,10 @@ public class H265CallJni {
     }
 
 
-    public void testH265() {
-        n_test_h265();
+    public void testH265(String path) {
+        n_test_h265(path);
     }
 
-    private native void n_test_h265();
+    private native void n_test_h265(String path);
 
 }

@@ -7,15 +7,13 @@
 #include "h265_common.h"
 #include "bit_buffer.h"
 
+#include "HevcLogUtils.h"
+#include "HevcNalParse.h"
+
 //  Author : wangyongyao https://github.com/wangyongyao1989
 // Created by MMM on 2025/3/18.
 //
 
-#define LOG_TAG "wy"
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
-#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
-#define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 using namespace std;
 //包名+类名字符串定义：
 const char *java_call_jni_class = "com/wangyongyao/h265/H265CallJni";
@@ -35,19 +33,28 @@ typedef struct arg_options {
 } arg_options;
 
 
+HevcNalParse *hevcNalParse;
+
+
 extern "C"
 JNIEXPORT void JNICALL
-cpp_test_h265(JNIEnv *env, jobject thiz) {
-    LOGE("cpp_test_h265=====");
-    arg_options *options;
+cpp_test_h265(JNIEnv *env, jobject thiz, jstring dataPath) {
+    const char *cDataPath = env->GetStringUTFChars(dataPath, nullptr);
+    LOGE("cpp_test_h265=====%s", cDataPath);
 
+    if (hevcNalParse == nullptr) {
+        hevcNalParse = new HevcNalParse();
+    }
 
-    
+    hevcNalParse->setHevcNalDataPath(cDataPath);
+
+    env->ReleaseStringUTFChars(dataPath, cDataPath);
+
 }
 
 
 static const JNINativeMethod methods[] = {
-        {"n_test_h265",            "()V",                 (void *) cpp_test_h265},
+        {"n_test_h265", "(Ljava/lang/String;)V", (void *) cpp_test_h265},
 };
 
 
