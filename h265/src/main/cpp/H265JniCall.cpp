@@ -3,6 +3,10 @@
 #include <string>
 #include <android/log.h>
 
+#include "h265_bitstream_parser.h"
+#include "h265_common.h"
+#include "bit_buffer.h"
+
 //  Author : wangyongyao https://github.com/wangyongyao1989
 // Created by MMM on 2025/3/18.
 //
@@ -15,11 +19,30 @@
 using namespace std;
 //包名+类名字符串定义：
 const char *java_call_jni_class = "com/wangyongyao/h265/H265CallJni";
+using namespace h265nal;
+
+
+typedef struct arg_options {
+    int debug;
+    bool as_one_line;
+    bool add_offset;
+    bool add_length;
+    bool add_parsed_length;
+    bool add_checksum;
+    bool add_contents;
+    char *infile;
+    char *outfile;
+} arg_options;
+
 
 extern "C"
 JNIEXPORT void JNICALL
 cpp_test_h265(JNIEnv *env, jobject thiz) {
     LOGE("cpp_test_h265=====");
+    arg_options *options;
+
+
+    
 }
 
 
