@@ -15,6 +15,7 @@ public class FFViewModel extends ViewModel {
         RTMP,
         OPENGL_CAMERA,
         OPENGL_CAMERA_FBO,
+        HEVC_H265,
 
     }
 

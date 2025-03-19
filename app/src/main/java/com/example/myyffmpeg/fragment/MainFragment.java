@@ -21,6 +21,7 @@ public class MainFragment extends BaseFragment {
     private Button mBtnFfRtmp;
     private Button mGlCamera;
     private Button mBtnFfGlFbo;
+    private Button mBtnFfH265;
 
     @Override
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
@@ -35,6 +36,7 @@ public class MainFragment extends BaseFragment {
         mBtnFfRtmp = mBinding.btnFfRtmp;
         mGlCamera = mBinding.btnFfGlCamera;
         mBtnFfGlFbo = mBinding.btnFfGlFbo;
+        mBtnFfH265 = mBinding.btnFfH265;
     }
 
     @Override
@@ -61,6 +63,9 @@ public class MainFragment extends BaseFragment {
         });
         mBtnFfGlFbo.setOnClickListener(view -> {
             mFfViewModel.getSwitchFragment().postValue(FFViewModel.FRAGMENT_STATUS.OPENGL_CAMERA_FBO);
+        });
+        mBtnFfH265.setOnClickListener(view -> {
+            mFfViewModel.getSwitchFragment().postValue(FFViewModel.FRAGMENT_STATUS.HEVC_H265);
         });
     }
 }
