@@ -62,7 +62,6 @@ public class H264Fragment extends BaseFragment {
     @Override
     public void initListener() {
         mH264Back.setOnClickListener(view -> {
-            Log.e(TAG, " mH264Back.setOnClickListene: ");
             mFfViewModel.getSwitchFragment().postValue(FFViewModel.FRAGMENT_STATUS.MAIN);
         });
 

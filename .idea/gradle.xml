@@ -12,6 +12,7 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/ffmpegplay" />
             <option value="$PROJECT_DIR$/glplay" />
+            <option value="$PROJECT_DIR$/h264" />
             <option value="$PROJECT_DIR$/h265" />
             <option value="$PROJECT_DIR$/rtmplive" />
           </set>
