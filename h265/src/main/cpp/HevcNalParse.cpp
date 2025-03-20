@@ -41,11 +41,37 @@ int HevcNalParse::setHevcNalDataPath(const char *dataPath) {
                     buffer.data(), buffer.size(), &bitstream_parser_state, false);
 
 
-    LOGE("SPS:pic_height_in_luma_samples %d",
-         bitstream_parser_state.GetSps(0)->pic_height_in_luma_samples);
+    //宽高
     LOGE("SPS:pic_width_in_luma_samples %d", bitstream_parser_state
             .GetSps(0)->pic_width_in_luma_samples);
+    LOGE("SPS:pic_height_in_luma_samples %d",
+         bitstream_parser_state.GetSps(0)->pic_height_in_luma_samples);
+    //色度格式
+    LOGE("SPS:chromaFormatIdc %d",
+         bitstream_parser_state.GetSps(0)->chroma_format_idc);
 
+    uint32_t frameRate;
+    uint32_t vuiParametersPresentFlag = bitstream_parser_state.GetSps(0)
+            ->vui_parameters->vui_timing_info_present_flag;
+    if (vuiParametersPresentFlag) {
+        uint32_t numUnitsInTick = bitstream_parser_state.GetSps(0)
+                ->vui_parameters->vui_num_units_in_tick;
+        uint32_t timeScale = bitstream_parser_state.GetSps(0)
+                ->vui_parameters->vui_time_scale;
+        if (numUnitsInTick > 0) {
+            frameRate = timeScale / (1.0 * numUnitsInTick); // 帧率公式
+        } else {
+            frameRate = 30;
+        }
+    } else {
+        frameRate = 30;
+    }
+
+    //帧率
+    LOGE("SPS:KEY_FRAME_RATE %d", frameRate);
+
+    uint32_t  log2 = bitstream_parser_state.GetSps(0)->log2_max_pic_order_cnt_lsb_minus4;
+    LOGE("SPS:log2_max_pic_order_cnt_lsb_minus4: %d", log2);
     return 0;
 }
 

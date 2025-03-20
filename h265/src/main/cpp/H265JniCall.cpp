@@ -20,19 +20,6 @@ const char *java_call_jni_class = "com/wangyongyao/h265/H265CallJni";
 using namespace h265nal;
 
 
-typedef struct arg_options {
-    int debug;
-    bool as_one_line;
-    bool add_offset;
-    bool add_length;
-    bool add_parsed_length;
-    bool add_checksum;
-    bool add_contents;
-    char *infile;
-    char *outfile;
-} arg_options;
-
-
 HevcNalParse *hevcNalParse;
 
 
