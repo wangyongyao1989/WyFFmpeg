@@ -51,6 +51,7 @@ add_library(
         h264/h264_vui_parameters_parser.cc
 
         h264nal.cc
+        H264NaluParse.cpp
 
 
 )

@@ -3,6 +3,7 @@
 #include <android/log.h>
 
 #include "h264include/H264LogUtils.h"
+#include "h264include/H264NaluParse.h"
 
 //  Author : wangyongyao https://github.com/wangyongyao1989
 // Created by MMM on 2025/3/20.
@@ -12,12 +13,18 @@ using namespace std;
 //包名+类名字符串定义：
 const char *java_call_jni_class = "com/wangyongyao/h264/H264CallJni";
 
+H264NaluParse *h264NaluParse;
+
 extern "C"
 JNIEXPORT void JNICALL
 cpp_test_h264(JNIEnv *env, jobject thiz, jstring dataPath) {
     const char *cDataPath = env->GetStringUTFChars(dataPath, nullptr);
     LOGE("cpp_test_h264=====%s", cDataPath);
+    if (h264NaluParse == nullptr) {
+        h264NaluParse = new H264NaluParse();
+    }
 
+    h264NaluParse->setHevcNalDataPath(cDataPath);
 
     env->ReleaseStringUTFChars(dataPath, cDataPath);
 
