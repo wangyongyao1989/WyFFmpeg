@@ -19,6 +19,7 @@ import android.widget.FrameLayout;
 
 import com.example.myyffmpeg.databinding.ActivityMainBinding;
 import com.example.myyffmpeg.fragment.FFmpegPlayFragment;
+import com.example.myyffmpeg.fragment.H264Fragment;
 import com.example.myyffmpeg.fragment.HevcH265Fragment;
 import com.example.myyffmpeg.fragment.MainFragment;
 import com.example.myyffmpeg.fragment.OpenGLCameraFboFragment;
@@ -37,11 +38,13 @@ public class MainActivity extends AppCompatActivity {
     private OpenGLCameraFragment mGLCameraFragment;
     private OpenGLCameraFboFragment mFboFragment;
     private HevcH265Fragment mHevcH265Fragment;
+    private H264Fragment mH264Fragment;
 
     private FrameLayout mFlRtmp;
     private FrameLayout mFlGlCamera;
     private FrameLayout mFlGlFbo;
     private FrameLayout mFlHevcH265;
+    private FrameLayout mFlH264;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
         mFlGlCamera = mBinding.flGlCamera;
         mFlGlFbo = mBinding.flGlFbo;
         mFlHevcH265 = mBinding.flHevcH265;
+        mFlH264 = mBinding.flH264;
 
     }
 
@@ -163,6 +167,16 @@ public class MainActivity extends AppCompatActivity {
                 fragmentTransaction.commit();
             }
             break;
+            case H264: {
+                if (mH264Fragment == null) {
+                    mH264Fragment = new H264Fragment();
+                    fragmentTransaction
+                            .add(mFlH264.getId(), mH264Fragment);
+                }
+                fragmentTransaction.show(mH264Fragment);
+                fragmentTransaction.commit();
+            }
+            break;
         }
     }
 
@@ -184,6 +198,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mHevcH265Fragment != null) {
             ftr.hide(mHevcH265Fragment);
+        }
+        if (mH264Fragment != null) {
+            ftr.hide(mH264Fragment);
         }
     }
 
