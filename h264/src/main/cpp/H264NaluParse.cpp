@@ -59,6 +59,26 @@ int H264NaluParse::setHevcNalDataPath(const char *dataPath) {
          bitstream_parser_state.GetSps(0)
                  ->sps_data->chroma_format_idc);
 
+    uint32_t frameRate;
+    uint32_t vuiParametersPresentFlag = bitstream_parser_state.GetSps(0)->sps_data
+            ->vui_parameters->time_scale;
+    if (vuiParametersPresentFlag) {
+        uint32_t numUnitsInTick = bitstream_parser_state.GetSps(0)->sps_data
+                ->vui_parameters->num_units_in_tick;
+        uint32_t timeScale = bitstream_parser_state.GetSps(0)->sps_data
+                ->vui_parameters->time_scale;
+        if (numUnitsInTick > 0) {
+            frameRate = timeScale / (2.0 * numUnitsInTick); // 帧率公式
+            LOGE("SPS:========== frameRate%d", frameRate);
+        } else {
+            frameRate = 30;
+        }
+    } else {
+        frameRate = 30;
+    }
+
+    //帧率
+    LOGE("SPS:KEY_FRAME_RATE %d", frameRate);
 
     return 0;
 }
