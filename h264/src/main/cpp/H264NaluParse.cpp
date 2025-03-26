@@ -10,8 +10,9 @@ H264NaluParse::H264NaluParse() {
 }
 
 H264NaluParse::~H264NaluParse() {
-
+    release();
 }
+
 
 int H264NaluParse::setHevcNalDataPath(const char *dataPath) {
     // read infile
@@ -37,16 +38,16 @@ int H264NaluParse::setHevcNalDataPath(const char *dataPath) {
     // parse bitstream
     std::unique_ptr<h264nal::H264BitstreamParser::BitstreamState> bitstream =
             h264nal::H264BitstreamParser::ParseBitstream(
-                    buffer.data(), buffer.size(), &bitstream_parser_state, false);
+                    buffer.data(), buffer.size(), bitstream_parser_state, false);
 
-    uint32_t pic_height_in_map_units_minus1 = bitstream_parser_state.GetSps(0)
+    uint32_t pic_height_in_map_units_minus1 = bitstream_parser_state->GetSps(0)
             ->sps_data
             ->pic_height_in_map_units_minus1;
 
-    uint32_t pic_width_in_mbs_minus1 = bitstream_parser_state.GetSps(0)
+    uint32_t pic_width_in_mbs_minus1 = bitstream_parser_state->GetSps(0)
             ->sps_data
             ->pic_width_in_mbs_minus1;
-    uint32_t frame_mbs_only_flag = bitstream_parser_state.GetSps(0)
+    uint32_t frame_mbs_only_flag = bitstream_parser_state->GetSps(0)
             ->sps_data->frame_mbs_only_flag;
     // 计算宽高
     int width = (pic_width_in_mbs_minus1 + 1) * 16;
@@ -56,16 +57,16 @@ int H264NaluParse::setHevcNalDataPath(const char *dataPath) {
     LOGE("SPS:width %d", width);
     //色度格式
     LOGE("SPS:chroma_format_idc %d",
-         bitstream_parser_state.GetSps(0)
+         bitstream_parser_state->GetSps(0)
                  ->sps_data->chroma_format_idc);
 
     uint32_t frameRate;
-    uint32_t vuiParametersPresentFlag = bitstream_parser_state.GetSps(0)->sps_data
+    uint32_t vuiParametersPresentFlag = bitstream_parser_state->GetSps(0)->sps_data
             ->vui_parameters->time_scale;
     if (vuiParametersPresentFlag) {
-        uint32_t numUnitsInTick = bitstream_parser_state.GetSps(0)->sps_data
+        uint32_t numUnitsInTick = bitstream_parser_state->GetSps(0)->sps_data
                 ->vui_parameters->num_units_in_tick;
-        uint32_t timeScale = bitstream_parser_state.GetSps(0)->sps_data
+        uint32_t timeScale = bitstream_parser_state->GetSps(0)->sps_data
                 ->vui_parameters->time_scale;
         if (numUnitsInTick > 0) {
             frameRate = timeScale / (2.0 * numUnitsInTick); // 帧率公式
@@ -81,4 +82,11 @@ int H264NaluParse::setHevcNalDataPath(const char *dataPath) {
     LOGE("SPS:KEY_FRAME_RATE %d", frameRate);
 
     return 0;
+}
+
+void H264NaluParse::release() {
+    if (bitstream_parser_state) {
+        delete bitstream_parser_state;
+        bitstream_parser_state = nullptr;
+    }
 }

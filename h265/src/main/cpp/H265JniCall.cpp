@@ -9,6 +9,7 @@
 
 #include "HevcLogUtils.h"
 #include "HevcNalParse.h"
+#include "Hevc2MP4.h"
 
 //  Author : wangyongyao https://github.com/wangyongyao1989
 // Created by MMM on 2025/3/18.
@@ -21,6 +22,7 @@ using namespace h265nal;
 
 
 HevcNalParse *hevcNalParse;
+Hevc2MP4 *hevc2MP4;
 
 
 extern "C"
@@ -39,9 +41,32 @@ cpp_test_h265(JNIEnv *env, jobject thiz, jstring dataPath) {
 
 }
 
+extern "C"
+JNIEXPORT void JNICALL
+cpp_hevc_to_mp4(JNIEnv *env, jobject thiz, jstring inPath, jstring outPath) {
+    const char *cInPath = env->GetStringUTFChars(inPath, nullptr);
+    const char *cOutPath = env->GetStringUTFChars(outPath, nullptr);
+
+    LOGE("cpp_hevc_to_mp4 cInPath:%s", cInPath);
+    LOGE("cpp_hevc_to_mp4 cOutPath:%s", cOutPath);
+    if (hevc2MP4 == nullptr) {
+        hevc2MP4 = new Hevc2MP4();
+    }
+
+    hevc2MP4->hevcConverterMp4(cInPath, cOutPath);
+
+
+    env->ReleaseStringUTFChars(inPath, cInPath);
+    env->ReleaseStringUTFChars(outPath, cOutPath);
+
+}
+
 
 static const JNINativeMethod methods[] = {
-        {"n_test_h265", "(Ljava/lang/String;)V", (void *) cpp_test_h265},
+        {"n_test_h265",   "(Ljava/lang/String;)V", (void *) cpp_test_h265},
+        {"n_hevc_to_mp4", "(Ljava/lang/String;"
+                          "Ljava/lang/String;)V",  (void *) cpp_hevc_to_mp4},
+
 };
 
 

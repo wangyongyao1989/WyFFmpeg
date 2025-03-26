@@ -4,6 +4,7 @@
 
 #ifndef MYYFFMPEG_HEVCNALPARSE_H
 #define MYYFFMPEG_HEVCNALPARSE_H
+
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,12 +26,17 @@ class HevcNalParse {
 
 public:
     HevcNalParse();
+
     ~HevcNalParse();
 
     int setHevcNalDataPath(const char *dataPath);
 
+    void release();
+
+
+    struct h265nal::H265BitstreamParserState *bitstream_parser_state;
+
 private:
-    struct h265nal::H265BitstreamParserState bitstream_parser_state ;
 
 
 };

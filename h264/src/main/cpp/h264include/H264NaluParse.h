@@ -28,8 +28,10 @@ public:
 
     int setHevcNalDataPath(const char *dataPath);
 
+    void release();
+
 private:
-    struct h264nal::H264BitstreamParserState bitstream_parser_state;
+    struct h264nal::H264BitstreamParserState *bitstream_parser_state;
 };
 
 

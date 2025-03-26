@@ -6,13 +6,24 @@
 #include "h265_bitstream_parser.h"
 
 HevcNalParse::~HevcNalParse() {
-
-
+    release();
 }
 
 HevcNalParse::HevcNalParse() {
+    bitstream_parser_state = new h265nal::H265BitstreamParserState;
+}
+
+
+void HevcNalParse::release() {
+    if (bitstream_parser_state) {
+        delete bitstream_parser_state;
+        bitstream_parser_state = nullptr;
+    }
+
+
 
 }
+
 
 int HevcNalParse::setHevcNalDataPath(const char *dataPath) {
 
@@ -38,25 +49,26 @@ int HevcNalParse::setHevcNalDataPath(const char *dataPath) {
     // parse bitstream
     std::unique_ptr<h265nal::H265BitstreamParser::BitstreamState> bitstream =
             h265nal::H265BitstreamParser::ParseBitstream(
-                    buffer.data(), buffer.size(), &bitstream_parser_state, false);
+                    buffer.data(), buffer.size(), bitstream_parser_state, false);
 
+    LOGE("bitstream->nal_units.size()%d",bitstream->nal_units.size());
 
     //宽高
     LOGE("SPS:pic_width_in_luma_samples %d", bitstream_parser_state
-            .GetSps(0)->pic_width_in_luma_samples);
+            ->GetSps(0)->pic_width_in_luma_samples);
     LOGE("SPS:pic_height_in_luma_samples %d",
-         bitstream_parser_state.GetSps(0)->pic_height_in_luma_samples);
+         bitstream_parser_state->GetSps(0)->pic_height_in_luma_samples);
     //色度格式
     LOGE("SPS:chromaFormatIdc %d",
-         bitstream_parser_state.GetSps(0)->chroma_format_idc);
+         bitstream_parser_state->GetSps(0)->chroma_format_idc);
 
     uint32_t frameRate;
-    uint32_t vuiParametersPresentFlag = bitstream_parser_state.GetSps(0)
+    uint32_t vuiParametersPresentFlag = bitstream_parser_state->GetSps(0)
             ->vui_parameters->vui_timing_info_present_flag;
     if (vuiParametersPresentFlag) {
-        uint32_t numUnitsInTick = bitstream_parser_state.GetSps(0)
+        uint32_t numUnitsInTick = bitstream_parser_state->GetSps(0)
                 ->vui_parameters->vui_num_units_in_tick;
-        uint32_t timeScale = bitstream_parser_state.GetSps(0)
+        uint32_t timeScale = bitstream_parser_state->GetSps(0)
                 ->vui_parameters->vui_time_scale;
         if (numUnitsInTick > 0) {
             frameRate = timeScale / (1.0 * numUnitsInTick); // 帧率公式
@@ -70,7 +82,7 @@ int HevcNalParse::setHevcNalDataPath(const char *dataPath) {
     //帧率
     LOGE("SPS:KEY_FRAME_RATE %d", frameRate);
 
-    uint32_t  log2 = bitstream_parser_state.GetSps(0)->log2_max_pic_order_cnt_lsb_minus4;
+    uint32_t log2 = bitstream_parser_state->GetSps(0)->log2_max_pic_order_cnt_lsb_minus4;
     LOGE("SPS:log2_max_pic_order_cnt_lsb_minus4: %d", log2);
     return 0;
 }

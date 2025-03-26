@@ -17,6 +17,7 @@ import com.example.myyffmpeg.databinding.FragmentHevcH265LayoutBinding;
 import com.example.myyffmpeg.utils.DirectoryPath;
 import com.example.myyffmpeg.utils.FileUtils;
 import com.wangyongyao.h265.H265CallJni;
+import com.wangyongyao.h265.nal.HevcToMp4Converter;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -90,8 +91,12 @@ public class HevcH265Fragment extends BaseFragment {
         String str = formatter.format(curDate);
         String videoDir = DirectoryPath.createVideoDir(getActivity());
         String videoName = videoDir + File.pathSeparator + str + ".mp4";
-//
-        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "codec1.h265");
+
+        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "output.h265");
+
+//        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "codec1.h265");
+        mH265CallJni.Hevc2MP4(h265FilePath, videoName);
+
 //        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "output.h265");
 //        HevcToMp4Converter hevcToMp4Converter = new HevcToMp4Converter();
 //        hevcToMp4Converter.convert(h265FilePath, videoName);

@@ -43,6 +43,8 @@ public class HevcToMp4Converter {
             // 2. 解析NAL单元
             List<NalUnit> nalUnits = parseNalUnits(rawData);
 
+            Log.e(TAG, "convert - nalUnits: "+nalUnits.size());
+
             // 3. 提取VPS/SPS/PPS并创建MediaFormat
             MediaFormat format = createMediaFormat(nalUnits);
             if (format == null) {

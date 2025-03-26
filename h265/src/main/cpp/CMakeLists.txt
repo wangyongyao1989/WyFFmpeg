@@ -56,6 +56,8 @@ add_library(
 
         HevcNalParse.cpp
 
+        Hevc2MP4.cpp
+
 
         h265nal.cc
 

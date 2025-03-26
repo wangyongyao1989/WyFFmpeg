@@ -16,6 +16,12 @@ public class H265CallJni {
         n_test_h265(path);
     }
 
+    public void Hevc2MP4(String inPath, String outPath) {
+        n_hevc_to_mp4(inPath, outPath);
+    }
+
     private native void n_test_h265(String path);
+
+    private native void n_hevc_to_mp4(String inPath, String outPath);
 
 }
