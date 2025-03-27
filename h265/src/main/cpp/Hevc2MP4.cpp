@@ -133,18 +133,13 @@ bool Hevc2MP4::isVps(const uint8_t *data,
 }
 
 void Hevc2MP4::configMuxer(const char *inPath) {
-    //
     hevcNalParse->setHevcNalDataPath(inPath);
+    std::unique_ptr<h265nal::H265BitstreamParser::BitstreamState> &ptr_bitstream = hevcNalParse->bitstream;
 
-//    std::unique_ptr<h265nal::H265BitstreamParser::BitstreamState> &ptr_bitstream = hevcNalParse->bitstream;
-//
-//    for (int i = 0; i < ptr_bitstream->nal_units.size(); ++i) {
-//        m_nal_units.push_back(std::move(ptr_bitstream->nal_units.at(i)));
-//    }
-//    LOGE("m_nal_units %d!",m_nal_units.size());
+    for (int i = 0; i < ptr_bitstream->nal_units.size(); ++i) {
+        m_nal_units.push_back(std::move(ptr_bitstream->nal_units.at(i)));
+    }
 
-
-    
     if (hevcNalParse->bitstream_parser_state == nullptr) {
         LOGE("bitstream_parser_state err!");
         return;
@@ -170,8 +165,6 @@ void Hevc2MP4::configMuxer(const char *inPath) {
         frameRate = 30;
     }
 
-    LOGE("bitstream_parser_state的大小:%d", hevcNalParse->bitstream_parser_state->vps.size());
-
 
     m_AMediaFormat = AMediaFormat_new();
     // H.265 Advanced Video Coding
@@ -186,26 +179,11 @@ void Hevc2MP4::configMuxer(const char *inPath) {
     // 5 seconds between I-frames
     AMediaFormat_setInt32(m_AMediaFormat, AMEDIAFORMAT_KEY_I_FRAME_INTERVAL, 5);
 
+    const std::pair<const void *, size_t> &csd_0 = hevcNalParse->parseH265CSD0(
+            hevcNalParse->bitstream_buffer);
 
+    AMediaFormat_setBuffer(m_AMediaFormat, "csd-0", csd_0.first, csd_0.second);
 
-
-//    for (NalUnit nal : nalUnits) {
-//        switch (nal.type) {
-//            case NAL_UNIT_TYPE_VPS:
-//                vps = ByteBuffer.wrap(nal.data);
-//                byte[] array = vps.array();
-//                Log.d(TAG, "NAL_UNIT_TYPE_VPS ===:" + Arrays.toString(array));
-//                break;
-//            case NAL_UNIT_TYPE_SPS:
-//                sps = ByteBuffer.wrap(nal.data);
-//                break;
-//            case NAL_UNIT_TYPE_PPS:
-//                pps = ByteBuffer.wrap(nal.data);
-//                break;
-//        }
-//    }
-
-//    AMediaFormat_setBuffer(m_AMediaFormat, AMEDIAFORMAT_KEY_CSD_0, buffer, buffer);
 
     // 新建一个复合输出
     m_AMediaMuxer = AMediaMuxer_new(m_MediaMuxer_fd, AMEDIAMUXER_OUTPUT_FORMAT_MPEG_4);

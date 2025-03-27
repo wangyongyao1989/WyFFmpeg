@@ -19,6 +19,7 @@
 
 
 #include "HevcLogUtils.h"
+#include "h265_bitstream_parser.h"
 
 
 class HevcNalParse {
@@ -33,10 +34,22 @@ public:
 
     void release();
 
+    int getNalUnitType(const std::vector<uint8_t>& nalUnit);
+
+    std::pair<const void*, size_t> parseH265CSD0(std::vector<uint8_t> *bitstream_buffer);
 
     struct h265nal::H265BitstreamParserState *bitstream_parser_state;
 
+    std::unique_ptr<h265nal::H265BitstreamParser::BitstreamState> bitstream;
+
+    std::vector<uint8_t> *bitstream_buffer;
 private:
+
+
+    bool isGetVsp = false;
+    bool isGetSps = false;
+    bool isGetPsp = false;
+
 
 
 };

@@ -92,9 +92,9 @@ public class HevcH265Fragment extends BaseFragment {
         String videoDir = DirectoryPath.createVideoDir(getActivity());
         String videoName = videoDir + File.pathSeparator + str + ".mp4";
 
-        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "output.h265");
+//        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "output.h265");
 
-//        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "codec1.h265");
+        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "codec1.h265");
         mH265CallJni.Hevc2MP4(h265FilePath, videoName);
 
 //        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "output.h265");
