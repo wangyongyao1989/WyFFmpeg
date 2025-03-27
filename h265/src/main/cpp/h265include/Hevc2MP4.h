@@ -58,15 +58,15 @@ private:
 
     int videoTrackIndex;
 
-    AMediaMuxer *m_AMediaMuxer;
-    FILE *m_MediaMuxer_fp;
-    size_t m_MediaMuxer_fd;
+    AMediaMuxer *m_AMediaMuxer = nullptr;
+    FILE *m_MediaMuxer_fp = nullptr;
+    size_t m_MediaMuxer_fd = 0;
 
     AMediaFormat *m_AMediaFormat = nullptr;
 
-    HevcNalParse *hevcNalParse;
+    HevcNalParse *hevcNalParse = nullptr;
 
-    struct H265BitstreamParserState *bitstream_parser_state;
+    struct H265BitstreamParserState *bitstream_parser_state = nullptr;
     std::vector<std::unique_ptr<struct H265NalUnitParser::NalUnitState>>
             m_nal_units;
 };

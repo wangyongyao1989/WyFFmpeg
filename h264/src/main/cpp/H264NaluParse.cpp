@@ -6,7 +6,7 @@
 #include "h264include/h264nal/h264_bitstream_parser.h"
 
 H264NaluParse::H264NaluParse() {
-
+    bitstream_parser_state = new h264nal::H264BitstreamParserState;
 }
 
 H264NaluParse::~H264NaluParse() {

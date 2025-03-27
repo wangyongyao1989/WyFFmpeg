@@ -6,9 +6,7 @@
 
 
 Hevc2MP4::Hevc2MP4() {
-    if (hevcNalParse == nullptr) {
-        hevcNalParse = new HevcNalParse();
-    }
+    hevcNalParse = new HevcNalParse();
 
     bitstream_parser_state = new H265BitstreamParserState;
 
@@ -53,7 +51,6 @@ int Hevc2MP4::hevcConverterMp4(const char *inPath, const char *outPath) {
             LOGE("configMuxer");
             configMuxer(inPath);
         }
-
 
 
         AMediaCodecBufferInfo *info = new AMediaCodecBufferInfo();
@@ -173,8 +170,7 @@ void Hevc2MP4::configMuxer(const char *inPath) {
         frameRate = 30;
     }
 
-    LOGE("bitstream_parser_state的大小:%d",hevcNalParse->bitstream_parser_state->vps.size());
-
+    LOGE("bitstream_parser_state的大小:%d", hevcNalParse->bitstream_parser_state->vps.size());
 
 
     m_AMediaFormat = AMediaFormat_new();
