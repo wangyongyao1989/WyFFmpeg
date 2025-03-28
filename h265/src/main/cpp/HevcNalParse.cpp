@@ -99,6 +99,7 @@ HevcNalParse::parseH265CSD0(std::vector<uint8_t> *bitstream_buffer) {
     }
 
     std::vector<uint8_t> &stream = *bitstream_buffer;
+    LOGE("parseH265CSD0:%d",stream.size());
     std::vector<uint8_t> csd;
     size_t pos = 0;
     while (pos < stream.size()) {

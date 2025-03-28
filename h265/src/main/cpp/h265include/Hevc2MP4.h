@@ -44,6 +44,12 @@ private:
 
     void configMuxer(const char *inPath);
 
+    int writeSampleData(std::vector<uint8_t> *bitstream_buffer);
+
+    int getNalUnitType(const std::vector<uint8_t> &nalUnit);
+
+    bool isKeyFrame(const std::vector<uint8_t>& nalUnit);
+
     const char *MIME_TYPE = "video/hevc";
     static const size_t VIDEO_WIDTH = 1280;
     static const size_t VIDEO_HEIGHT = 720;
@@ -69,6 +75,11 @@ private:
     struct H265BitstreamParserState *bitstream_parser_state = nullptr;
     std::vector<std::unique_ptr<struct H265NalUnitParser::NalUnitState>>
             m_nal_units;
+    // 创建一个包含 10 个元素且初始值为 0 的 vector
+    const uint8_t zeroArray[1] = {0};
+    // 让 data 指向 vector 的数据
+    const uint8_t *end_data = zeroArray;
+//    const uint8_t *end_data;
 };
 
 
