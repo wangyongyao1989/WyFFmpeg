@@ -23,10 +23,28 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="5dp"
-        android:text="test"
+        android:text="解析H264"
         app:layout_constraintStart_toEndOf="@+id/btn_hevc_h264_back"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="HardcodedText" />
+
+    <Button
+        android:id="@+id/btn_h264_2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:text="摄像头预览"
+        app:layout_constraintStart_toEndOf="@+id/btn_h264_1"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="HardcodedText" />
+
+
+    <FrameLayout
+        android:id="@+id/x264_show"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 

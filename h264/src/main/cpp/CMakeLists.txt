@@ -14,6 +14,7 @@ set(jnilibs ${CMAKE_SOURCE_DIR}/jniLibs)
 include_directories(
         h264include/h264nal
         h264include/webrtc
+        h264include/x264
 
 )
 
@@ -69,7 +70,7 @@ target_include_directories(
 
 
 set(third-party-libs
-        #        ${jnilibs}/${ANDROID_ABI}/libgperf.so
+                ${jnilibs}/${ANDROID_ABI}/libx264.a
 
 )
 

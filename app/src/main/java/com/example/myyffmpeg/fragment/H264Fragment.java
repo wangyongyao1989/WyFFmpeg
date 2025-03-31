@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,6 +17,7 @@ import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentH264LayoutBinding;
 import com.example.myyffmpeg.utils.FileUtils;
 import com.wangyongyao.h264.H264CallJni;
+import com.wangyongyao.h264.view.X264CameraPreView;
 import com.wangyongyao.h265.H265CallJni;
 
 /**
@@ -32,6 +34,9 @@ public class H264Fragment extends BaseFragment {
     private H264CallJni mH264CallJni;
     private Button mBtn1;
     private FragmentH264LayoutBinding mBinding;
+    private Button mBtn2;
+    private FrameLayout mX264Show;
+    private X264CameraPreView mX264CameraPreView;
 
 
     @Override
@@ -46,6 +51,8 @@ public class H264Fragment extends BaseFragment {
     public void initView() {
         mH264Back = mBinding.btnHevcH264Back;
         mBtn1 = mBinding.btnH2641;
+        mBtn2 = mBinding.btnH2642;
+        mX264Show = mBinding.x264Show;
     }
 
     @Override
@@ -68,6 +75,13 @@ public class H264Fragment extends BaseFragment {
         mBtn1.setOnClickListener(view -> {
             String h264FilePath = FileUtils.getModelFilePath(getActivity(), "out.h264");
             mH264CallJni.testH264(h264FilePath);
+        });
+
+        mBtn2.setOnClickListener(view -> {
+            if (mX264CameraPreView == null) {
+                mX264CameraPreView = new X264CameraPreView(getActivity());
+            }
+            mX264Show.addView(mX264CameraPreView);
         });
 
     }
