@@ -475,15 +475,15 @@ void GLDrawTextVideoRender::OnSurfaceChanged(int w, int h) {
         outHeight = VIDEO_HEIGHT_DRAW_TEXT;
         outWidth = (int) (VIDEO_HEIGHT_DRAW_TEXT / windowAspect);
     }
-    LOGE(" outWidth:%d,outHeight:%d", outWidth, outHeight);
+//    LOGE(" outWidth:%d,outHeight:%d", outWidth, outHeight);
 
     offX = (VIDEO_WIDTH_DRAW_TEXT - outWidth) / 2;
     offY = (VIDEO_HEIGHT_DRAW_TEXT - outHeight) / 2;
     off_right = offX + outWidth;
     off_bottom = offY + outHeight;
     //Adjusting window 1920x1104 to +14,+0 1252x720
-    LOGE("Adjusting window offX:%d,offY:%d,off_right:%d,off_bottom:%d", offX, offY, off_right,
-         off_bottom);
+//    LOGE("Adjusting window offX:%d,offY:%d,off_right:%d,off_bottom:%d", offX, offY, off_right,
+//         off_bottom);
     // Set OpenGL options
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
@@ -612,7 +612,6 @@ void GLDrawTextVideoRender::stopEncoder() {
         m_TextureMovieEncoder2->stopRecording();
     }
     if (m_VideoEncoderCore != nullptr) {
-        m_VideoEncoderCore->release();
         m_VideoEncoderCore = nullptr;
     }
     if (m_InputWindowSurface != nullptr) {
@@ -697,8 +696,8 @@ void GLDrawTextVideoRender::RenderText(std::string text, GLfloat x, GLfloat y, G
     // 遍历文本中所有的字符
     std::string::const_iterator c;
 
-    LOGE("RenderText x:%f == y:%f", x, y);
-    LOGE("RenderText viewportX:%f == viewportY:%f", viewport.x, viewport.y);
+//    LOGE("RenderText x:%f == y:%f", x, y);
+//    LOGE("RenderText viewportX:%f == viewportY:%f", viewport.x, viewport.y);
 
     for (c = text.begin(); c != text.end(); c++) {
         Character ch = Characters[*c];

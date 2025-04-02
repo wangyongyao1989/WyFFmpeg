@@ -502,7 +502,6 @@ void EGLSurfaceViewVideoRender::stopEncoder() {
         m_TextureMovieEncoder2->stopRecording();
     }
     if (m_VideoEncoderCore != nullptr) {
-        m_VideoEncoderCore->release();
         m_VideoEncoderCore = nullptr;
     }
     if (m_InputWindowSurface != nullptr) {

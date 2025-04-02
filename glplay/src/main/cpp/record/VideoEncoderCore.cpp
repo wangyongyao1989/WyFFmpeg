@@ -77,8 +77,8 @@ VideoEncoderCore::~VideoEncoderCore() {
 void VideoEncoderCore::drainEncoder(bool endOfStream) {
 //    LOGE("drainEncoder thread:%ld", pthread_self());
     if (endOfStream) {
-        LOGE("sending EOS to encoder");
-        AMediaCodec_signalEndOfInputStream(m_AMediaCodec);
+        media_status_t stream = AMediaCodec_signalEndOfInputStream(m_AMediaCodec);
+        LOGE("sending EOS to encoder:%d",stream);
         return;
     }
 
@@ -158,6 +158,10 @@ void VideoEncoderCore::drainEncoder(bool endOfStream) {
 }
 
 void VideoEncoderCore::release() {
+    if (m_AMediaFormat != nullptr) {
+        AMediaFormat_delete(m_AMediaFormat);
+        m_AMediaFormat = nullptr;
+    }
     if (m_AMediaCodec != nullptr) {
         AMediaCodec_stop(m_AMediaCodec);
     }

@@ -22,7 +22,7 @@ public class RtmpFragment extends BaseFragment {
     private com.example.myyffmpeg.databinding.FragmentRtmpLayoutBinding mBinding;
     private Button mBtnFfPush;
     private RtmpLivePusher mRtmpLivePusher;
-    private RelativeLayout mRlClose;
+    private Button mRlClose;
     private FFViewModel mFfViewModel;
     private Button mBtnFfStop;
     private TextureView mTextureView;
@@ -41,7 +41,7 @@ public class RtmpFragment extends BaseFragment {
 
     @Override
     public void initView() {
-        mRlClose = mBinding.rlClose;
+        mRlClose = mBinding.btnRtmpBack;
         mBtnFfPush = mBinding.btnFfPush;
         mBtnFfPause = mBinding.btnFfPause;
         mBtnFfStop = mBinding.btnFfStop;
