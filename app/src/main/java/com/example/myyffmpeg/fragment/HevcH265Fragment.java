@@ -16,6 +16,7 @@ import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentHevcH265LayoutBinding;
 import com.example.myyffmpeg.utils.DirectoryPath;
 import com.example.myyffmpeg.utils.FileUtils;
+import com.wangyongyao.common.utils.ToastManager;
 import com.wangyongyao.h265.H265CallJni;
 import com.wangyongyao.h265.nal.HevcToMp4Converter;
 
@@ -80,6 +81,8 @@ public class HevcH265Fragment extends BaseFragment {
 //            String h265FilePath = FileUtils.getModelFilePath(getActivity(), "codec1.h265");
             String h265FilePath = FileUtils.getModelFilePath(getActivity(), "output.h265");
             mH265CallJni.testH265(h265FilePath);
+            ToastManager.getInstance(getContext()).showToast("解析Hevc数据Nal数据",0);
+
         });
 
     }
@@ -93,9 +96,10 @@ public class HevcH265Fragment extends BaseFragment {
         String videoName = videoDir + File.pathSeparator + str + ".mp4";
 
 //        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "output.h265");
-
-        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "output.h265");
+        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "codec1.h265");
+//        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "output.h265");
         mH265CallJni.Hevc2MP4(h265FilePath, videoName);
+
 
 //        String h265FilePath = FileUtils.getModelFilePath(getActivity(), "output.h265");
 //        HevcToMp4Converter hevcToMp4Converter = new HevcToMp4Converter();
