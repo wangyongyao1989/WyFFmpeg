@@ -134,7 +134,7 @@ void VideoEncoderCore::drainEncoder(bool endOfStream) {
                     LOGE("muxer has't started");
                 }
 //                info.presentationTimeUs = frameIndex * 1000000L / frameRate;
-//                LOGI("AMediaMuxer_writeSampleData video size %d", dataSize);
+                LOGI("info video size %d", info.offset);
                 AMediaMuxer_writeSampleData(m_AMediaMuxer, mTrackIndex, encodeData, &info);
             } else {
                 LOGI("Info emptye %d", dataSize);

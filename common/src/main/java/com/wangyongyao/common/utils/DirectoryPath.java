@@ -1,4 +1,4 @@
-package com.example.myyffmpeg.utils;
+package com.wangyongyao.common.utils;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

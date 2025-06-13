@@ -21,7 +21,6 @@ public class RtmpFragment extends BaseFragment {
 
     private com.example.myyffmpeg.databinding.FragmentRtmpLayoutBinding mBinding;
     private Button mBtnFfPush;
-    private RtmpLivePusher mRtmpLivePusher;
     private Button mRlClose;
     private FFViewModel mFfViewModel;
     private Button mBtnFfStop;

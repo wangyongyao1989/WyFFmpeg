@@ -39,18 +39,18 @@ int Hevc2MP4::hevcConverterMp4(const char *inPath, const char *outPath) {
     configMuxer(inPath);
 
     writeSampleData(hevcNalParse->bitstream_buffer);
-
-    //写入stream末尾标志位
-    AMediaCodecBufferInfo *end_info = new AMediaCodecBufferInfo();
-    end_info->offset = 0;
-    end_info->size = 0;
-    end_info->flags = AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM;
-    end_info->presentationTimeUs = computePresentationTime(frameIndex++);
-    LOGE("写入末尾==========");
-
-    media_status_t status = AMediaMuxer_writeSampleData(m_AMediaMuxer, videoTrackIndex, end_data,
-                                                        reinterpret_cast<const AMediaCodecBufferInfo *>(&end_info));
-    LOGE("生成MP4完成:%d",status);
+//
+//    //写入stream末尾标志位
+//    AMediaCodecBufferInfo *end_info = new AMediaCodecBufferInfo();
+//    end_info->offset = 0;
+//    end_info->size = 0;
+//    end_info->flags = AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM;
+//    end_info->presentationTimeUs = computePresentationTime(frameIndex++);
+//    LOGE("写入末尾==========");
+//
+//    media_status_t status = AMediaMuxer_writeSampleData(m_AMediaMuxer, videoTrackIndex, end_data,
+//                                                        reinterpret_cast<const AMediaCodecBufferInfo *>(&end_info));
+    LOGE("生成MP4完成:%d"/*,status*/);
 
     fclose(m_in_path);
     release();
@@ -197,6 +197,7 @@ int Hevc2MP4::writeSampleData(std::vector<uint8_t> *bitstream_buffer) {
     std::vector<uint8_t> csd;
     size_t pos = 0;
     AMediaCodecBufferInfo *info;
+    const int bufferSize = 1024 * 1024;
 
     while (pos < stream.size()) {
         // 查找起始码 0x00 0x00 0x00 0x01 或 0x00 0x00 0x01
@@ -229,7 +230,7 @@ int Hevc2MP4::writeSampleData(std::vector<uint8_t> *bitstream_buffer) {
 
         // 提取当前 NAL 单元
         std::vector<uint8_t> nalUnit(stream.begin() + pos, stream.begin() + nextStart);
-        LOGW("nalUnit======:%d", nalUnit.size());
+//        LOGW("nalUnit======:%d", nalUnit.size());
 
         info = new AMediaCodecBufferInfo();
         info->offset = 0;
@@ -241,12 +242,14 @@ int Hevc2MP4::writeSampleData(std::vector<uint8_t> *bitstream_buffer) {
         }
 
         info->presentationTimeUs = computePresentationTime(frameIndex++);
-        LOGW("info->presentationTimeUs:%lld", info->presentationTimeUs);
+//        LOGW("info->presentationTimeUs:%lld", info->presentationTimeUs);
+        LOGW("解析nalUnit.data()大小=== %d", nalUnit.size());
 
         media_status_t status = AMediaMuxer_writeSampleData(m_AMediaMuxer, videoTrackIndex,
                                                             nalUnit.data(),
                                                             reinterpret_cast<const AMediaCodecBufferInfo *>(&info));
-        LOGW("解析csd-AMediaMuxer_writeSampleData=== %d", status);
+        if (status != AMEDIA_OK)
+            LOGW("解析csd-AMediaMuxer_writeSampleData=== %d", status);
         pos = nextStart;
     }
 

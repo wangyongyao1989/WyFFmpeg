@@ -20,9 +20,9 @@ import androidx.lifecycle.ViewModelProviders;
 import com.example.ffmpegplay.FFPlayCallJni;
 import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentPlayLayoutBinding;
-import com.example.myyffmpeg.utils.DirectoryPath;
-import com.example.myyffmpeg.utils.FileUtils;
-import com.example.myyffmpeg.utils.SaveMediaUtils;
+import com.wangyongyao.common.utils.DirectoryPath;
+import com.wangyongyao.common.utils.FileUtils;
+import com.wangyongyao.common.utils.SaveMediaUtils;
 
 import java.io.File;
 import java.text.SimpleDateFormat;

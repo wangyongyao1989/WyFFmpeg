@@ -1,8 +1,6 @@
 package com.example.myyffmpeg.fragment;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,10 +13,9 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentH264LayoutBinding;
-import com.example.myyffmpeg.utils.FileUtils;
+import com.wangyongyao.common.utils.FileUtils;
 import com.wangyongyao.h264.H264CallJni;
 import com.wangyongyao.h264.view.X264CameraPreView;
-import com.wangyongyao.h265.H265CallJni;
 
 /**
  * author : wangyongyao https://github.com/wangyongyao1989

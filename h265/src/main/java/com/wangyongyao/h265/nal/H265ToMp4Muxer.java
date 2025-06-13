@@ -37,13 +37,13 @@ public class H265ToMp4Muxer {
      * @param outputPath 输出文件路径
      */
     public H265ToMp4Muxer(String outputPath) {
-        try {
-            // 创建 MediaMuxer 封装器，用于将编码后的数据封装成 MP4 文件
-            mediaMuxer = new MediaMuxer(outputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(TAG, "H265ToMp4Muxer: IOException :" + e);
-        }
+//        try {
+//            // 创建 MediaMuxer 封装器，用于将编码后的数据封装成 MP4 文件
+//            mediaMuxer = new MediaMuxer(outputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            Log.e(TAG, "H265ToMp4Muxer: IOException :" + e);
+//        }
 
     }
 
@@ -85,7 +85,7 @@ public class H265ToMp4Muxer {
      */
     private void processNalu(byte[] data, int start, int end) {
         int naluType = (data[start] & 0x7E) >> 1; // HEVC NALU类型
-
+        Log.e(TAG, "processNalu: "+naluType);
         switch (naluType) {
             case 32: // VPS : 00 00 01 40  --> (0x40 & 0x7E) >> 1 = 32
                 mVps = extractNalu(data, start, end);

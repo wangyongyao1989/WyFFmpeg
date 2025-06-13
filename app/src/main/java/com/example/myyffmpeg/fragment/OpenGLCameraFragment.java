@@ -15,7 +15,7 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentOpenglCameraLayoutBinding;
-import com.example.myyffmpeg.utils.DirectoryPath;
+import com.wangyongyao.common.utils.DirectoryPath;
 import com.wangyongyao.glplay.OpenGLPlayCallJni;
 import com.wangyongyao.glplay.view.GLCameraPreView;
 import com.wangyongyao.glplay.view.GLDrawTextSurfaceView;

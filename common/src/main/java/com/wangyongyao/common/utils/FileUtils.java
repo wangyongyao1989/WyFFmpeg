@@ -1,4 +1,4 @@
-package com.example.myyffmpeg.utils;
+package com.wangyongyao.common.utils;
 
 import android.content.Context;
 import android.os.Environment;

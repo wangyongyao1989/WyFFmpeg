@@ -1,5 +1,7 @@
 plugins {
     id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+
 }
 
 android {
@@ -44,6 +46,10 @@ android {
         viewBinding true
         dataBinding true
     }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 dependencies {
@@ -61,5 +67,5 @@ dependencies {
     implementation project(':glplay')
     implementation project(':ffmpegplay')
     implementation project(':h265')
-
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
 }
