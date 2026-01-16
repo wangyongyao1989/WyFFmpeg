@@ -1,5 +1,5 @@
 # OpenGL与视频的相关应用
-## 一、Camera 视频获取并通过OpenGL Texture纹理的渲染显示。
+## 一、Camera 视频获取并通过OpenGL Texture纹理的渲染显示：
   https://github.com/user-attachments/assets/913d331a-7a86-47c4-a5ef-39f2d0fd48cf
   
 ### 博客地址：[OpenGL Texture C++ Camera Filter滤镜](https://blog.csdn.net/wangyongyao1989/article/details/142280571)
@@ -17,6 +17,24 @@
 ### 11、[压花过滤器](https://github.com/wangyongyao1989/WyFFmpeg/blob/main/glplay/glplaypic/embossed_filter.jpg)
 ### 12、[边缘检测滤波器](https://github.com/wangyongyao1989/WyFFmpeg/blob/main/glplay/glplaypic/edge_detecting_filter.jpg)
 
-## 二、OpenGL 自定义SurfaceView Texture C++预览Camera视频
-    
+## 二、OpenGL 自定义SurfaceView Texture C++预览Camera视频：
+
+### 博客地址：[OpenGL 自定义SurfaceView Texture C++预览Camera视频](https://blog.csdn.net/wangyongyao1989/article/details/142874177)    
+
+
+## 三、OpenGL Texture C++ Camera Filter滤镜视频录制：
+
+### 博客地址：[OpenGL Texture C++ Camera Filter滤镜视频录制](https://blog.csdn.net/wangyongyao1989/article/details/143074665)  
+
+
+## 四、OpenGL C++视频中添加图片及文字水印播放并录制：
+
+### 博客地址：[OpenGL C++视频中添加图片及文字水印播放并录制](https://blog.csdn.net/wangyongyao1989/article/details/143776795)  
+
+## 五、GL C++显示相机YUV视频数据使用帧缓冲FBO后期处理，实现滤镜功能：
+
+
+### 博客地址：[GL C++显示相机YUV视频数据使用帧缓冲FBO后期处理，实现滤镜功能](https://blog.csdn.net/wangyongyao1989/article/details/143776795?spm=1001.2014.3001.5502)  
+
+
     
