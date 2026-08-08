@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
@@ -24,12 +23,8 @@ import com.wangyongyao.glplay.view.GLFBOPostProcessingView;
 public class OpenGLCameraFboFragment extends BaseFragment {
 
     private FragmentGlCameraFboLayoutBinding mBinding;
-    private Button mBtnGlFboBack;
     private FFViewModel mFfViewModel;
-    private Button mBtnFboPre;
-    private FrameLayout mGlFboShow;
     private OpenGLPlayCallJni mFFPlayCallJni;
-    private Button mBtnFboSwitch;
     private GLFBOPostProcessingView mGlView;
     private int switchType;
 
@@ -38,16 +33,12 @@ public class OpenGLCameraFboFragment extends BaseFragment {
     public View getLayoutDataBing(@NonNull LayoutInflater inflater,
                                   @Nullable ViewGroup container,
                                   @Nullable Bundle savedInstanceState) {
-        mBinding = FragmentGlCameraFboLayoutBinding.inflate(inflater);
+        mBinding = FragmentGlCameraFboLayoutBinding.inflate(inflater, container, false);
         return mBinding.getRoot();
     }
 
     @Override
     public void initView() {
-        mBtnGlFboBack = mBinding.btnGlFboBack;
-        mBtnFboPre = mBinding.btnCameraFboPre;
-        mBtnFboSwitch = mBinding.btnCameraFboSwitch;
-        mGlFboShow = mBinding.glFboShow;
     }
 
     @Override
@@ -65,19 +56,19 @@ public class OpenGLCameraFboFragment extends BaseFragment {
 
     @Override
     public void initListener() {
-        mBtnGlFboBack.setOnClickListener(view -> {
+        mBinding.btnGlFboBack.setOnClickListener(view -> {
             mFfViewModel.getSwitchFragment().postValue(FFViewModel.FRAGMENT_STATUS.MAIN);
         });
 
 
-        mBtnFboPre.setOnClickListener(view -> {
-            mGlFboShow.removeAllViews();
+        mBinding.btnCameraFboPre.setOnClickListener(view -> {
+            mBinding.glFboShow.removeAllViews();
             mGlView = new GLFBOPostProcessingView(getActivity()
                     , mFFPlayCallJni);
-            mGlFboShow.addView(mGlView);
+            mBinding.glFboShow.addView(mGlView);
         });
 
-        mBtnFboSwitch.setOnClickListener(view -> {
+        mBinding.btnCameraFboSwitch.setOnClickListener(view -> {
             if (mGlView == null) {
                 return;
             }
@@ -92,23 +83,23 @@ public class OpenGLCameraFboFragment extends BaseFragment {
     private void switchBtnSenior7UI(int type) {
         switch (type) {
             case 0: {
-                mBtnFboPre.setText("正常");
+                mBinding.btnCameraFboPre.setText("正常");
             }
             break;
             case 1: {
-                mBtnFboPre.setText("反相");
+                mBinding.btnCameraFboPre.setText("反相");
             }
             break;
             case 2: {
-                mBtnFboPre.setText("图像灰度化");
+                mBinding.btnCameraFboPre.setText("图像灰度化");
             }
             break;
             case 3: {
-                mBtnFboPre.setText("灰度化加权");
+                mBinding.btnCameraFboPre.setText("灰度化加权");
             }
             break;
             case 4: {
-                mBtnFboPre.setText("核效果");
+                mBinding.btnCameraFboPre.setText("核效果");
             }
             break;
         }

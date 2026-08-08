@@ -114,12 +114,19 @@ void Looper::loop() {
 
 void Looper::quit() {
     LOGE("Looper::quit()");
+    if (!running) return;
+
     LooperMessage *msg = new LooperMessage();
     msg->what = 0;
     msg->obj = NULL;
     msg->next = NULL;
     msg->quit = true;
     addMessage(msg, false);
+
+    if (pthread_equal(pthread_self(), worker)) {
+        return;
+    }
+
     void *retval;
     pthread_join(worker, &retval);
     sem_destroy(&headDataAvailable);

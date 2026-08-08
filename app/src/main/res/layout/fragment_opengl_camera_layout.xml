@@ -4,123 +4,170 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#060606">
-
-    <Button
-        android:id="@+id/btn_gl_back"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:text="返回"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="HardcodedText" />
-
-    <Button
-        android:id="@+id/btn_camera_pre"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:text="摄像头预览"
-        app:layout_constraintStart_toEndOf="@id/btn_gl_back"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="HardcodedText" />
-    
-    <Button
-        android:id="@+id/btn_gl_camera1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:text="GL聚光手电筒"
-        app:layout_constraintStart_toEndOf="@id/btn_camera_pre"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="HardcodedText" />
-    
-    <Button
-        android:id="@+id/btn_gl_camera2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:text="GL摄像机预览"
-        app:layout_constraintStart_toEndOf="@id/btn_gl_camera1"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="HardcodedText" />
-
-    <Button
-        android:id="@+id/btn_gl_filter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:text="GL滤镜"
-        app:layout_constraintStart_toEndOf="@id/btn_gl_camera2"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="HardcodedText" />
-
-    <Button
-        android:id="@+id/btn_gl_filter_c"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:text="GL滤镜切换"
-        app:layout_constraintStart_toEndOf="@id/btn_gl_filter"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="HardcodedText" />
-
-    <Button
-        android:id="@+id/btn_surface"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:text="自定义GLSurfaceView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_gl_back"
-        tools:ignore="HardcodedText" />
-
-    <Button
-        android:id="@+id/btn_surface_new"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:text="selfGLSurfaceView"
-        app:layout_constraintStart_toEndOf="@+id/btn_surface"
-        app:layout_constraintTop_toBottomOf="@+id/btn_gl_back"
-        tools:ignore="HardcodedText" />
-
-    <Button
-        android:id="@+id/btn_surface_new_record"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:text="start recording"
-        app:layout_constraintStart_toEndOf="@+id/btn_surface_new"
-        app:layout_constraintTop_toBottomOf="@+id/btn_gl_back"
-        tools:ignore="HardcodedText" />
-
-    <Button
-        android:id="@+id/btn_draw_text_surface"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:text="GL视频中绘制图片文本水印"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_surface"
-        tools:ignore="HardcodedText" />
-    <Button
-        android:id="@+id/btn_draw_text_record"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:text="GL视频中绘制图片文本水印开始录制"
-        app:layout_constraintStart_toEndOf="@+id/btn_draw_text_surface"
-        app:layout_constraintTop_toBottomOf="@+id/btn_surface"
-        tools:ignore="HardcodedText" />
+    android:background="#000000">
 
     <FrameLayout
         android:id="@+id/gl_show"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_height="match_parent" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="#80000000"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <RelativeLayout
+        android:id="@+id/btn_gl_back"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_menu_revert"
+            android:contentDescription="返回"
+            app:tint="#FFFFFF" />
+    </RelativeLayout>
+
+    <HorizontalScrollView
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:scrollbars="none"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btn_gl_back"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingEnd="16dp"
+            tools:ignore="RtlSymmetry">
+
+            <Button
+                android:id="@+id/btn_camera_pre"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="预览"
+                android:textColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
+
+            <Button
+                android:id="@+id/btn_gl_camera1"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="手电筒"
+                android:textColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
+
+            <Button
+                android:id="@+id/btn_gl_camera2"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="GL摄像机"
+                android:textColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
+
+            <Button
+                android:id="@+id/btn_gl_filter"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="滤镜"
+                android:textColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
+
+            <Button
+                android:id="@+id/btn_gl_filter_c"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="切换滤镜"
+                android:textColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
+
+            <Button
+                android:id="@+id/btn_surface"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Custom GL"
+                android:textColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
+
+            <Button
+                android:id="@+id/btn_surface_new"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Self GL"
+                android:textColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
+
+            <Button
+                android:id="@+id/btn_draw_text_surface"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="绘制水印"
+                android:textColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <LinearLayout
+        android:id="@+id/ll_recording"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <Button
+            android:id="@+id/btn_surface_new_record"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="录制 SelfGL"
+            tools:ignore="HardcodedText" />
+
+        <Button
+            android:id="@+id/btn_draw_text_record"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="录制 水印"
+            android:textColor="#FFFFFF"
+            app:strokeColor="#FFFFFF"
+            tools:ignore="HardcodedText" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="OpenGL Camera"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="HardcodedText" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

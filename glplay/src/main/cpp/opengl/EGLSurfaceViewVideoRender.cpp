@@ -16,14 +16,19 @@ void EGLSurfaceViewVideoRender::surfaceChanged(size_t width, size_t height) {
 }
 
 void EGLSurfaceViewVideoRender::render() {
+    if (m_isReleasing) return;
     postMessage(MSG_DrawFrame, false);
 }
 
 void EGLSurfaceViewVideoRender::release() {
-    postMessage(MSG_SurfaceDestroyed, false);
+    LOGE("EGLSurfaceViewVideoRender::release");
+    m_isReleasing = true;
+    postMessage(MSG_SurfaceDestroyed, true);
+    quit();
 }
 
 void EGLSurfaceViewVideoRender::updateFrame(const egl_surface_video_frame &frame) {
+    if (m_isReleasing) return;
     m_sizeY = frame.width * frame.height;
     m_sizeU = frame.width * frame.height / 4;
     m_sizeV = frame.width * frame.height / 4;
@@ -370,7 +375,7 @@ void EGLSurfaceViewVideoRender::OnSurfaceCreated() {
     LOGE("OnSurfaceCreated m_ANWindow:%p", m_ANWindow);
 
     m_WindowSurface = new WindowSurface(m_EglCore, m_ANWindow);
-    if (!m_EglCore) {
+    if (!m_WindowSurface) {
         LOGE("new WindowSurface failed!");
         return;
     }
@@ -406,6 +411,10 @@ void EGLSurfaceViewVideoRender::OnSurfaceChanged(int w, int h) {
 }
 
 void EGLSurfaceViewVideoRender::OnDrawFrame() {
+    if (m_WindowSurface == nullptr) {
+        LOGE("EGLSurfaceViewVideoRender::OnDrawFrame m_WindowSurface is nullptr");
+        return;
+    }
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     if (!updateTextures() || !useProgram()) return;
@@ -473,9 +482,6 @@ void EGLSurfaceViewVideoRender::OnSurfaceDestroyed() {
         delete m_WindowSurface;
         m_WindowSurface = nullptr;
     }
-
-    quit();
-
 }
 
 void EGLSurfaceViewVideoRender::printGLString(const char *name, GLenum s) {

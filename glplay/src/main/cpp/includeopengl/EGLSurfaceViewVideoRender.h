@@ -153,6 +153,7 @@ private:
     float m_rotation = 0;
 
     bool isDirty;
+    bool m_isReleasing = false;
 
     OpenGLShader *openGlShader = nullptr;
 

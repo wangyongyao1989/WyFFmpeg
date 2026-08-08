@@ -6,7 +6,6 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,42 +14,30 @@ import androidx.lifecycle.ViewModelProviders;
 import com.example.myyffmpeg.FFViewModel;
 import com.example.myyffmpeg.databinding.FragmentRtmpLayoutBinding;
 import com.example.rtmplive.LiveManger;
-import com.example.rtmplive.RtmpLivePusher;
 
 public class RtmpFragment extends BaseFragment {
 
-    private com.example.myyffmpeg.databinding.FragmentRtmpLayoutBinding mBinding;
-    private Button mBtnFfPush;
-    private Button mRlClose;
+    private FragmentRtmpLayoutBinding mBinding;
     private FFViewModel mFfViewModel;
-    private Button mBtnFfStop;
-    private TextureView mTextureView;
     private LiveManger mLiveManger;
     private boolean isPushing = false;
     private String rtmpPushPath;
-    private Button mBtnFfPause;
 
     @Override
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
             , @Nullable ViewGroup container
             , @Nullable Bundle savedInstanceState) {
-        mBinding = FragmentRtmpLayoutBinding.inflate(inflater);
+        mBinding = FragmentRtmpLayoutBinding.inflate(inflater, container, false);
         return mBinding.getRoot();
     }
 
     @Override
     public void initView() {
-        mRlClose = mBinding.btnRtmpBack;
-        mBtnFfPush = mBinding.btnFfPush;
-        mBtnFfPause = mBinding.btnFfPause;
-        mBtnFfStop = mBinding.btnFfStop;
-        mTextureView = mBinding.textureView;
-
     }
 
     @Override
     public void initData() {
-        mLiveManger = new LiveManger(this.getViewLifecycleOwner(),getContext(), mTextureView);
+        mLiveManger = new LiveManger(this.getViewLifecycleOwner(),getContext(), mBinding.textureView);
         rtmpPushPath = "rtmp://live-push.bilivideo.com/live-bvc/?streamname=live_345162489_81809986&key=6ba7ec38481c5dd2b3f8e4fb2b5fb8e0&schedule=rtmp&pflag=1";
     }
 
@@ -62,22 +49,22 @@ public class RtmpFragment extends BaseFragment {
 
     @Override
     public void initListener() {
-        mRlClose.setOnClickListener(view -> {
+        mBinding.btnRtmpBack.setOnClickListener(view -> {
             mLiveManger.releaseRtmp();
             mFfViewModel.getSwitchFragment().postValue(FFViewModel.FRAGMENT_STATUS.MAIN);
         });
 
-        mBtnFfPush.setOnClickListener(view -> {
+        mBinding.btnFfPush.setOnClickListener(view -> {
             mLiveManger.startRtmpPush(rtmpPushPath);
             isPushing = true;
         });
 
-        mBtnFfStop.setOnClickListener(view -> {
+        mBinding.btnFfStop.setOnClickListener(view -> {
             mLiveManger.stopRtmpPush();
             isPushing = false;
         });
 
-        mBtnFfPause.setOnClickListener(view -> {
+        mBinding.btnFfPause.setOnClickListener(view -> {
             mLiveManger.pauseRtmp();
         });
     }

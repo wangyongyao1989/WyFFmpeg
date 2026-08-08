@@ -5,8 +5,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -33,28 +31,16 @@ public class OpenGLCameraFragment extends BaseFragment {
 
     private static final String TAG = OpenGLCameraFragment.class.getSimpleName();
     private FragmentOpenglCameraLayoutBinding mBinding;
-    private Button mBtnGlBack;
     private FFViewModel mFfViewModel;
-    private FrameLayout mGlShow;
     private OpenGLPlayCallJni mFFPlayCallJni;
     private GLCameraPreView mCameraPreView;
-    private Button mBtnCameraPre;
-    private Button mBtnGlCamera1;
-    private Button mBtnGlCamera2;
     private GLTextureCPlusVideoPlayerView mGLTextureVideoPlayerView;
     private GLTextureFilterPlayerView mGLTextureFilterPlayerView;
 
-    private Button mBtnGlFilter;
     private int type;
-    private Button mBtnGlFilterC;
-    private Button mBtnSurface;
     private WyyGLSurfaceView mWyyGLSurfaceView;
-    private Button mBtnSurfaceNew;
     private WyyGLSurfaceViewNew mWyyGLSurfaceViewNew;
-    private Button mBtnSurfaceNewRecord;
     private boolean isRecording;
-    private Button mBtnDrawTextSurface;
-    private Button mBtnDrawTextRecord;
     private GLDrawTextSurfaceView mDrawTextSurfaceView;
 
 
@@ -62,24 +48,12 @@ public class OpenGLCameraFragment extends BaseFragment {
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
             , @Nullable ViewGroup container
             , @Nullable Bundle savedInstanceState) {
-        mBinding = FragmentOpenglCameraLayoutBinding.inflate(inflater);
+        mBinding = FragmentOpenglCameraLayoutBinding.inflate(inflater, container, false);
         return mBinding.getRoot();
     }
 
     @Override
     public void initView() {
-        mBtnGlBack = mBinding.btnGlBack;
-        mBtnCameraPre = mBinding.btnCameraPre;
-        mBtnGlCamera1 = mBinding.btnGlCamera1;
-        mBtnGlCamera2 = mBinding.btnGlCamera2;
-        mBtnGlFilter = mBinding.btnGlFilter;
-        mBtnGlFilterC = mBinding.btnGlFilterC;
-        mBtnSurface = mBinding.btnSurface;
-        mBtnSurfaceNew = mBinding.btnSurfaceNew;
-        mBtnSurfaceNewRecord = mBinding.btnSurfaceNewRecord;
-        mBtnDrawTextSurface = mBinding.btnDrawTextSurface;
-        mBtnDrawTextRecord = mBinding.btnDrawTextRecord;
-        mGlShow = mBinding.glShow;
     }
 
     @Override
@@ -96,76 +70,76 @@ public class OpenGLCameraFragment extends BaseFragment {
     @Override
     public void initListener() {
 
-        mBtnGlBack.setOnClickListener(view -> {
+        mBinding.btnGlBack.setOnClickListener(view -> {
             mFfViewModel.getSwitchFragment().postValue(FFViewModel.FRAGMENT_STATUS.MAIN);
         });
 
-        mBtnCameraPre.setOnClickListener(view -> {
+        mBinding.btnCameraPre.setOnClickListener(view -> {
             onDestroyGLView();
-            mGlShow.removeAllViews();
+            mBinding.glShow.removeAllViews();
             if (mCameraPreView == null) {
                 mCameraPreView = new GLCameraPreView(getContext());
             }
-            mGlShow.addView(mCameraPreView);
+            mBinding.glShow.addView(mCameraPreView);
         });
 
-        mBtnGlCamera1.setOnClickListener(view -> {
+        mBinding.btnGlCamera1.setOnClickListener(view -> {
             onDestroyGLView();
-            mGlShow.removeAllViews();
+            mBinding.glShow.removeAllViews();
             GLFlashLightView glFlashLight
                     = new GLFlashLightView(getActivity(), mFFPlayCallJni);
-            mGlShow.addView(glFlashLight);
+            mBinding.glShow.addView(glFlashLight);
         });
 
-        mBtnGlCamera2.setOnClickListener(view -> {
+        mBinding.btnGlCamera2.setOnClickListener(view -> {
             onDestroyGLView();
-            mGlShow.removeAllViews();
+            mBinding.glShow.removeAllViews();
             mGLTextureVideoPlayerView = new GLTextureCPlusVideoPlayerView(getActivity()
                     , mFFPlayCallJni);
-            mGlShow.addView(mGLTextureVideoPlayerView);
+            mBinding.glShow.addView(mGLTextureVideoPlayerView);
         });
 
-        mBtnGlFilter.setOnClickListener(view -> {
+        mBinding.btnGlFilter.setOnClickListener(view -> {
             onDestroyGLView();
-            mGlShow.removeAllViews();
+            mBinding.glShow.removeAllViews();
             if (mGLTextureFilterPlayerView == null) {
                 mGLTextureFilterPlayerView = new GLTextureFilterPlayerView(getActivity()
                         , mFFPlayCallJni);
             }
-            mGlShow.addView(mGLTextureFilterPlayerView);
+            mBinding.glShow.addView(mGLTextureFilterPlayerView);
         });
 
-        mBtnGlFilterC.setOnClickListener(view -> {
+        mBinding.btnGlFilterC.setOnClickListener(view -> {
             type++;
             if (mGLTextureFilterPlayerView != null)
                 mGLTextureFilterPlayerView.setFilterType(type);
             switchFilter();
         });
 
-        mBtnSurface.setOnClickListener(view -> {
+        mBinding.btnSurface.setOnClickListener(view -> {
             onDestroyGLView();
-            mGlShow.removeAllViews();
+            mBinding.glShow.removeAllViews();
             if (mWyyGLSurfaceView == null) {
                 mWyyGLSurfaceView = new WyyGLSurfaceView(getActivity(), mFFPlayCallJni);
             }
-            mGlShow.addView(mWyyGLSurfaceView);
+            mBinding.glShow.addView(mWyyGLSurfaceView);
         });
 
-        mBtnSurfaceNew.setOnClickListener(view -> {
+        mBinding.btnSurfaceNew.setOnClickListener(view -> {
             onDestroyGLView();
-            mGlShow.removeAllViews();
+            mBinding.glShow.removeAllViews();
             if (mWyyGLSurfaceViewNew == null) {
                 mWyyGLSurfaceViewNew = new WyyGLSurfaceViewNew(getActivity(), mFFPlayCallJni);
             }
-            mGlShow.addView(mWyyGLSurfaceViewNew);
+            mBinding.glShow.addView(mWyyGLSurfaceViewNew);
         });
 
-        mBtnSurfaceNewRecord.setOnClickListener(v -> {
+        mBinding.btnSurfaceNewRecord.setOnClickListener(v -> {
             if (mWyyGLSurfaceViewNew != null) {
                 if (isRecording) {
                     mWyyGLSurfaceViewNew.stopRecord();
                     isRecording = false;
-                    mBtnSurfaceNewRecord.setText("start recording");
+                    mBinding.btnSurfaceNewRecord.setText("录制 SelfGL");
                 } else {
                     @SuppressLint("SimpleDateFormat") SimpleDateFormat formatter
                             = new SimpleDateFormat("yy_MM_dd_HH_mm_ss");
@@ -175,7 +149,7 @@ public class OpenGLCameraFragment extends BaseFragment {
                     String videoName = videoDir + File.pathSeparator + str + ".mp4";
                     mWyyGLSurfaceViewNew.startRecord(videoName);
                     isRecording = true;
-                    mBtnSurfaceNewRecord.setText("stop recording");
+                    mBinding.btnSurfaceNewRecord.setText("停止 SelfGL");
                 }
             } else {
                 Toast.makeText(getActivity(), "自定GLSurfaceViewNew没开启"
@@ -183,21 +157,21 @@ public class OpenGLCameraFragment extends BaseFragment {
             }
         });
 
-        mBtnDrawTextSurface.setOnClickListener(view -> {
+        mBinding.btnDrawTextSurface.setOnClickListener(view -> {
             onDestroyGLView();
-            mGlShow.removeAllViews();
+            mBinding.glShow.removeAllViews();
             if (mDrawTextSurfaceView == null) {
                 mDrawTextSurfaceView = new GLDrawTextSurfaceView(getActivity(), mFFPlayCallJni);
             }
-            mGlShow.addView(mDrawTextSurfaceView);
+            mBinding.glShow.addView(mDrawTextSurfaceView);
         });
 
-        mBtnDrawTextRecord.setOnClickListener(v -> {
+        mBinding.btnDrawTextRecord.setOnClickListener(v -> {
             if (mDrawTextSurfaceView != null) {
                 if (isRecording) {
                     mDrawTextSurfaceView.stopRecord();
                     isRecording = false;
-                    mBtnDrawTextRecord.setText("GL绘制文本开始录制");
+                    mBinding.btnDrawTextRecord.setText("录制 水印");
                 } else {
                     @SuppressLint("SimpleDateFormat") SimpleDateFormat formatter
                             = new SimpleDateFormat("yy_MM_dd_HH_mm_ss");
@@ -207,7 +181,7 @@ public class OpenGLCameraFragment extends BaseFragment {
                     String videoName = videoDir + File.pathSeparator + str + ".mp4";
                     mDrawTextSurfaceView.startRecord(videoName);
                     isRecording = true;
-                    mBtnDrawTextRecord.setText("GL绘制文本停止录制");
+                    mBinding.btnDrawTextRecord.setText("停止 水印");
                 }
             } else {
                 Toast.makeText(getActivity(), "GL视频中绘制文本没开启"
@@ -225,55 +199,55 @@ public class OpenGLCameraFragment extends BaseFragment {
         }
         switch (type) {
             case 0: {
-                mBtnGlFilterC.setText("GL滤镜切换");
+                mBinding.btnGlFilterC.setText("GL滤镜切换");
             }
             break;
             case 1: {
-                mBtnGlFilterC.setText("模糊滤镜");
+                mBinding.btnGlFilterC.setText("模糊滤镜");
             }
             break;
             case 2: {
-                mBtnGlFilterC.setText("鱼眼滤镜");
+                mBinding.btnGlFilterC.setText("鱼眼滤镜");
             }
             break;
             case 3: {
-                mBtnGlFilterC.setText("旋流过滤器");
+                mBinding.btnGlFilterC.setText("旋流过滤器");
             }
             break;
             case 4: {
-                mBtnGlFilterC.setText("放大镜滤光片");
+                mBinding.btnGlFilterC.setText("放大镜滤光片");
             }
             break;
             case 5: {
-                mBtnGlFilterC.setText("利希滕斯坦式过滤器");
+                mBinding.btnGlFilterC.setText("利希滕斯坦式过滤器");
             }
             break;
             case 6: {
-                mBtnGlFilterC.setText("三角形马赛克滤镜");
+                mBinding.btnGlFilterC.setText("三角形马赛克滤镜");
             }
             break;
             case 7: {
-                mBtnGlFilterC.setText("像素过滤器");
+                mBinding.btnGlFilterC.setText("像素过滤器");
             }
             break;
             case 8: {
-                mBtnGlFilterC.setText("交叉缝合过滤器");
+                mBinding.btnGlFilterC.setText("交叉缝合过滤器");
             }
             break;
             case 9: {
-                mBtnGlFilterC.setText("Toonify过滤器");
+                mBinding.btnGlFilterC.setText("Toonify过滤器");
             }
             break;
             case 10: {
-                mBtnGlFilterC.setText("捕食者热视觉滤镜");
+                mBinding.btnGlFilterC.setText("捕食者热视觉滤镜");
             }
             break;
             case 11: {
-                mBtnGlFilterC.setText("压花过滤器");
+                mBinding.btnGlFilterC.setText("压花过滤器");
             }
             break;
             case 12: {
-                mBtnGlFilterC.setText("边缘检测滤波器");
+                mBinding.btnGlFilterC.setText("边缘检测滤波器");
             }
             break;
 

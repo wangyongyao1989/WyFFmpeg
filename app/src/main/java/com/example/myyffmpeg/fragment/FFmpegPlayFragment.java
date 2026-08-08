@@ -52,7 +52,7 @@ public class FFmpegPlayFragment extends BaseFragment {
     public View getLayoutDataBing(@NonNull LayoutInflater inflater
             , @Nullable ViewGroup container
             , @Nullable Bundle savedInstanceState) {
-        mBinding = FragmentPlayLayoutBinding.inflate(inflater);
+        mBinding = FragmentPlayLayoutBinding.inflate(inflater, container, false);
         return mBinding.getRoot();
     }
 

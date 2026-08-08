@@ -3,115 +3,155 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:background="#060606"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <SurfaceView
+        android:id="@+id/surface_play"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="#80000000"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <RelativeLayout
         android:id="@+id/rl_close"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        android:layout_centerVertical="true"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="UselessParent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/iv_close"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:padding="6dp"
-            android:src="@mipmap/zc_setting_back"
-            tools:ignore="ContentDescription" />
-
+            android:layout_centerInParent="true"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_menu_revert"
+            android:contentDescription="返回"
+            app:tint="#FFFFFF" />
     </RelativeLayout>
 
-    <Button
-        android:id="@+id/btn_get_version"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="获取ffmpeg版本"
-        android:layout_marginStart="20dp"
-        app:layout_constraintStart_toEndOf="@+id/rl_close"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="HardcodedText" />
+    <HorizontalScrollView
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:scrollbars="none"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/rl_close"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <Button
-        android:id="@+id/btn_mp4_avi"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:text="MP4转avi"
-        app:layout_constraintStart_toEndOf="@+id/btn_get_version"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="HardcodedText" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingEnd="16dp"
+            tools:ignore="RtlSymmetry">
 
-    <Button
-        android:id="@+id/btn_add_water_mark"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:text="MP4添加水印"
-        app:layout_constraintStart_toEndOf="@+id/btn_mp4_avi"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="HardcodedText" />
+            <Button
+                android:id="@+id/btn_get_version"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FFmpeg版本"
+                android:textColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
 
-    <Button
-        android:id="@+id/btn_play_audio"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:text="播放音频"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_get_version"
-        tools:ignore="HardcodedText" />
+            <Button
+                android:id="@+id/btn_mp4_avi"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MP4转AVI"
+                android:textColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
 
-    <Button
-        android:id="@+id/btn_play_pause_video"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:text="ffmpeg播放视频"
-        app:layout_constraintStart_toEndOf="@+id/btn_play_audio"
-        app:layout_constraintTop_toBottomOf="@id/btn_get_version"
-        tools:ignore="HardcodedText" />
+            <Button
+                android:id="@+id/btn_add_water_mark"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="加水印"
+                android:textColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <TextView
         android:id="@+id/sample_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:padding="8dp"
+        android:text="WyFFmpeg Player"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/ll_controls"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/btn_play_video_stop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:text="播放视频"
-        app:layout_constraintStart_toEndOf="@+id/btn_play_pause_video"
-        app:layout_constraintTop_toBottomOf="@id/btn_get_version"
         tools:ignore="HardcodedText" />
 
-    <SurfaceView
-        android:id="@+id/surface_play"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:layout_marginTop="100dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <SeekBar
-        android:id="@+id/sb_play"
+    <LinearLayout
+        android:id="@+id/ll_controls"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:layout_height="wrap_content"
+        android:background="#80000000"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_play_audio"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="音频播放"
+                android:textColor="#FFFFFF"
+                app:strokeColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
+
+            <Button
+                android:id="@+id/btn_play_pause_video"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="视频播放"
+                tools:ignore="HardcodedText" />
+
+            <Button
+                android:id="@+id/btn_play_video_stop"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="停止"
+                android:textColor="#FFFFFF"
+                app:strokeColor="#FFFFFF"
+                tools:ignore="HardcodedText" />
+
+        </LinearLayout>
+
+        <SeekBar
+            android:id="@+id/sb_play"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:progressDrawable="@android:drawable/progress_horizontal"
+            android:thumb="@android:drawable/btn_star_big_on" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
