@@ -632,9 +632,13 @@ cpp_fbo_post_processing_getParameters(JNIEnv *env, jobject thiz) {
 /*********************** OpenGL SurfaceViewNew显示视频并录制*******************/
 extern "C"
 JNIEXPORT void JNICALL
+/**
+ * JNI Entry: 初始化渲染器实例
+ */
 cpp_surfaceview_new_video_init(JNIEnv *env, jobject thiz, jint type,
                                jstring vertex,
                                jstring frag) {
+    LOGD("JNI -> cpp_surfaceview_new_video_init");
     const char *vertexPath = env->GetStringUTFChars(vertex, nullptr);
     const char *fragPath = env->GetStringUTFChars(frag, nullptr);
     if (eglsurfaceViewRender == nullptr)
@@ -648,9 +652,13 @@ cpp_surfaceview_new_video_init(JNIEnv *env, jobject thiz, jint type,
 
 extern "C"
 JNIEXPORT void JNICALL
+/**
+ * JNI Entry: 当 Surface 创建时，绑定原生窗口并启动渲染线程逻辑
+ */
 cpp_surfaceview_new_video_created(JNIEnv *env, jobject thiz,
                                   jobject surface,
                                   jobject assetManager) {
+    LOGD("JNI -> cpp_surfaceview_new_video_created");
     if (eglsurfaceViewRender != nullptr) {
         ANativeWindow *window = surface ? ANativeWindow_fromSurface(env, surface) : nullptr;
         auto *aAssetManager = assetManager ? AAssetManager_fromJava(env, assetManager) : nullptr;
@@ -660,9 +668,13 @@ cpp_surfaceview_new_video_created(JNIEnv *env, jobject thiz,
 
 extern "C"
 JNIEXPORT void JNICALL
+/**
+ * JNI Entry: 当 Surface 尺寸变化时更新视口参数
+ */
 cpp_surfaceview_new_video_changed(JNIEnv *env, jobject thiz,
                                   jint width,
                                   jint height) {
+    LOGD("JNI -> cpp_surfaceview_new_video_changed [w=%d, h=%d]", width, height);
     if (eglsurfaceViewRender != nullptr) {
         eglsurfaceViewRender->surfaceChanged((size_t) width, (size_t) height);
     }
@@ -670,6 +682,9 @@ cpp_surfaceview_new_video_changed(JNIEnv *env, jobject thiz,
 
 extern "C"
 JNIEXPORT void JNICALL
+/**
+ * JNI Entry: 触发渲染一帧
+ */
 cpp_surfaceview_new_video_render(JNIEnv *env, jobject thiz) {
     if (eglsurfaceViewRender != nullptr) {
         eglsurfaceViewRender->render();
@@ -678,13 +693,15 @@ cpp_surfaceview_new_video_render(JNIEnv *env, jobject thiz) {
 
 extern "C"
 JNIEXPORT void JNICALL
+/**
+ * JNI Entry: 提交原始视频数据（YUV）
+ */
 cpp_surfaceview_new_video_draw(JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height,
                                jint rotation) {
     jbyte *bufferPtr = env->GetByteArrayElements(data, nullptr);
     jsize arrayLength = env->GetArrayLength(data);
 
     if (eglsurfaceViewRender != nullptr) {
-
         eglsurfaceViewRender->draw((uint8_t *) bufferPtr, (size_t) arrayLength, (size_t) width,
                                    (size_t) height,
                                    rotation);
@@ -695,25 +712,35 @@ cpp_surfaceview_new_video_draw(JNIEnv *env, jobject obj, jbyteArray data, jint w
 
 extern "C"
 JNIEXPORT void JNICALL
+/**
+ * JNI Entry: 销毁渲染器，释放所有资源
+ */
 cpp_surfaceview_new_video_destroy(JNIEnv *env, jobject thiz) {
+    LOGD("JNI -> cpp_surfaceview_new_video_destroy");
     if (eglsurfaceViewRender != nullptr)
         eglsurfaceViewRender->release();
 }
 
 extern "C"
 JNIEXPORT void JNICALL
+/**
+ * JNI Entry: 开启 MP4 编码录制
+ */
 cpp_surfaceview_new_video_start_record(JNIEnv *env, jobject thiz, jstring recordPath) {
-
+    LOGD("JNI -> cpp_surfaceview_new_video_start_record");
     if (eglsurfaceViewRender == nullptr) return;
     const char *path = env->GetStringUTFChars(recordPath, nullptr);
     eglsurfaceViewRender->startEncoder(path);
     env->ReleaseStringUTFChars(recordPath, path);
-
 }
 
 extern "C"
 JNIEXPORT void JNICALL
+/**
+ * JNI Entry: 停止录制
+ */
 cpp_surfaceview_new_video_stop_record(JNIEnv *env, jobject thiz) {
+    LOGD("JNI -> cpp_surfaceview_new_video_stop_record");
     if (eglsurfaceViewRender == nullptr) return;
     eglsurfaceViewRender->stopEncoder();
 }

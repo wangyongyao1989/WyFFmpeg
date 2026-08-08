@@ -82,7 +82,7 @@ public class WyyGLSurfaceViewNew extends SurfaceView implements SurfaceHolder.Ca
 
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
-        Log.e(TAG, "surfaceCreated");
+        Log.i(TAG, "Lifecycle -> surfaceCreated");
         mSurface = holder.getSurface();
         if (mJniCall != null) {
             mJniCall.glSurfaceViewNewCreated(mSurface, null);
@@ -91,8 +91,7 @@ public class WyyGLSurfaceViewNew extends SurfaceView implements SurfaceHolder.Ca
 
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-        Log.e(TAG, "onSurfaceChanged width:" + width + ",height" + height
-                + "===surface:" + mSurface.toString());
+        Log.i(TAG, "Lifecycle -> surfaceChanged [w=" + width + ", h=" + height + "]");
         if (mJniCall != null) {
             mJniCall.glSurfaceViewNewChanged(width, height);
         }
@@ -103,6 +102,7 @@ public class WyyGLSurfaceViewNew extends SurfaceView implements SurfaceHolder.Ca
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+        Log.i(TAG, "Lifecycle -> surfaceDestroyed");
         if (mJniCall != null) {
             mJniCall.glSurfaceViewNewDestroy();
         }
@@ -126,7 +126,7 @@ public class WyyGLSurfaceViewNew extends SurfaceView implements SurfaceHolder.Ca
 
     @Override
     public void onPreviewFrame(byte[] yuvData, int width, int height) {
-//        Log.e(TAG, "onPreviewFrame" );
+        // 核心数据流：接收相机 YUV 数据并传给 Native 层渲染
         if (mJniCall != null) {
             mJniCall.glSurfaceViewNewDraw(yuvData, width, height, 90);
             mJniCall.glSurfaceViewNewRender();

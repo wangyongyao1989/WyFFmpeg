@@ -85,28 +85,34 @@ void Looper::addMessage(LooperMessage *msg, bool flush) {
     sem_post(&headDataAvailable);
 }
 
+/**
+ * Looper 线程主循环
+ */
 void Looper::loop() {
+    LOGD("Looper::loop() - Starting message loop on thread: %ld", pthread_self());
     while (true) {
-        // wait for available message
+        // 1. 等待消息到达
         sem_wait(&headDataAvailable);
 
-        // get next available message
+        // 2. 线程安全地从队列头部取出消息
         sem_wait(&headWriteProtect);
         LooperMessage *msg = head;
         if (msg == NULL) {
-            LOGE("Looper::loop() no msg");
+            LOGW("Looper::loop() - Spurious wakeup, no message found");
             sem_post(&headWriteProtect);
             continue;
         }
         head = msg->next;
         sem_post(&headWriteProtect);
 
+        // 3. 检查是否是退出指令
         if (msg->quit) {
-            LOGE("Looper::loop() quitting");
+            LOGI("Looper::loop() - Received quit message, exiting loop");
             delete msg;
             return;
         }
-//        LOGE("Looper::loop() processing msg.what=%d", msg->what);
+
+        // 4. 回调子类实现的 handleMessage 处理具体业务逻辑
         handleMessage(msg);
         delete msg;
     }
