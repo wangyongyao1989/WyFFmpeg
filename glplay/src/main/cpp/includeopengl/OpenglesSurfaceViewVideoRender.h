@@ -5,8 +5,7 @@
 #ifndef MYYFFMPEG_OpenglesSurfaceViewVideoRender_H
 #define MYYFFMPEG_OpenglesSurfaceViewVideoRender_H
 
-#endif //MYYFFMPEG_OpenglesSurfaceViewVideoRender_H
-
+#include <string>
 #include <cstdint>
 #include <memory>
 #include <android/native_window.h>
@@ -132,3 +131,5 @@ private:
 
 
 };
+
+#endif //MYYFFMPEG_OpenglesSurfaceViewVideoRender_H

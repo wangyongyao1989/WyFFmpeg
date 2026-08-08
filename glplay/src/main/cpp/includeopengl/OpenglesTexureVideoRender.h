@@ -5,8 +5,7 @@
 #ifndef MYYFFMPEG_OPENGLESTEXUREVIDEORENDER_H
 #define MYYFFMPEG_OPENGLESTEXUREVIDEORENDER_H
 
-#endif //MYYFFMPEG_OPENGLESTEXUREVIDEORENDER_H
-
+#include <string>
 #include <cstdint>
 #include <memory>
 #include <android/native_window.h>
@@ -123,3 +122,5 @@ private:
 
     OpenGLShader *openGlShader;
 };
+
+#endif //MYYFFMPEG_OPENGLESTEXUREVIDEORENDER_H

@@ -5,6 +5,8 @@
 #ifndef MYYFFMPEG_OPENGLESTEXTUREFILTERRENDER_H
 #define MYYFFMPEG_OPENGLESTEXTUREFILTERRENDER_H
 
+#include <vector>
+#include <string>
 #include "OpenglesTexureVideoRender.h"
 
 class OpenglesTextureFilterRender : public OpenglesTexureVideoRender {

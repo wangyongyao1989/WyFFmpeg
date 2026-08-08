@@ -1,7 +1,8 @@
 
 #ifndef ANDROIDLEARNOPENGL_OPENGLESFOUNDATION_H
 #define ANDROIDLEARNOPENGL_OPENGLESFOUNDATION_H
-#endif //ANDROIDLEARNOPENGL_OPENGLESFOUNDATION_H
+
+#include <string>
 
 #include <stb_image.h>
 #include "OpenGLCamera3D.h"
@@ -127,4 +128,7 @@ public:
 
     int loadTexture(unsigned char *data, int width, int height, GLenum format);
 };
+
+#endif //ANDROIDLEARNOPENGL_OPENGLESFOUNDATION_H
+
 
