@@ -9,16 +9,19 @@ using namespace std;
 
 int FFmpegVideoPlay::playVideo() {
     if (decodecThread == nullptr) {
-        LOGD("playVideo=========%p", decodecThread);
+        LOGD("playVideo: recreate decode thread %p", decodecThread);
+        {
+            std::lock_guard<std::mutex> lock(m_Mutex);
+            pauseFlag = false;
+            stopFlag = false;
+        }
         decodecThread = new thread(DoAVdecoding, this);
-//        decodecThread->detach();
-    }
-    if (pauseFlag) {
-        pauseFlag = false;
-        m_Cond.notify_all();
-    }
-    if (stopFlag) {
-        stopFlag = false;
+    } else {
+        {
+            std::lock_guard<std::mutex> lock(m_Mutex);
+            pauseFlag = false;
+            stopFlag = false;
+        }
         m_Cond.notify_all();
     }
     mPlayerState = PLAYER_STATE_PLAYING;
@@ -28,10 +31,21 @@ int FFmpegVideoPlay::playVideo() {
 }
 
 void FFmpegVideoPlay::stopVideo() {
+    // 停止并回收解码线程，再回到片头，保证下次 playVideo 可重播
     if (decodecThread != nullptr) {
-        pauseFlag = false;
-        stopFlag = true;
+        {
+            std::lock_guard<std::mutex> lock(m_Mutex);
+            pauseFlag = false;
+            stopFlag = true;
+        }
         m_Cond.notify_all();
+        decodecThread->join();
+        delete decodecThread;
+        decodecThread = nullptr;
+    }
+    m_SeekPosition = 0;
+    if (mAvFormatContext != nullptr && mAvCodecContext != nullptr) {
+        doSeekTo(0);
     }
     mPlayerState = PLAYER_STATE_STOP;
     if (mMsgContext && mPlayStatusCallback)
@@ -40,6 +54,7 @@ void FFmpegVideoPlay::stopVideo() {
 
 void FFmpegVideoPlay::pauseVideo() {
     if (decodecThread != nullptr) {
+        std::lock_guard<std::mutex> lock(m_Mutex);
         pauseFlag = true;
     }
     mPlayerState = PLAYER_STATE_PAUSE;
@@ -48,15 +63,70 @@ void FFmpegVideoPlay::pauseVideo() {
 }
 
 int FFmpegVideoPlay::seekToPosition(float position) {
+    if (position < 0) position = 0;
+    if (position > 100) position = 100;
+    m_SeekPosition = position;
     if (decodecThread != nullptr) {
+        std::lock_guard<std::mutex> lock(m_Mutex);
         pauseFlag = true;
+        m_Cond.notify_all();// 在锁内 notify，消除“判断谓词与进入 wait 之间”的丢唤醒窗口
     }
     mPlayerState = PLAYER_STATE_PAUSE;
-    m_SeekPosition = position;
-    m_Cond.notify_all();
     if (mMsgContext && mPlayStatusCallback)
         mPlayStatusCallback(mMsgContext, "seekToPosition pauseVideo");
     return 0;
+}
+
+int64_t FFmpegVideoPlay::getDurationUs() {
+    if (mAvFormatContext != nullptr && mAvFormatContext->duration > 0) {
+        return mAvFormatContext->duration;
+    }
+    if (mAvFormatContext != nullptr && mVideoIndex >= 0
+        && mVideoIndex < mAvFormatContext->nb_streams) {
+        AVStream *st = mAvFormatContext->streams[mVideoIndex];
+        if (st->duration > 0 && st->time_base.den != 0) {
+            return av_rescale_q(st->duration, st->time_base, AVRational{1, 1000000});
+        }
+    }
+    return 0;
+}
+
+void FFmpegVideoPlay::doSeekTo(int64_t timestampUs) {
+    if (mAvFormatContext == nullptr) {
+        return;
+    }
+    if (avformat_seek_file(mAvFormatContext, -1, INT64_MIN, timestampUs, INT64_MAX, 0) < 0) {
+        LOGD("doSeekTo(%lld) failed", (long long) timestampUs);
+        return;
+    }
+    if (-1 != mVideoIndex && mAvCodecContext != nullptr) {
+        avcodec_flush_buffers(mAvCodecContext);
+    }
+}
+
+void FFmpegVideoPlay::doSeek() {
+    float position = m_SeekPosition;
+    int64_t durationUs = getDurationUs();
+    int64_t seek_target;
+    if (durationUs > 0) {
+        // 进度条是 0-100 的百分比，按视频时长换算成微秒
+        seek_target = static_cast<int64_t>(durationUs * position / 100.0);
+        int64_t maxTarget = durationUs - 1000000;  // 预留 1s，避免 seek 到结尾立刻 EOF
+        if (maxTarget > 0 && seek_target > maxTarget) {
+            seek_target = maxTarget;
+        }
+    } else {
+        // 时长未知（如流媒体）时退回按秒处理
+        seek_target = static_cast<int64_t>(position * 1000000);
+    }
+    if (mAvFormatContext != nullptr
+        && avformat_seek_file(mAvFormatContext, -1, INT64_MIN, seek_target, INT64_MAX, 0) < 0) {
+        LOGD("SeekPosition 失败");
+    } else if (-1 != mVideoIndex) {
+        avcodec_flush_buffers(mAvCodecContext);
+    }
+    m_SeekPosition = 0;  // 失败也清零，避免死循环重试
+    LOGD("seek to %.1f%% done", position);
 }
 
 int FFmpegVideoPlay::initFormatContext() {
@@ -157,23 +227,13 @@ int FFmpegVideoPlay::initANativeWindow() {
 }
 
 FFmpegVideoPlay::~FFmpegVideoPlay() {
+    // 先停线程再释放资源，避免解码线程正在使用 context 时被释放（use-after-free）
+    joinDecodecThread();
+    releaseResources();
     mEnv = nullptr;
     androidSurface = nullptr;
     mInputUrl = nullptr;
-    sws_freeContext(mSwsContext);
-    avcodec_free_context(&mAvCodecContext);
-    avformat_free_context(mAvFormatContext);
-    av_frame_free(&mRgbFrame);
-    av_frame_free(&mAvFrame);
-    av_packet_free(&mAvPacket);
-    if (decodecThread != nullptr) {
-        pauseFlag = false;
-        stopFlag = true;
-        m_Cond.notify_all();
-        decodecThread->join();
-        delete decodecThread;
-        decodecThread = nullptr;
-    }
+    mInputUrlStorage.clear();
 }
 
 void FFmpegVideoPlay::DoAVdecoding(FFmpegVideoPlay *fmpegVideoPlay) {
@@ -187,55 +247,66 @@ int FFmpegVideoPlay::loopDecodec() {
                          mWidth, mHeight, 1);
 
     while (true) {
+        if (stopFlag) {
+            break;
+        }
+        if (m_SeekPosition > 0) {
+            // 暂停状态下也要先消费 seek，恢复播放时才能出现在目标位置
+            doSeek();
+        }
         if (pauseFlag) {
             unique_lock<mutex> uniqueLock(m_Mutex);
-            while (pauseFlag) {
-                m_Cond.wait(uniqueLock); // Unlock _mutex and wait to be notified
+            while (pauseFlag && !stopFlag) {
+                // 带 100ms 超时的等待：即使出现 notify 丢失/竞态，也会被下一次超时唤醒，
+                // 从而消费 m_SeekPosition，不会永久错过后续的 seek 请求
+                m_Cond.wait_for(uniqueLock, std::chrono::milliseconds(100));
+                if (m_SeekPosition > 0) break;// 有新 seek 时立即退出等待去处理
             }
             uniqueLock.unlock();
         }
         if (stopFlag) {
             break;
         }
-        if (m_SeekPosition > 0) {
-            //seek to frame
-            int64_t seek_target = static_cast<int64_t>(m_SeekPosition * 1000000);//微秒
-            int64_t seek_min = INT64_MIN;
-            int64_t seek_max = INT64_MAX;
-            int seek_ret = avformat_seek_file(mAvFormatContext, -1,
-                                              seek_min, seek_target,
-                                              seek_max,
-                                              0);
-            if (seek_ret < 0) {
-                LOGD("SeekPosition 失败");
-            } else {
-                if (-1 != mVideoIndex) {
-                    avcodec_flush_buffers(mAvCodecContext);
-                }
-                m_SeekPosition = 0;
-            }
-        }
 
         int result = av_read_frame(mAvFormatContext, mAvPacket);
+        if (result == AVERROR(EAGAIN)) {
+            continue;
+        }
         if (result < 0) {
-            LOGD("av_read_frame fail：%d",result);
-            break;
+            // EOF 或读取错误：回到片头并暂停，对外回调播放完成，支持再次播放
+            LOGD("read frame finished：%d, playback complete", result);
+            doSeekTo(0);
+            {
+                std::lock_guard<std::mutex> lock(m_Mutex);
+                pauseFlag = true;
+            }
+            mPlayerState = PLAYER_STATE_STOP;
+            if (mMsgContext && mPlayStatusCallback)
+                mPlayStatusCallback(mMsgContext, "playVideo complete");
+            continue;
         }
         if (mAvPacket->stream_index == mVideoIndex) {
             int ret = codecAvFrame();
             if (ret == AVERROR(EAGAIN)) {
+                av_packet_unref(mAvPacket);
                 continue;
             } else if (ret < 0) {
-                LOGD("codecAvFrame fail");
-                break;
+                // 单帧解码失败跳过该帧，而不是终止整个播放线程
+                LOGD("codecAvFrame fail, skip frame");
+                av_packet_unref(mAvPacket);
+                continue;
             }
             sendFrameDataToANativeWindow();
+            av_frame_unref(mAvFrame);
         }
+        av_packet_unref(mAvPacket);
     }
-    pauseFlag = false;
-    stopFlag = false;
-    avformat_free_context(mAvFormatContext);
-    return ret;
+    {
+        std::lock_guard<std::mutex> lock(m_Mutex);
+        pauseFlag = false;
+        stopFlag = false;
+    }
+    return 0;
 }
 
 int FFmpegVideoPlay::codecAvFrame() {
@@ -266,20 +337,10 @@ int FFmpegVideoPlay::sendFrameDataToANativeWindow() {
                    mOutbuffer + h * mRgbFrame->linesize[0],
                    mRgbFrame->linesize[0]);
         }
+        // 逐 I 帧跨 JNI 回调会刷屏并有 local ref 泄漏风险，帧类型变化不再回调；
+        // 播放状态（play/pause/stop/complete）已在各控制方法中回调。
         switch (mAvFrame->pict_type) {
-            case AV_PICTURE_TYPE_I:
-                if (mMsgContext && mPlayStatusCallback)
-                    mPlayStatusCallback(mMsgContext, "读取到I帧");
-                break;
-            case AV_PICTURE_TYPE_P:
-//                if (mMsgContext && mPlayStatusCallback)
-//                    mPlayStatusCallback(mMsgContext, "读取到P帧");
-                break;
-            case AV_PICTURE_TYPE_B:
-//                if (mMsgContext && mPlayStatusCallback)
-//                    mPlayStatusCallback(mMsgContext, "读取到B帧");
-                break;
-            default:;
+            default:
                 break;
         }
     }
@@ -289,28 +350,58 @@ int FFmpegVideoPlay::sendFrameDataToANativeWindow() {
 }
 
 void FFmpegVideoPlay::init(JNIEnv *env, jobject thiz, const char *inputUrl, jobject surface) {
+    if (mAvFormatContext != nullptr) {
+        // 防止重复 init（例如未走 surfaceDestroyed 就直接再进入播放页）导致旧资源泄漏
+        joinDecodecThread();
+        releaseResources();
+    }
     mEnv = env;
     jniClazz = thiz;
     androidSurface = surface;
-    mInputUrl = inputUrl;
+    mInputUrlStorage = inputUrl == nullptr ? "" : inputUrl;
+    mInputUrl = mInputUrlStorage.c_str();
     initFFmeg();
 }
 
 void FFmpegVideoPlay::unInit() {
-    sws_freeContext(mSwsContext);
-    avcodec_free_context(&mAvCodecContext);
-    avformat_free_context(mAvFormatContext);
-    av_frame_free(&mRgbFrame);
-    av_frame_free(&mAvFrame);
-    av_packet_free(&mAvPacket);
+    // 先停止并回收解码线程，再释放资源；顺序颠倒会造成野指针/双重释放
+    joinDecodecThread();
+    releaseResources();
+}
+
+void FFmpegVideoPlay::joinDecodecThread() {
     if (decodecThread != nullptr) {
-        pauseFlag = false;
-        stopFlag = true;
+        {
+            std::lock_guard<std::mutex> lock(m_Mutex);
+            pauseFlag = false;
+            stopFlag = true;
+        }
         m_Cond.notify_all();
-        decodecThread->detach();
+        decodecThread->join();
         delete decodecThread;
         decodecThread = nullptr;
     }
+}
+
+void FFmpegVideoPlay::releaseResources() {
+    sws_freeContext(mSwsContext);
+    mSwsContext = nullptr;
+    avcodec_free_context(&mAvCodecContext);
+    if (mAvFormatContext != nullptr) {
+        avformat_close_input(&mAvFormatContext);
+    }
+    av_frame_free(&mRgbFrame);
+    av_frame_free(&mAvFrame);
+    av_packet_free(&mAvPacket);
+    if (mOutbuffer != nullptr) {
+        av_free(mOutbuffer);
+        mOutbuffer = nullptr;
+    }
+    if (mNativeWindow != nullptr) {
+        ANativeWindow_release(mNativeWindow);
+        mNativeWindow = nullptr;
+    }
+    mPlayerState = PLAYER_STATE_UNKNOWN;
 }
 
 void FFmpegVideoPlay::initCallback(JNIEnv *env, jobject thiz) {

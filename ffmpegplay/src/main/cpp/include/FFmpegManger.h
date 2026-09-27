@@ -37,6 +37,8 @@ private:
 
     JavaVM *mJavaVm = nullptr;
     jobject mJavaObj = nullptr;
+    jmethodID mEventCallbackMethodId = nullptr;
+    jmethodID mPlayStatusCallbackMethodId = nullptr;
 
 
 public:
@@ -65,6 +67,8 @@ public:
     int seekToPosition(float position);
 
     int initCallBack(JNIEnv *env, jobject thiz);
+
+    void CacheCallbackMethods(JNIEnv *env, jobject thiz);
 
     JNIEnv *GetJNIEnv(bool *isAttach);
 };

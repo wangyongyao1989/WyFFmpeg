@@ -16,7 +16,6 @@ int FFmpegWaterMark::mp4WaterMark(const char *inputUrl, const char *pngUrl, cons
     for (int i = 0; i < 2; i++) {
         if (OpenInput((char *) fileInput[i].c_str(), i) < 0) {
             LOGD("Open file Input failed!");
-            this_thread::sleep_for(chrono::seconds(10));
             return (0);
         }
     }
@@ -36,7 +35,6 @@ int FFmpegWaterMark::mp4WaterMark(const char *inputUrl, const char *pngUrl, cons
 
         if (ret < 0) {
             LOGD("InitDecodeCodec failed!");
-            this_thread::sleep_for(chrono::seconds(10));
             return (0);
         }
     }
@@ -45,9 +43,9 @@ int FFmpegWaterMark::mp4WaterMark(const char *inputUrl, const char *pngUrl, cons
 
     int ret = InitEncoderCodec(decoderContext[0]->width, decoderContext[0]->height, 0);
     if (ret < 0) {
-        LOGD("open eccoder failed ret is %s", ret);
+        // ret 是 int，原先用 %s 打印会把整数当指针解引用
+        LOGD("open encoder failed ret is %d", ret);
         LOGD("InitEncoderCodec failed!");
-        this_thread::sleep_for(chrono::seconds(10));
         return (0);
     }
 
@@ -55,14 +53,16 @@ int FFmpegWaterMark::mp4WaterMark(const char *inputUrl, const char *pngUrl, cons
     filter_graph = avfilter_graph_alloc();
     if (!filter_graph) {
         LOGD("graph alloc failed");
+        // ErrorFree 之后必须返回，否则会继续使用空的 filter_graph 往下跑
         ErrorFree();
-//        goto End;
+        return (0);
     }
 
     int parse2 = avfilter_graph_parse2(filter_graph, filter_descr, &inputs, &outputs);
     if (parse2 < 0) {
-        LOGD("avfilter_graph_parse2 error %d", ret);
+        LOGD("avfilter_graph_parse2 error %d", parse2);
         ErrorFree();
+        return (0);
     }
     InitInputFilter(inputs, "MainFrame", 0);
     InitInputFilter(inputs->next, "OverlayFrame", 1);
@@ -75,6 +75,7 @@ int FFmpegWaterMark::mp4WaterMark(const char *inputUrl, const char *pngUrl, cons
     if (ret < 0) {
         LOGD("avfilter_graph_parse_ptr error %d", ret);
         ErrorFree();
+        return (0);
     }
 
     //????为什么会连接失败？？？？？？？？
@@ -82,11 +83,10 @@ int FFmpegWaterMark::mp4WaterMark(const char *inputUrl, const char *pngUrl, cons
     if (ret < 0) {
         LOGD("avfilter_graph_config error %d", ret);
         ErrorFree();
-//        goto End;
+        return (0);
     }
     if (OpenOutput((char *) fileOutput.c_str(), 0) < 0) {
         LOGD("Open file Output failed!");
-        this_thread::sleep_for(chrono::seconds(10));
         return (0);
     }
 
@@ -403,7 +403,6 @@ FFmpegWaterMark::~FFmpegWaterMark() {
         decodeTask = nullptr;
     }
     LOGD("add watermark end!");
-    this_thread::sleep_for(chrono::hours(10));
 }
 
 void FFmpegWaterMark::ErrorFree() {
@@ -411,7 +410,6 @@ void FFmpegWaterMark::ErrorFree() {
     CloseInput(1);
     CloseOutput();
     LOGD("ErrorFree add watermark end!");
-    this_thread::sleep_for(chrono::hours(10));
     if (decodeTask) {
         decodeTask->join();
         delete decodeTask;

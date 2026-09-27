@@ -9,6 +9,7 @@
 #include "jni.h"
 #include "android/native_window.h"
 #include <thread>
+#include <string>
 #include "GLES3/gl3.h"
 #include "GLES3/gl3ext.h"
 #include "GLES3/gl3platform.h"
@@ -36,6 +37,7 @@ private:
     jobject androidSurface = NULL;
     SwsContext *mSwsContext = nullptr;
     const char *mInputUrl = nullptr;
+    std::string mInputUrlStorage;   ///<持有输入路径副本，避免 JNI 临时串被释放后悬垂
     AVFormatContext *mAvFormatContext = nullptr;
     AVCodecContext *mAvCodecContext = nullptr;
     ANativeWindow_Buffer windowBuffer;
@@ -49,7 +51,7 @@ private:
     std::condition_variable m_Cond;
     std::atomic_bool pauseFlag;   ///<暂停标识
     std::atomic_bool stopFlag;   ///<停止标识
-    volatile float m_SeekPosition = 0;
+    volatile float m_SeekPosition = 0;   ///<目标进度，百分比 0-100
 
 
     void *mMsgContext = nullptr;
@@ -70,6 +72,16 @@ private:
     int sendFrameDataToANativeWindow();
 
     int loopDecodec();
+
+    void doSeek();
+
+    void doSeekTo(int64_t timestampUs);
+
+    int64_t getDurationUs();
+
+    void joinDecodecThread();
+
+    void releaseResources();
 
     static void do_some_work();
 

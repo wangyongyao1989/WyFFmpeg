@@ -84,14 +84,20 @@ int FFmpegManger::seekToPosition(float position) {
 
 int FFmpegManger::initFFmpeg(JNIEnv *env, jobject thiz, const char *inputUrl, jobject surface) {
     mEnv = env;
-//    mJvm = env->NewGlobalRef(thiz);
     env->GetJavaVM(&mJavaVm);
+    if (mJavaObj != nullptr) {
+        env->DeleteGlobalRef(mJavaObj);
+        mJavaObj = nullptr;
+    }
     mJavaObj = env->NewGlobalRef(thiz);
-    PostMessage(this,2,9);
+    CacheCallbackMethods(env, thiz);
+    // 二次进入播放页时也要重新走 videoPlay 的 init，内部会释放旧资源
     if (videoPlay == nullptr) {
         videoPlay = new FFmpegVideoPlay();
-        videoPlay->init(env, thiz, inputUrl, surface);
     }
+    videoPlay->init(env, thiz, inputUrl, surface);
+    videoPlay->SetMessageCallback(this, PostMessage);
+    videoPlay->SetPlayStatusCallback(this, PostPlayStatusMessage);
     return 0;
 }
 
@@ -99,7 +105,12 @@ void FFmpegManger::unInit() {
     if (videoPlay != nullptr) {
         videoPlay->unInit();
     }
-    mEnv->DeleteGlobalRef(mJavaObj);
+    if (mEnv != nullptr && mJavaObj != nullptr) {
+        mEnv->DeleteGlobalRef(mJavaObj);
+        mJavaObj = nullptr;
+        mEventCallbackMethodId = nullptr;
+        mPlayStatusCallbackMethodId = nullptr;
+    }
 }
 
 int FFmpegManger::initCallBack(JNIEnv *env, jobject thiz) {
@@ -107,11 +118,24 @@ int FFmpegManger::initCallBack(JNIEnv *env, jobject thiz) {
         videoPlay = new FFmpegVideoPlay();
     }
     mEnv = env;
+    if (mJavaObj != nullptr) {
+        env->DeleteGlobalRef(mJavaObj);
+        mJavaObj = nullptr;
+    }
     mJavaObj = env->NewGlobalRef(thiz);
+    CacheCallbackMethods(env, thiz);
     videoPlay->initCallback(env, thiz);
     videoPlay->SetMessageCallback(this, PostMessage);
     videoPlay->SetPlayStatusCallback(this, PostPlayStatusMessage);
     return 0;
+}
+
+void FFmpegManger::CacheCallbackMethods(JNIEnv *env, jobject thiz) {
+    jclass clazz = env->GetObjectClass(thiz);
+    mEventCallbackMethodId = env->GetMethodID(clazz, "CppEventCallback", "(IF)V");
+    mPlayStatusCallbackMethodId = env->GetMethodID(clazz, "CppPlayStatusCallback",
+                                                   "(Ljava/lang/String;)V");
+    env->DeleteLocalRef(clazz);
 }
 
 JNIEnv *FFmpegManger::GetJNIEnv(bool *isAttach) {
@@ -135,42 +159,63 @@ JNIEnv *FFmpegManger::GetJNIEnv(bool *isAttach) {
 }
 
 void FFmpegManger::PostMessage(void *context, int msgType, float msgCode) {
-    if (context != nullptr) {
-        FFmpegManger *pFmpegManger = static_cast<FFmpegManger *>(context);
-        bool isAttach = false;
-        //C++子线程回到回Java主线程，两线程之间的调用切换
-        JNIEnv *pEnv = pFmpegManger->GetJNIEnv(&isAttach);
-        if (pEnv == nullptr) {
-            return;
-        }
-        jobject javaObj = pFmpegManger->mJavaObj;
-        jmethodID mid = pEnv->GetMethodID(pEnv->GetObjectClass(javaObj), "CppEventCallback",
-                                          "(IF)V");
+    if (context == nullptr) {
+        return;
+    }
+    FFmpegManger *pFmpegManger = static_cast<FFmpegManger *>(context);
+    if (pFmpegManger->mJavaObj == nullptr) {
+        return;
+    }
+    bool isAttach = false;
+    //C++子线程回到回Java主线程，两线程之间的调用切换
+    JNIEnv *pEnv = pFmpegManger->GetJNIEnv(&isAttach);
+    if (pEnv == nullptr) {
+        return;
+    }
+    jobject javaObj = pFmpegManger->mJavaObj;
+    jmethodID mid = pFmpegManger->mEventCallbackMethodId;
+    if (mid != nullptr) {
         pEnv->CallVoidMethod(javaObj, mid, msgType, msgCode);
-        if (isAttach) {
-            JavaVM *pJavaVm = pFmpegManger->mJavaVm;
-            pJavaVm->DetachCurrentThread();
-        }
+    }
+    if (pEnv->ExceptionCheck()) {
+        pEnv->ExceptionDescribe();
+        pEnv->ExceptionClear();
+    }
+    if (isAttach) {
+        JavaVM *pJavaVm = pFmpegManger->mJavaVm;
+        pJavaVm->DetachCurrentThread();
     }
 }
 
 void FFmpegManger::PostPlayStatusMessage(void *context, const char *status) {
-    if (context != nullptr) {
-        FFmpegManger *pFmpegManger = static_cast<FFmpegManger *>(context);
-        bool isAttach = false;
-        JNIEnv *pEnv = pFmpegManger->GetJNIEnv(&isAttach);
-        if (pEnv == nullptr) {
-            return;
-        }
-        jobject javaObj = pFmpegManger->mJavaObj;
-        jmethodID mid = pEnv->GetMethodID(pEnv->GetObjectClass(javaObj), "CppPlayStatusCallback",
-                                          "(Ljava/lang/String;)V");
-        jstring pJstring = pEnv->NewStringUTF(status);
+    if (context == nullptr) {
+        return;
+    }
+    FFmpegManger *pFmpegManger = static_cast<FFmpegManger *>(context);
+    if (pFmpegManger->mJavaObj == nullptr) {
+        return;
+    }
+    bool isAttach = false;
+    JNIEnv *pEnv = pFmpegManger->GetJNIEnv(&isAttach);
+    if (pEnv == nullptr) {
+        return;
+    }
+    jobject javaObj = pFmpegManger->mJavaObj;
+    jmethodID mid = pFmpegManger->mPlayStatusCallbackMethodId;
+    jstring pJstring = nullptr;
+    if (mid != nullptr && status != nullptr) {
+        pJstring = pEnv->NewStringUTF(status);
         pEnv->CallVoidMethod(javaObj, mid, pJstring);
-//        if (isAttach) {
-//            JavaVM *pJavaVm = pFmpegManger->mJavaVm;
-//            pJavaVm->DetachCurrentThread();
-//        }
+        pEnv->DeleteLocalRef(pJstring);
+    }
+    if (pEnv->ExceptionCheck()) {
+        pEnv->ExceptionDescribe();
+        pEnv->ExceptionClear();
+    }
+    // 解码线程 Attach 后必须 Detach，否则每次回调泄漏一个线程/JNI 环境
+    if (isAttach) {
+        JavaVM *pJavaVm = pFmpegManger->mJavaVm;
+        pJavaVm->DetachCurrentThread();
     }
 }
 

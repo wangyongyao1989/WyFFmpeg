@@ -22,7 +22,7 @@ cpp_stringFromJNI(
         JNIEnv *env,
         jobject /* this */) {
     std::string hello = "Hello from C++";
-    LOGD("cpp_stringFromJNI  hello = %c", hello.c_str());
+    LOGD("cpp_stringFromJNI  hello = %s", hello.c_str());
     return env->NewStringUTF(hello.c_str());
 }
 

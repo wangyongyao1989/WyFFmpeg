@@ -104,16 +104,22 @@ public class FFmpegPlayFragment extends BaseFragment {
             Date curDate = new Date(System.currentTimeMillis());//获取当前时间
             String str = formatter.format(curDate);
             String aviDir = DirectoryPath.createVideoDir(getActivity());
-            String aviName = aviDir + File.pathSeparator + str + ".avi";
-            mFFPlayCallJni.mp4CAvi(inputFilePath, aviName);
-            SaveMediaUtils.saveImgFileToAlbum(getActivity(), aviName);
+            String aviName = new File(aviDir, str + ".avi").getAbsolutePath();
+            // 转码是耗时同步操作，切到后台线程，避免 ANR
+            new Thread(() -> {
+                mFFPlayCallJni.mp4CAvi(inputFilePath, aviName);
+                requireActivity().runOnUiThread(() ->
+                        SaveMediaUtils.saveImgFileToAlbum(getActivity(), aviName));
+            }, "mp4CAvi").start();
         });
         mAddWaterMark.setOnClickListener(view -> {
             String inputFilePath = FileUtils.getModelFilePath(getActivity(), "video.mp4");
             String pngFilePath = FileUtils.getModelFilePath(getActivity(), "water.png");
             String waterMakerDir = DirectoryPath.createVideoDir(getActivity());
-            String waterMakerFilePath = waterMakerDir + File.pathSeparator + "watermark.mp4";
-            mFFPlayCallJni.waterMark(inputFilePath, pngFilePath, waterMakerFilePath);
+            String waterMakerFilePath = new File(waterMakerDir, "watermark.mp4").getAbsolutePath();
+            // 解码+滤镜+编码为耗时同步操作，切到后台线程，避免 ANR
+            new Thread(() -> mFFPlayCallJni.waterMark(inputFilePath, pngFilePath, waterMakerFilePath),
+                    "waterMark").start();
         });
         mBtnPlayAudio.setOnClickListener(view -> {
             if (mBtnPlayAudio.isSelected()) {
@@ -140,16 +146,12 @@ public class FFmpegPlayFragment extends BaseFragment {
         });
 
         mBtnPlayVideoStop.setOnClickListener(view -> {
-            if (mBtnPlayVideoStop.isSelected()) {
-                mBtnPlayVideoStop.setSelected(false);
-                mBtnPlayVideoStop.setText("播放视频");
-                mFFPlayCallJni.stopVideo();
-            } else {
-                String videoUrl = FileUtils.getModelFilePath(getActivity(), "woman.mp4");
-                mBtnPlayVideoStop.setSelected(true);
-                mBtnPlayVideoStop.setText("播放停止");
-                mFFPlayCallJni.playVideo();
-            }
+            // 停止按钮语义固定：任何状态下都执行停止，并复位播放/暂停按钮
+            mFFPlayCallJni.stopVideo();
+            mBtnPlayVideoStop.setSelected(false);
+            mBtnPlayVideoStop.setText("播放视频");
+            mBtnPlayPauseVideo.setSelected(false);
+            mBtnPlayPauseVideo.setText("ffmpeg播放视频");
         });
 
         final SurfaceHolder surfaceViewHolder = mSurfaceView.getHolder();

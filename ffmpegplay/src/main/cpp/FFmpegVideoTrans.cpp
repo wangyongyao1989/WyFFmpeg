@@ -5,6 +5,15 @@
 #include "include/FFmpegVideoTrans.h"
 
 
+/**
+ * av_bitstream_filter_filter 转换出的新缓冲是 av_malloc 的裸内存，
+ * 必须挂到 AVPacket.buf 上交给 av_packet_unref 释放；
+ * 原来直接把 pkt.data 指向新缓冲再 unref，等于每帧泄漏一整帧 H264 数据。
+ */
+static void free_bsf_buffer(void *opaque, uint8_t *data) {
+    av_free(data);
+}
+
 int FFmpegVideoTrans::mp4ConversionAvi(const char *in_filename, const char *out_filename) {
     AVOutputFormat *ofmt = NULL;
     AVBitStreamFilterContext *vbsf = NULL;
@@ -107,8 +116,13 @@ int FFmpegVideoTrans::mp4ConversionAvi(const char *in_filename, const char *out_
                     , &fpkt.data, &fpkt.size,
                                                pkt.data, pkt.size
                     , pkt.flags & AV_PKT_FLAG_KEY);
-            pkt.data = fpkt.data;
-            pkt.size = fpkt.size;
+            if (a >= 0 && fpkt.data != pkt.data) {
+                // 过滤器新分配了 Annex-B 缓冲：先丢掉原 MP4 缓冲的引用，再把新缓冲纳入包生命周期
+                av_buffer_unref(&pkt.buf);
+                pkt.buf = av_buffer_create(fpkt.data, fpkt.size, free_bsf_buffer, nullptr, 0);
+                pkt.data = fpkt.data;
+                pkt.size = fpkt.size;
+            }
         }
         //写AVPacket
         if (av_write_frame(ofmt_ctx, &pkt) < 0) {
@@ -116,7 +130,10 @@ int FFmpegVideoTrans::mp4ConversionAvi(const char *in_filename, const char *out_
             LOGD("Error muxing packet\n");
             break;
         }
-        LOGD("Write %8d frames to output file\n", frame_index);
+        // 每帧一条 LOGD 会刷掉 logcat 环形缓冲，转码出问题时反而看不到关键错误
+        if (frame_index % 100 == 0) {
+            LOGD("Write %8d frames to output file\n", frame_index);
+        }
         av_packet_unref(&pkt);
         frame_index++;
     }
@@ -126,6 +143,10 @@ int FFmpegVideoTrans::mp4ConversionAvi(const char *in_filename, const char *out_
     LOGD("Write av_write_trailer\n");
 
     end:
+    if (vbsf) {
+        av_bitstream_filter_close(vbsf);
+        vbsf = NULL;
+    }
     avformat_close_input(&ifmt_ctx);
     /*关闭输出*/
     if (ofmt_ctx && !(ofmt->flags & AVFMT_NOFILE))

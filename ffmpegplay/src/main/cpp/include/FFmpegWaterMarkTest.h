@@ -8,37 +8,40 @@
 #include "ffmpegpch.h"
 #include "string"
 
-static AVFormatContext *fmt_ctx = NULL;
-static AVCodecContext *dec_ctx = NULL;
-static int64_t last_pts = AV_NOPTS_VALUE;
-static int video_stream_index = -1;
-
-static AVFormatContext *pFormatCtx;
-static AVCodecContext *pCodecCtx;
-
+/**
+ * 给 MP4 视频叠加图片水印：解码 -> overlay 滤镜 -> mpeg4 编码 -> mp4 混流（音频流 copy）。
+ * 注：内置 FFmpeg 未编译 libx264，故使用内置 mpeg4 编码器。
+ */
 class FFmpegWaterMarkTest {
 
 private:
-
-    AVFilterContext *buffersink_ctx = NULL;
-    AVFilterContext *buffersrc_ctx = NULL;
-    AVFilterGraph *filter_graph = NULL;
-
+    AVFormatContext *fmt_ctx = nullptr;      ///< 输入
+    AVCodecContext *dec_ctx = nullptr;
     int video_index = -1;
 
-    const char *filter_descr = "movie=logo.jpg[wm];[in][wm]overlay=5:5[out]";
+    AVFilterGraph *filter_graph = nullptr;
+    AVFilterContext *buffersrc_ctx = nullptr;
+    AVFilterContext *buffersink_ctx = nullptr;
+
+    AVFormatContext *ofmt_ctx = nullptr;     ///< 输出
+    AVCodecContext *enc_ctx = nullptr;
+    int out_video_index = -1;
 
 public:
     int mp4WaterMark(const char *inputUrl, const char *pngUrl, const char *outputUrl);
 
+private:
     int open_input_file(const char *filename);
-    int init_filters(const char *filters_descr);
-    int init_filters_1(const char *filters_descr);
 
-    int mp4WaterMark_leixiaohua(const char *inputUrl, const char *pngUrl, const char *outputUrl);
-    int open_input_file_leixiaohua(const char *filename);
-    int init_filters_leixiaohua(const char *filters_descr);
+    int init_filters(const char *pngUrl);
 
+    int open_output_file(const char *outputUrl);
+
+    int encode_video_frame(AVFrame *frame);
+
+    int flush_encoder();
+
+    void release_all();
 };
 
 
