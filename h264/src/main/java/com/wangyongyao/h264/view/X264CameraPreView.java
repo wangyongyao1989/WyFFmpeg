@@ -102,7 +102,7 @@ public class X264CameraPreView extends TextureView implements TextureView.Surfac
     @Override
     public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surface) {
         stopCameraPreview();
-        return false;
+        return true;    // 交还框架释放 SurfaceTexture，false 需要自行 release，原实现会泄漏
     }
 
     @Override

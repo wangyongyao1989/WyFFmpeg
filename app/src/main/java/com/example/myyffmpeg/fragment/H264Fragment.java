@@ -68,9 +68,38 @@ public class H264Fragment extends BaseFragment {
             if (mX264CameraPreView == null) {
                 mX264CameraPreView = new X264CameraPreView(getActivity());
             }
+            mBinding.x264Show.removeAllViews();
             mBinding.x264Show.addView(mX264CameraPreView);
         });
 
+    }
+
+    /**
+     * MainActivity 用 hide()/show() 切换 Fragment，离开页面时 onDestroyView 不会被调用，
+     * 必须在 onHiddenChanged 里释放摄像头，否则 CameraDevice 一直被占用。
+     */
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (hidden) {
+            releaseCameraPreview();
+        }
+    }
+
+    private void releaseCameraPreview() {
+        if (mX264CameraPreView != null) {
+            mX264CameraPreView.onDestroy();
+            mBinding.x264Show.removeView(mX264CameraPreView);
+            // 置空：release() 后 helper 已不可复用，下次点击预览要重建 view 才会重新开摄像头
+            mX264CameraPreView = null;
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        // 离开页面必须释放摄像头，否则相机服务被持续占用（真机验证过 camiopipe 刷屏）
+        releaseCameraPreview();
+        super.onDestroyView();
     }
 
 }

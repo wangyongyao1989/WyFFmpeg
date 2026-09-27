@@ -7,8 +7,6 @@ import android.util.Log
 import java.nio.ByteBuffer
 import java.util.Arrays
 import android.media.MediaFormat
-import com.example.myyffmpeg.converter.VideoSaver.Companion
-import com.example.myyffmpeg.utils.StringToIntConverter
 
 
 class AndroidMediaMuxer(outputPath: String, outputFormat: Muxer.OutputFormat
@@ -54,95 +52,159 @@ class AndroidMediaMuxer(outputPath: String, outputFormat: Muxer.OutputFormat
     override fun writeVideoSampleData(data: ByteArray, timestamp: Long, keyFrame: Boolean) {
 
         if(!gotCSD) {
-            val found = csdFinder.findCSD(data)
-            Log.e(TAG, "found: $found")
-            if(found) {
+            if(csdFinder.findCSD(data)) {
                 configMuxer(csdFinder.csd0!!, csdFinder.csd1, csdFinder.csd2)
-                Log.e(TAG, "gotCSD = true: ")
                 gotCSD = true
             }
             return
         }
 
         if (!finished) {
-            val inputBuffer = ByteBuffer.wrap(data)
+            // Android 10 MPEG4Writer 对 AVC/HEVC 样本走 addMultipleLengthPrefixedSamples_l：
+            // StripStartcode 去掉首个 4 字节起始码后，getNextNALUnit 按 "00 00 0x 01" 边界
+            // 切分并以 "-4" 计算 NAL 长度，即要求 NAL 之间必须是 4 字节起始码的 AnnexB 流。
+            // 若喂 3 字节起始码（边界偏 1 字节）或 AVCC 长度前缀（被当数据扫描、
+            // 撞进切片里的 00 00 01），会产出垃圾长度触发 addLengthPrefixedSample_l
+            // 的 length+4 ubsan add-overflow 崩溃。
+            val annexb = normalizeTo4ByteStartCodes(data)
+            val inputBuffer = ByteBuffer.wrap(annexb)
             val bufferInfo = MediaCodec.BufferInfo()
             bufferInfo.offset = 0
-            bufferInfo.size = data.size
+            bufferInfo.size = annexb.size
             bufferInfo.flags = 0
-            if (isKeyFrame(data)) {
+            if (keyFrame || isKeyFrame(data)) {
                 bufferInfo.flags = MediaCodec.BUFFER_FLAG_KEY_FRAME
             }
-            bufferInfo.presentationTimeUs = computePresentationTime(frameIndex++)
-
-            // getInputBuffer() will fill the inputBuffer with one frame of encoded
-            // sample from either MediaCodec or MediaExtractor, set isAudioSample to
-            // true when the sample is audio data, set up all the fields of bufferInfo,
-            // and return true if there are no more samples.
-            Log.d(TAG, "create muxer for file:333333333 ");
+            // 优先使用调用方给的真实时间戳，缺省(0)时按帧号回退
+            bufferInfo.presentationTimeUs =
+                if (timestamp > 0) timestamp else computePresentationTime(frameIndex++)
 
             mediaMuxer.writeSampleData(videoTrackIndex, inputBuffer, bufferInfo)
         }
     }
 
-    private fun isKeyFrame(nalUnit: ByteArray): Boolean {
-        if(mime == MediaFormat.MIMETYPE_VIDEO_HEVC) {
-            // 读取NAL头字节
-            val nalHeader = nalUnit[4].toInt() and 0xFF
-
-            // 提取nal_unit_type
-            val nalUnitType = (nalHeader and 0x7E) shr 1
-
-
-            // 判断是否是关键帧
-            return nalUnitType in 16..32
-        } else if (mime == MediaFormat.MIMETYPE_VIDEO_AVC) {
-            //FIXME
-            // 读取NAL头字节
-            val nalHeader = nalUnit[4].toInt() and 0xFF
-
-            // 提取nal_unit_type
-            val nalUnitType = (nalHeader and 0x7E) shr 1
-
-
-            // 判断是否是关键帧
-            return nalUnitType >= 16 && nalUnitType <= 32
+    /** 把所有 3 字节起始码规范化为 4 字节（00 00 01 → 00 00 00 01），已是 4 字节的保持不变 */
+    private fun normalizeTo4ByteStartCodes(data: ByteArray): ByteArray {
+        val out = java.io.ByteArrayOutputStream(data.size + 8)
+        var i = 0
+        while (i < data.size) {
+            if (i + 2 < data.size && data[i] == 0.toByte() && data[i + 1] == 0.toByte()
+                && data[i + 2] == 1.toByte()
+            ) {
+                if (i > 0 && data[i - 1] == 0.toByte()) {
+                    // 前面已有第 4 个 0，属于 4 字节起始码，照常输出
+                    out.write(data[i].toInt()); out.write(data[i + 1].toInt()); out.write(data[i + 2].toInt())
+                } else {
+                    out.write(0); out.write(0); out.write(0); out.write(1)
+                }
+                i += 3
+            } else {
+                out.write(data[i].toInt())
+                i++
+            }
         }
+        return out.toByteArray()
+    }
 
-        return false
+    /** 返回 AnnexB NAL 载荷起始下标（3 或 4 字节起始码之后），识别失败返回 -1 */
+    private fun nalPayloadIndex(nalUnit: ByteArray): Int {
+        if (nalUnit.size < 4) return -1
+        return when {
+            nalUnit[0].toInt() == 0 && nalUnit[1].toInt() == 0
+                    && nalUnit[2].toInt() == 0 && nalUnit[3].toInt() == 1 -> 4
+            nalUnit[0].toInt() == 0 && nalUnit[1].toInt() == 0
+                    && nalUnit[2].toInt() == 1 -> 3
+            else -> -1
+        }
+    }
+
+    private fun isKeyFrame(nalUnit: ByteArray): Boolean {
+        val index = nalPayloadIndex(nalUnit)
+        if (index < 0 || index >= nalUnit.size) {
+            return false
+        }
+        // 读取NAL头字节
+        val nalHeader = nalUnit[index].toInt() and 0xFF
+        return if (mime == MediaFormat.MIMETYPE_VIDEO_HEVC) {
+            // 提取nal_unit_type，IRAP(16~21) 为关键帧
+            val nalUnitType = (nalHeader and 0x7E) shr 1
+            nalUnitType in 16..21
+        } else if (mime == MediaFormat.MIMETYPE_VIDEO_AVC) {
+            // AVC: nal_unit_type = header & 0x1F，5 = IDR
+            val nalUnitType = nalHeader and 0x1F
+            nalUnitType == 5
+        } else {
+            false
+        }
     }
 
     private fun configMuxer(csd0: ByteArray, csd1: ByteArray? = null, csd2: ByteArray? = null) {
+        // Android 10 框架 convertMessageToMetaData() 对 HEVC csd-0 调 reassembleHVCC()：
+        // 要求首个 NAL 前是 4 字节起始码、NAL 之间也必须是 4 字节起始码
+        // （3 字节会让扫描点落在 4 字节码中间，切出带前导 0x00 的 NAL，
+        //   HevcParameterSets::makeHvcc 随即失败 → stop 时报 "Missing codec specific data"）。
+        // 尾部残留 0x00 也会被 makeHvcc 判为非法（其校验 RBSP 末字节非 0）。
+        val hevcCsd: ByteArray? = if (mime == MediaFormat.MIMETYPE_VIDEO_HEVC) {
+            normalizeCsd0ForHVCCReassembly(csd0)
+        } else null
+
         val mediaFormat = MediaFormat.createVideoFormat(mime!!, videoWidth, videoHeight)
         mediaFormat.setInteger(
             MediaFormat.KEY_COLOR_FORMAT,
             MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible
         )
-        //        mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, BIT_RATE);
-//        mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
-//        mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, I_FRAME_INTERVAL);
-        mediaFormat.setByteBuffer(
-            "csd-0",
-            ByteBuffer.wrap(csd0)
-        ) // sps and pps have been retrieved from the stream's NAL 7/8
-        if (csd1 != null) {
-            mediaFormat.setByteBuffer(
-                "csd-1",
-                ByteBuffer.wrap(csd1)
-            )
+        if (hevcCsd != null) {
+            mediaFormat.setByteBuffer("csd-0", ByteBuffer.wrap(hevcCsd))
+        } else {
+            mediaFormat.setByteBuffer("csd-0", ByteBuffer.wrap(csd0))
+            if (csd1 != null) {
+                mediaFormat.setByteBuffer("csd-1", ByteBuffer.wrap(csd1))
+            }
+            if (csd2 != null) {
+                mediaFormat.setByteBuffer("csd-2", ByteBuffer.wrap(csd2))
+            }
         }
-        if (csd2 != null) {
-            mediaFormat.setByteBuffer(
-                "csd-2",
-                ByteBuffer.wrap(csd2)
-            )
-        }
-
-        //        mediaFormat.setLong(MediaFormat.KEY_DURATION, 10 * 1000);
 
         // 创建 MediaMuxer 封装器，用于将编码后的数据封装成 MP4 文件
         videoTrackIndex = mediaMuxer.addTrack(mediaFormat)
         mediaMuxer.start()
+    }
+
+    /**
+     * csd-0（VPS+SPS+PPS 拼接）规范化：3 字节起始码全部升级为 4 字节，去掉尾部填充 0x00。
+     * 返回 null 表示结构不符合预期，交回原 csd-0 走兜底路径。
+     */
+    private fun normalizeCsd0ForHVCCReassembly(csd0: ByteArray): ByteArray? {
+        val nals = ArrayList<ByteArray>()
+        var i = 0
+        while (i < csd0.size) {
+            val sc = when {
+                i + 3 < csd0.size && csd0[i] == 0.toByte() && csd0[i + 1] == 0.toByte()
+                        && csd0[i + 2] == 0.toByte() && csd0[i + 3] == 1.toByte() -> 4
+                i + 2 < csd0.size && csd0[i] == 0.toByte() && csd0[i + 1] == 0.toByte()
+                        && csd0[i + 2] == 1.toByte() -> 3
+                else -> return null
+            }
+            var j = i + sc
+            while (j + 2 < csd0.size) {
+                if (csd0[j] == 0.toByte() && csd0[j + 1] == 0.toByte() && csd0[j + 2] == 1.toByte()) break
+                j++
+            }
+            if (j + 2 >= csd0.size) j = csd0.size
+            if (j > i + sc) nals.add(csd0.copyOfRange(i + sc, j))
+            i = j
+        }
+        if (nals.size < 3) return null
+        var end = nals.size - 1
+        while (end >= 0 && nals[end].all { it == 0.toByte() }) end--   // 去掉全 0 的伪 NAL
+        val out = java.io.ByteArrayOutputStream(csd0.size + 8)
+        for (k in 0..end) {
+            var len = nals[k].size
+            while (len > 1 && nals[k][len - 1] == 0.toByte()) len--   // 去掉边界切分残留的 0x00
+            out.write(0); out.write(0); out.write(0); out.write(1)
+            out.write(nals[k], 0, len)
+        }
+        return out.toByteArray()
     }
 
     private fun computePresentationTime(frameIndex: Int): Long {
@@ -176,22 +238,16 @@ class CsdFinder(private val mimeType: String) {
     var csd1: ByteArray? = null
     var csd2: ByteArray? = null
 
-    companion object {
-        private const val TAG = "CsdFinder"
-    }
+    /** HEVC 参数集是否已集齐 VPS/SPS/PPS */
+    private var hasVps = false
+    private var hasSps = false
+    private var hasPps = false
 
     fun findCSD(data: ByteArray): Boolean {
-//        Log.d("findCSD, mimeType: $mimeType", TAG)
-        if(mimeType == MediaFormat.MIMETYPE_VIDEO_HEVC) {
-            val result = findHevcCsd(data)
-            Log.e(TAG, "result: $result")
-
-//            Log.d("${mimeType}, findCSD result: ${result.contentToString()}", TAG)
-            return result != null
+        if (mimeType == MediaFormat.MIMETYPE_VIDEO_HEVC) {
+            return findHevcCsd(data) != null
         } else if (mimeType == MediaFormat.MIMETYPE_VIDEO_AVC) {
-            val result = findAvcCsd(data)
-//            Log.d("${mimeType}, findCSD result: $result", TAG)
-            return result.isNotEmpty()
+            return findAvcCsd(data).isNotEmpty()
         }
 
         return false
@@ -216,24 +272,22 @@ class CsdFinder(private val mimeType: String) {
      */
     private fun findHevcCsd(data: ByteArray): ByteArray? {
         //VPS、SPS、PPS
-        val bytes2hex = StringToIntConverter.bytes2hex(data)
-        Log.e(TAG, "findHevcCsd: $bytes2hex")
-        Log.e(TAG, "data: ${data.size}")
-
         if (isVps(data)) {
-            Log.e(TAG, "isVps Arrays.copyOfRang: ")
-
-            csd0 = Arrays.copyOfRange(data, 0, data.size)
+            hasVps = true
+            csd0 = data.copyOf()
         } else if (isSPS(data)) {
-            Log.e(TAG, "isSPS Arrays.copyOfRang: ")
+            hasSps = true
             if (csd0 != null) {
                 csd0 = arraySplice(csd0, data)
             }
         } else if (isPPS(data)) {
+            hasPps = true
             if (csd0 != null) {
-                Log.e(TAG, "arraySplice isPPS: ")
                 csd0 = arraySplice(csd0, data)
-                return csd0
+                // 只有 VPS+SPS+PPS 全部集齐才算找到 csd（框架据此重组 hvcC）
+                if (hasVps && hasSps && hasPps) {
+                    return csd0
+                }
             }
         }
         return null
@@ -252,106 +306,40 @@ class CsdFinder(private val mimeType: String) {
     }
 
 
-    private fun isVps(nalUnit: ByteArray): Boolean {
-        var index = 0
-        // 查找起始码 (3 字节或 4 字节)
-        index += if (nalUnit[index].toInt() == 0x00
-            && nalUnit[index + 1].toInt() == 0x00
-            && nalUnit[index + 2].toInt() == 0x01) {
-            3 // 起始码长度为 3 字节
-        } else if (nalUnit[index].toInt() == 0x00
-            && nalUnit[index + 1].toInt() == 0x00
-            && nalUnit[index + 2].toInt() == 0x00
-            && nalUnit[index + 3].toInt() == 0x01) {
-            4 // 起始码长度为 4 字节
-        } else {
-            return false
+    /** 返回起始码后的 NAL 头下标；不是图像 NAL 类型或太短返回 -1 */
+    private fun nalHeaderIndex(nalUnit: ByteArray): Int {
+        if (nalUnit.size < 5) return -1     // 起始码 + NAL 头至少 5 字节，防越界
+        return when {
+            nalUnit[0].toInt() == 0x00 && nalUnit[1].toInt() == 0x00
+                    && nalUnit[2].toInt() == 0x00 && nalUnit[3].toInt() == 0x01 -> 4
+            nalUnit[0].toInt() == 0x00 && nalUnit[1].toInt() == 0x00
+                    && nalUnit[2].toInt() == 0x01 -> 3
+            else -> -1
         }
+    }
 
-        // 读取NAL头字节
-        val nalHeader = nalUnit[index].toInt() and 0xFF
-        Log.e(TAG, "isVps nalHeader: $nalHeader")
+    /** NAL 类型：HEVC 取 (b0&0x7E)>>1，AVC 取 b0&0x1F */
+    private fun nalType(nalUnit: ByteArray, index: Int): Int {
+        val b = nalUnit[index].toInt() and 0xFF
+        return if (mimeType == MediaFormat.MIMETYPE_VIDEO_HEVC) (b and 0x7E) shr 1
+        else b and 0x1F
+    }
 
-        // 提取nal_unit_type
-        val nalUnitType = (nalHeader and 0x7E) shr 1
-        Log.e(TAG, "isVps nalUnitType: $nalUnitType")
-
-        return nalUnitType == 32
+    private fun isVps(nalUnit: ByteArray): Boolean {
+        val index = nalHeaderIndex(nalUnit)
+        if (index < 0 || mimeType != MediaFormat.MIMETYPE_VIDEO_HEVC) return false
+        return nalType(nalUnit, index) == 32
     }
 
     private fun isSPS(nalUnit: ByteArray): Boolean {
-        var index = 0
-        // 查找起始码 (3 字节或 4 字节)
-        index += if (nalUnit[index].toInt() == 0x00
-            && nalUnit[index + 1].toInt() == 0x00
-            && nalUnit[index + 2].toInt() == 0x01) {
-            3 // 起始码长度为 3 字节
-        } else if (nalUnit[index].toInt() == 0x00
-            && nalUnit[index + 1].toInt() == 0x00
-            && nalUnit[index + 2].toInt() == 0x00
-            && nalUnit[index + 3].toInt() == 0x01) {
-            4 // 起始码长度为 4 字节
-        } else {
-            return false
-        }
-
-        // 读取NAL头字节
-        val nalHeader = nalUnit[index].toInt() and 0xFF
-        Log.e(TAG, "isSPS nalHeader: $nalHeader")
-
-        when (mimeType) {
-            MediaFormat.MIMETYPE_VIDEO_HEVC -> {
-                // 提取nal_unit_type
-                val nalUnitType = (nalHeader and 0x7E) shr 1
-                Log.e(TAG, "isSPS nalUnitType: $nalUnitType")
-
-                return nalUnitType == 33
-            }
-            MediaFormat.MIMETYPE_VIDEO_AVC -> {
-                val nalUnitType = nalHeader and 0x1F
-                return nalUnitType == 7
-            }
-            else -> {
-                return false
-            }
-        }
+        val index = nalHeaderIndex(nalUnit)
+        if (index < 0) return false
+        return nalType(nalUnit, index) == if (mimeType == MediaFormat.MIMETYPE_VIDEO_HEVC) 33 else 7
     }
 
     private fun isPPS(nalUnit: ByteArray): Boolean {
-        var index = 0
-        // 查找起始码 (3 字节或 4 字节)
-        index += if (nalUnit[index].toInt() == 0x00
-            && nalUnit[index + 1].toInt() == 0x00
-            && nalUnit[index + 2].toInt() == 0x01) {
-            3 // 起始码长度为 3 字节
-        } else if (nalUnit[index].toInt() == 0x00
-            && nalUnit[index + 1].toInt() == 0x00
-            && nalUnit[index + 2].toInt() == 0x00
-            && nalUnit[index + 3].toInt() == 0x01) {
-            4 // 起始码长度为 4 字节
-        } else {
-            return false
-        }
-
-        // 读取NAL头字节
-        val nalHeader = nalUnit[index].toInt() and 0xFF
-
-        when (mimeType) {
-            MediaFormat.MIMETYPE_VIDEO_HEVC -> {
-                // 提取nal_unit_type
-                Log.e(TAG, "nalHeader: $nalHeader")
-                val nalUnitType = (nalHeader and 0x7E) shr 1
-                Log.e(TAG, "isPPS: $nalUnitType")
-                return nalUnitType == 34
-            }
-            MediaFormat.MIMETYPE_VIDEO_AVC -> {
-                val nalUnitType = nalHeader and 0x1F
-                return nalUnitType == 8
-            }
-            else -> {
-                return false
-            }
-        }
-
+        val index = nalHeaderIndex(nalUnit)
+        if (index < 0) return false
+        return nalType(nalUnit, index) == if (mimeType == MediaFormat.MIMETYPE_VIDEO_HEVC) 34 else 8
     }
 }

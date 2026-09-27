@@ -53,6 +53,7 @@ int Hevc2MP4::hevcConverterMp4(const char *inPath, const char *outPath) {
     LOGE("生成MP4完成:%d"/*,status*/);
 
     fclose(m_in_path);
+    m_in_path = nullptr;// 置空，防止 release() 中对同一 FILE* 二次 fclose
     release();
     return 0;
 }
@@ -69,12 +70,13 @@ void Hevc2MP4::release() {
     }
 
     if (m_MediaMuxer_fp != nullptr) {
-        delete m_MediaMuxer_fp;
+        fclose(m_MediaMuxer_fp);// 原代码对 FILE* 调用 delete，且下面还会再 fclose 一次，属于双重释放 UB
         m_MediaMuxer_fp = nullptr;
     }
 
     if (hevcNalParse != nullptr) {
         hevcNalParse->release();
+        delete hevcNalParse;// 原代码只置空不 delete，每次转换都会泄漏一个解析器（含其状态与缓冲区）
         hevcNalParse = nullptr;
     }
 
@@ -82,13 +84,10 @@ void Hevc2MP4::release() {
         delete bitstream_parser_state;
         bitstream_parser_state = nullptr;
     }
+    // 注意：m_in_path 已由 hevcConverterMp4 中 fclose，这里只兜底未走完主流程的情况
     if (m_in_path != nullptr) {
         fclose(m_in_path);
         m_in_path = nullptr;
-    }
-    if (m_MediaMuxer_fp != nullptr) {
-        fclose(m_MediaMuxer_fp);
-        m_MediaMuxer_fp = nullptr;
     }
 }
 
@@ -127,23 +126,23 @@ void Hevc2MP4::configMuxer(const char *inPath) {
     }
     H265SpsParser::SpsState *pSpsState = hevcNalParse->bitstream_parser_state
             ->GetSps(0).get();
-
+    if (pSpsState == nullptr) {
+        LOGE("configMuxer: SPS(id=0) not found, abort");
+        return;
+    }
 
     uint32_t width = pSpsState->pic_width_in_luma_samples;
     uint32_t height = pSpsState->pic_height_in_luma_samples;
 
-    uint32_t frameRate;
-    uint32_t vuiParametersPresentFlag = pSpsState->vui_parameters->vui_timing_info_present_flag;
-    if (vuiParametersPresentFlag) {
+    uint32_t frameRate = 30;
+    // vui_parameters 为 optional，仅当 vui_parameters_present_flag 且指针非空时才可读
+    if (pSpsState->vui_parameters_present_flag && pSpsState->vui_parameters != nullptr &&
+        pSpsState->vui_parameters->vui_timing_info_present_flag) {
         uint32_t numUnitsInTick = pSpsState->vui_parameters->vui_num_units_in_tick;
         uint32_t timeScale = pSpsState->vui_parameters->vui_time_scale;
         if (numUnitsInTick > 0) {
             frameRate = timeScale / (1.0 * numUnitsInTick); // 帧率公式
-        } else {
-            frameRate = 30;
         }
-    } else {
-        frameRate = 30;
     }
 
 
@@ -194,10 +193,7 @@ int Hevc2MP4::writeSampleData(std::vector<uint8_t> *bitstream_buffer) {
     }
 
     std::vector<uint8_t> &stream = *bitstream_buffer;
-    std::vector<uint8_t> csd;
     size_t pos = 0;
-    AMediaCodecBufferInfo *info;
-    const int bufferSize = 1024 * 1024;
 
     while (pos < stream.size()) {
         // 查找起始码 0x00 0x00 0x00 0x01 或 0x00 0x00 0x01
@@ -232,28 +228,36 @@ int Hevc2MP4::writeSampleData(std::vector<uint8_t> *bitstream_buffer) {
         std::vector<uint8_t> nalUnit(stream.begin() + pos, stream.begin() + nextStart);
 //        LOGW("nalUnit======:%d", nalUnit.size());
 
-        info = new AMediaCodecBufferInfo();
+        // MPEG4Writer 对 HEVC 样本按 "00 00 0x 01" 边界切分并以 -4 计算 NAL 长度，
+        // 喂 3 字节起始码会产生 size_t 下溢触发 addLengthPrefixedSample_l 崩溃，
+        // 统一规范化为 4 字节起始码（与 Java 侧 AndroidMediaMuxer 的处理一致）
+        std::vector<uint8_t> sample;
+        hevcNalParse->appendNormalizedNal(sample, nalUnit);
+        if (sample.empty()) {
+            pos = nextStart;
+            continue;
+        }
+
+        AMediaCodecBufferInfo *info = new AMediaCodecBufferInfo();
         info->offset = 0;
-        info->size = nalUnit.size();
+        info->size = (int32_t) sample.size();
         info->flags = 0;
         if (isKeyFrame(nalUnit)) {
             LOGW("关键帧为===================");
-            info->flags = AMEDIACODEC_CONFIGURE_FLAG_ENCODE;
+            // NDK 头文件未导出 SYNC_FRAME，取 MediaCodec.BUFFER_FLAG_SYNC_FRAME 的原值 1
+            info->flags = 1;
         }
 
         info->presentationTimeUs = computePresentationTime(frameIndex++);
-//        LOGW("info->presentationTimeUs:%lld", info->presentationTimeUs);
-        LOGW("解析nalUnit.data()大小=== %d", nalUnit.size());
-
         media_status_t status = AMediaMuxer_writeSampleData(m_AMediaMuxer, videoTrackIndex,
-                                                            nalUnit.data(),
-                                                            reinterpret_cast<const AMediaCodecBufferInfo *>(&info));
+                                                            sample.data(), info);
         if (status != AMEDIA_OK)
-            LOGW("解析csd-AMediaMuxer_writeSampleData=== %d", status);
+            LOGW("writeSampleData failed: %d", status);
+        delete info;
         pos = nextStart;
     }
 
-    LOGW("完成 AMediaMuxer_writeSampleData :%d", csd.size());
+    LOGW("完成 AMediaMuxer_writeSampleData");
 
     return 0;
 }
@@ -264,9 +268,8 @@ bool Hevc2MP4::isKeyFrame(const std::vector<uint8_t> &nalUnit) {
     return (nalUnitType >= 16 && nalUnitType <= 23);
 }
 
-// 获取 NAL 单元类型
+// 获取 NAL 单元类型（3/4 字节起始码均可，委托 HevcNalParse::payloadIndex 判断）
 int Hevc2MP4::getNalUnitType(const std::vector<uint8_t> &nalUnit) {
-    if (nalUnit.size() < 5) return -1;
-    return (nalUnit[4] & 0x7E) >> 1;
+    return hevcNalParse->getNalUnitType(nalUnit);
 }
 

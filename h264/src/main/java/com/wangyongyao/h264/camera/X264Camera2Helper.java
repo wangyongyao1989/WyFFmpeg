@@ -90,22 +90,26 @@ public class X264Camera2Helper {
     }
 
     private int getCameraOrientation(int rotation, String cameraId) {
-        int degree = rotation * 90;
-        switch (rotation) {
-            case Surface.ROTATION_0:
-                degree = 0;
-                break;
-            case Surface.ROTATION_90:
-                degree = 90;
-                break;
-            case Surface.ROTATION_180:
-                degree = 180;
-                break;
-            case Surface.ROTATION_270:
-                degree = 270;
-                break;
-            default:
-                break;
+        int degree;
+        if (rotation <= 3) {
+            // Surface.ROTATION_* 枚举（0-3），换算成角度
+            switch (rotation) {
+                case Surface.ROTATION_90:
+                    degree = 90;
+                    break;
+                case Surface.ROTATION_180:
+                    degree = 180;
+                    break;
+                case Surface.ROTATION_270:
+                    degree = 270;
+                    break;
+                default:
+                    degree = 0;
+                    break;
+            }
+        } else {
+            // 调用方直接传入了角度值（如 X264CameraPreView 的 90）
+            degree = ((rotation % 360) + 360) % 360;
         }
         int result;
         if (CAMERA_ID_FRONT.equals(cameraId)) {
@@ -546,6 +550,9 @@ public class X264Camera2Helper {
         @Override
         public void onImageAvailable(ImageReader reader) {
             Image image = reader.acquireNextImage();
+            if (image == null) {
+                return;     // 无可用帧时不能直接取 format，防 NPE
+            }
             if (mX264Camera2Listener != null && image.getFormat() == ImageFormat.YUV_420_888) {
                 Image.Plane[] planes = image.getPlanes();
                 lock.lock();
@@ -557,7 +564,18 @@ public class X264Camera2Helper {
                 if (yuvData == null) {
                     yuvData = new byte[len * 3 / 2];
                 }
-                planes[0].getBuffer().get(yuvData, offset, len);
+                int yRowStride = planes[0].getRowStride();
+                ByteBuffer yBuffer = planes[0].getBuffer();
+                if (yRowStride == width) {
+                    yBuffer.get(yuvData, offset, len);
+                } else {
+                    // Y 平面有 rowStride 对齐填充，逐行拷贝，否则画面斜切
+                    for (int row = 0; row < height; row++) {
+                        yBuffer.position(row * yRowStride);
+                        yBuffer.get(yuvData, row * width, width);
+                    }
+                    yBuffer.position(0);
+                }
                 offset += len;
                 for (int i = 1; i < planes.length; i++) {
                     int srcIndex = 0, dstIndex = 0;

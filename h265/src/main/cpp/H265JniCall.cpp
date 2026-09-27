@@ -52,116 +52,20 @@ cpp_test_h265(JNIEnv *env, jobject thiz, jstring dataPath) {
 extern "C"
 JNIEXPORT void JNICALL
 cpp_hevc_to_mp4(JNIEnv *env, jobject thiz, jstring inputPath, jstring outputPath) {
-//    const char *cInPath = env->GetStringUTFChars(inPath, nullptr);
-//    const char *cOutPath = env->GetStringUTFChars(outPath, nullptr);
-//
-//    LOGE("cpp_hevc_to_mp4 cInPath:%s", cInPath);
-//    LOGE("cpp_hevc_to_mp4 cOutPath:%s", cOutPath);
-//    if (hevc2MP4 == nullptr) {
-//        hevc2MP4 = new Hevc2MP4();
-//    }
-//
-//    hevc2MP4->hevcConverterMp4(cInPath, cOutPath);
-//
-//
-//    env->ReleaseStringUTFChars(inPath, cInPath);
-//    env->ReleaseStringUTFChars(outPath, cOutPath);
-
+    // 旧实现是一段每轮 new AMediaCodecBufferInfo、writeSampleData 又被注释掉的
+    // 空转占位代码（只读文件不写样本、info 全泄漏）。
+    // 真正的转换逻辑在 Hevc2MP4::hevcConverterMp4，这里直接委托。
     const char *input = env->GetStringUTFChars(inputPath, nullptr);
     const char *output = env->GetStringUTFChars(outputPath, nullptr);
 
-    FILE *inputFile = fopen(input, "rb");
-    if (!inputFile) {
-        LOGE("Failed to open input file: %s", input);
-        env->ReleaseStringUTFChars(inputPath, input);
-        env->ReleaseStringUTFChars(outputPath, output);
-        return ;
+    if (hevc2MP4 == nullptr) {
+        hevc2MP4 = new Hevc2MP4();
     }
-
-    FILE *m_MediaMuxer_fp = fopen(output, "wb+");// 打开新建一个文件。
-    if (m_MediaMuxer_fp == nullptr) {
-        LOGE("MediaCodecMuxer:: outPath file fopen err!");
-        return ;
-    }
-    // 由于muexr的原因，这里需要转换一下。
-    size_t m_MediaMuxer_fd = fileno(m_MediaMuxer_fp);
-    if (m_MediaMuxer_fd < 0) {
-        LOGE("MediaCodecMuxer:: Mp4 file open err! = %d", m_MediaMuxer_fd);
-        return ;
-    }
-
-    // 创建MediaMuxer
-    AMediaMuxer *mediaMuxer = AMediaMuxer_new(m_MediaMuxer_fd, AMEDIAMUXER_OUTPUT_FORMAT_MPEG_4);
-    if (!mediaMuxer) {
-        LOGE("Failed to create MediaMuxer");
-        fclose(inputFile);
-        env->ReleaseStringUTFChars(inputPath, input);
-        env->ReleaseStringUTFChars(outputPath, output);
-        return ;
-    }
-
-    // 创建MediaFormat
-    AMediaFormat *mediaFormat = AMediaFormat_new();
-
-    // H.265 Advanced Video Coding
-    AMediaFormat_setString(mediaFormat, AMEDIAFORMAT_KEY_MIME, "video/hevc");
-    AMediaFormat_setInt32(mediaFormat, AMEDIAFORMAT_KEY_WIDTH, 1920);
-    AMediaFormat_setInt32(mediaFormat, AMEDIAFORMAT_KEY_HEIGHT, 1080);
-    AMediaFormat_setInt32(mediaFormat, AMEDIAFORMAT_KEY_COLOR_FORMAT,
-                          COLOR_FormatYUV420Flexible);
-
-    // 开始写入
-    int videoTrackIndex = AMediaMuxer_addTrack(mediaMuxer, mediaFormat);
-    if (videoTrackIndex < 0) {
-        LOGE("Failed to add video track");
-        AMediaFormat_delete(mediaFormat);
-        AMediaMuxer_stop(mediaMuxer);
-        AMediaMuxer_delete(mediaMuxer);
-        fclose(inputFile);
-        env->ReleaseStringUTFChars(inputPath, input);
-        env->ReleaseStringUTFChars(outputPath, output);
-        return ;
-    }
-
-    AMediaMuxer_start(mediaMuxer);
-
-    const int bufferSize = 1 * 1024;
-    uint8_t *buffer = new uint8_t[bufferSize];
-    size_t bytesRead;
-    int presentationTimeUs = 0;
-    AMediaCodecBufferInfo *info;
-
-    while ((bytesRead = fread(buffer, 1, bufferSize, inputFile)) > 0) {
-        info = new AMediaCodecBufferInfo();
-        info->offset = 0;
-        info->size = bytesRead;
-        info->presentationTimeUs = presentationTimeUs;
-        info->flags = 0;
-//        const uint8_t *data = buffer;
-        LOGE("bytesRead====%d",bytesRead);
-
-//        media_status_t status = AMediaMuxer_writeSampleData(mediaMuxer, videoTrackIndex, buffer,
-//                                                            reinterpret_cast<const AMediaCodecBufferInfo *>(&info));
-//        LOGE("status====%d",status);
-//        if (status != AMEDIA_OK) {
-//
-//        }
-        presentationTimeUs += (1000000 / 30); // 假设帧率为30fps
-    }
-
-    delete[] buffer;
-    AMediaFormat_delete(mediaFormat);
-    AMediaMuxer_stop(mediaMuxer);
-    AMediaMuxer_delete(mediaMuxer);
-    fclose(inputFile);
+    int ret = hevc2MP4->hevcConverterMp4(input, output);
+    LOGE("cpp_hevc_to_mp4 done, ret=%d, out=%s", ret, output);
 
     env->ReleaseStringUTFChars(inputPath, input);
     env->ReleaseStringUTFChars(outputPath, output);
-
-    LOGI("Conversion completed successfully");
-
-
-
 }
 
 

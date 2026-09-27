@@ -9,12 +9,17 @@ import java.util.Calendar
 /**
  * 使用方法
  * 1. 开始录制时创建VideoSaver对象，前提需要知道视频流基本参数：mimeType、width、height
- * 2. 当有视频帧数据来了后，通过VideoSaver.writeData方法写入数据
+ * 2. 当有视频帧数据来了后，通过VideoSaver.writeFrame方法写入一条完整NAL
  * 3. 停止录制时调用VideoSaver.stop方法，并销毁VideoSaver对象
  */
 
 internal class VideoSaver(val fileDir: String, private val videoConfig: VideoConfig
                                         , private val outputFilePrefix: String) {
+
+    /** 供 NAL 拆分器回调：type 为 HEVC nal_unit_type（无法识别时 -1） */
+    fun interface NalSink {
+        fun onNal(nal: ByteArray, type: Int, keyFrame: Boolean)
+    }
 
     private var muxer: Muxer? = null
 
@@ -78,30 +83,32 @@ internal class VideoSaver(val fileDir: String, private val videoConfig: VideoCon
 
     }
 
-    fun writeData(frame: ByteArray, seq: Int, timestamp: Long, keyFrame: Boolean) {
-        if(fileSize > maxFileSize) {
-            if(muxer != null) {
-                muxer!!.release()
+    /**
+     * 写入一条完整 NAL。
+     * @return false 表示 muxer 已失效或写入异常，调用方应停止本次封装
+     */
+    fun writeFrame(nal: ByteArray, timestampUs: Long, keyFrame: Boolean): Boolean {
+        val m = muxer ?: return false
+        return try {
+            if (fileSize > maxFileSize) {
+                m.release()
+                createMuxer(createOutputFile())
+                fileSize = 0
             }
-            val outputPath = createOutputFile()
-            createMuxer(outputPath)
-
-            muxer?.writeVideoSampleData(frame, timestamp, keyFrame)
-            fileSize = frame.size.toLong()
-            if(muxer != null) {
+            muxer?.writeVideoSampleData(nal, timestampUs, keyFrame)
+            fileSize += nal.size
+            if (muxer != null) {
                 _frameSaveState.update { true }
             }
-        } else {
-            muxer?.writeVideoSampleData(frame, timestamp, keyFrame)
-            fileSize += frame.size
-            if(muxer != null) {
-                _frameSaveState.update { true }
-            }
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "writeFrame error: ${e.message}")
+            false
         }
     }
 
     fun stop() {
-        Log.d("stop video saver", TAG)
+        Log.d(TAG, "stop video saver")
         if(muxer != null) {
             _frameSaveState.update { false }
         }
