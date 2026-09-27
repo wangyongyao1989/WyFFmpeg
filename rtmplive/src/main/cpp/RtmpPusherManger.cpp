@@ -21,7 +21,7 @@ void RtmpPusherManger::start_rtmp(const char *path) {
 }
 
 void RtmpPusherManger::addRtmpPacket(RTMPPacket *packet) {
-    if (rtmpInit == nullptr) return;
+    if (rtmpInit == nullptr || packet == nullptr) return;
     rtmpInit->addRtmpPacket(packet);
 }
 

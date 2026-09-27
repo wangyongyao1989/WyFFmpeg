@@ -3,6 +3,7 @@
 //
 
 #include "AudioStreamPacket.h"
+#include <cstdlib>    // faacEncGetDecoderSpecificInfo 返回的缓冲用 free() 释放
 
 AudioStreamPacket::AudioStreamPacket() {
 
@@ -16,6 +17,13 @@ int AudioStreamPacket::setAudioEncInfo(int samplesInHZ, int channels) {
                                static_cast<unsigned int>(channels),
                                &m_inputSamples,
                                &m_maxOutputBytes);
+    if (m_audioCodec == nullptr) {
+        // 采样率/声道数组合不被 faac 支持时返回空句柄，后续 faacEncEncode 会直接段错误
+        LOGE("faacEncOpen failed: rate=%d channels=%d", samplesInHZ, channels);
+        m_inputSamples = 0;
+        m_maxOutputBytes = 0;
+        return -1;
+    }
     m_buffer = new u_char[m_maxOutputBytes];
 
     //set encoder params
@@ -33,6 +41,10 @@ int AudioStreamPacket::getInputSamples() const {
 }
 
 void AudioStreamPacket::encodeData(int8_t *data) {
+    if (m_audioCodec == nullptr || m_buffer == nullptr) {
+        // faacEncOpen 失败时句柄为空，继续编码会段错误
+        return;
+    }
 //    callbackStatusMsg("AudioStreamPacket encodeData", 0);
 
     //encode a frame, and return encoded len
@@ -67,9 +79,19 @@ void AudioStreamPacket::encodeData(int8_t *data) {
 RTMPPacket *AudioStreamPacket::getAudioTag() {
     callbackStatusMsg("AudioStreamPacket getAudioTag", 0);
 
-    u_char *buf;
-    u_long len;
-    faacEncGetDecoderSpecificInfo(m_audioCodec, &buf, &len);
+    u_char *buf = nullptr;
+    u_long len = 0;
+    // faacEncGetDecoderSpecificInfo 的成功值是 0，失败才是负数
+    //（真机实测：44100/2ch 返回 rc=0, len=2, ASC=0x12 0x10，即 AAC-LC 双声道 44.1k）。
+    // 若按 rc<=0 判失败，音频序列头就不会发出，服务器只建了视频轨，
+    // 随后第一个音频帧到达即报 "received a packet for audio track 0, but track is not set up" 并断开。
+    int ascRc = m_audioCodec ? static_cast<int>(faacEncGetDecoderSpecificInfo(m_audioCodec, &buf, &len)) : -1;
+    if (ascRc < 0 || buf == nullptr || len == 0) {
+        LOGE("faacEncGetDecoderSpecificInfo failed: rc=%d len=%lu, skip audio sequence header",
+             ascRc, len);
+        free(buf);
+        return nullptr;
+    }
     int bodySize = static_cast<int>(2 + len);
     auto *packet = new RTMPPacket();
     RTMPPacket_Alloc(packet, bodySize);
@@ -81,6 +103,8 @@ RTMPPacket *AudioStreamPacket::getAudioTag() {
     packet->m_body[1] = 0x00;
 
     memcpy(&packet->m_body[2], buf, len);
+    // faac 用 malloc 分配 ASC，文档要求调用方 free，原来直接丢掉指针每推一次漏一份
+    free(buf);
 
     packet->m_hasAbsTimestamp = 0;
     packet->m_nBodySize = bodySize;
@@ -110,7 +134,8 @@ void AudioStreamPacket::callbackStatusMsg(const char *msg, float codeErr) {
 }
 
 AudioStreamPacket::~AudioStreamPacket() {
-    delete m_buffer;
+    // m_buffer 是 new u_char[] 出来的，必须用 delete[] 配对
+    delete[] m_buffer;
     m_buffer = nullptr;
     if (m_audioCodec) {
         faacEncClose(m_audioCodec);

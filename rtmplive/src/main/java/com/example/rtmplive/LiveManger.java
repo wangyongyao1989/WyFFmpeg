@@ -68,7 +68,9 @@ public class LiveManger implements TextureView.SurfaceTextureListener, RtmpCamer
     public void startRtmpPush(String path) {
         isLiving = true;
         mRtmpLivePusher.startRtmpPush(path);
-        executor.submit(new AudioTask());
+        if (mAudioRecord != null) {
+            executor.submit(new AudioTask());
+        }
     }
 
     public void stopRtmpPush() {
@@ -86,25 +88,35 @@ public class LiveManger implements TextureView.SurfaceTextureListener, RtmpCamer
     }
 
     private void initAudio() {
+        // CHANNEL_IN_STEREO 是"声道掩码"，值为 12，不是声道数。
+        // 以前把掩码直接当声道数传给 faac，生成的 AudioSpecificConfig 里
+        // channelConfiguration=12（非法），本机 mediamtx 收到 publish 后立刻断开：
+        // "unable to parse MPEG4 audio config: unsupported channel configuration (12)"。
+        numChannels = (channelConfig & AudioFormat.CHANNEL_IN_STEREO) != 0 ? 2 : 1;
+        // 先配置 faac 再取 inputSamples：编码器还没打开时 native 返回 -1，
+        // 原实现先拿它去算 bufferSizeInBytes，等于用了个无意义的值
+        mRtmpLivePusher.setAudioCodecInfo(sampleRate, numChannels);
+        inputSamples = mRtmpLivePusher.getInputSamplesFromNative();
+
         int minBufferSize = AudioRecord.getMinBufferSize(sampleRate,
                 channelConfig, audioFormat) * 2;
-
-        int bufferSizeInBytes = Math.max(minBufferSize, mRtmpLivePusher.getInputSamplesFromNative());
+        // faac 一帧要 inputSamples 个 16bit 采样，字节数是采样数的 2 倍
+        int frameBytes = Math.max(inputSamples, 0) * 2;
+        int bufferSizeInBytes = Math.max(minBufferSize, frameBytes);
         if (ActivityCompat.checkSelfPermission(mContext
                 , Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+            // 没有录音权限时只丢音频、视频照常推流。原实现直接 return，
+            // 导致 mAudioRecord 为 null，AudioTask 一上线就 NPE 并被单线程池静默吞掉
+            Log.e(TAG, "RECORD_AUDIO permission denied: push video only");
             return;
         }
-        mRtmpLivePusher.setAudioCodecInfo(sampleRate, channelConfig);
-        inputSamples = mRtmpLivePusher.getInputSamplesFromNative();
         mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate,
                 channelConfig, audioFormat, bufferSizeInBytes);
+        if (mAudioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
+            Log.e(TAG, "AudioRecord init failed: push video only");
+            mAudioRecord.release();
+            mAudioRecord = null;
+        }
     }
 
     private void startCameraPreview() {
@@ -208,10 +220,13 @@ public class LiveManger implements TextureView.SurfaceTextureListener, RtmpCamer
         @Override
         public void run() {
             mAudioRecord.startRecording();
-            byte[] bytes = new byte[inputSamples];
+            // 一次要喂满 faac 的一帧：inputSamples 是采样数，16bit PCM 的字节数是它的 2 倍。
+            // 原来按 inputSamples 申请字节缓冲，每次只喂进半帧，音画时长会越推越偏。
+            byte[] bytes = new byte[inputSamples * 2];
             while (isLiving) {
                 int len = mAudioRecord.read(bytes, 0, bytes.length);
-                if (len > 0) {
+                // native 侧按整帧长度读取，半截数据不能投喂，否则会读到上一帧的残留
+                if (len == bytes.length) {
                     mRtmpLivePusher.pushAudioData(bytes);
                 }
             }

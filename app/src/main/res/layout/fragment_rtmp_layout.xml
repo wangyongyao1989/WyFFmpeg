@@ -84,6 +84,27 @@
 
     </LinearLayout>
 
+    <EditText
+        android:id="@+id/et_rtmp_url"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="72dp"
+        android:background="#66000000"
+        android:hint="rtmp://host:1935/live/streamKey"
+        android:imeOptions="actionDone"
+        android:inputType="textUri"
+        android:padding="8dp"
+        android:singleLine="true"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#88FFFFFF"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="HardcodedText" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

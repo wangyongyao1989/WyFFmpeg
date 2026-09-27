@@ -182,7 +182,13 @@ void VideoStreamPacket::sendSpsPps(uint8_t *sps, uint8_t *pps, int sps_len, int 
     //sps and pps no timestamp
     packet->m_nTimeStamp = 0;
     packet->m_hasAbsTimestamp = 0;
-    packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;
+    // SPS/PPS 是 csid 0x10 上的第一条消息，必须用 fmt0（LARGE，12 字节完整头）。
+    // 以前这里给的是 MEDIUM(fmt1)：fmt1 是"省略消息长度/类型"的增量头，
+    // 前提是同一条 chunk stream 上已经有前一条 chunk 可参考。而 librtmp 只有在
+    // r->m_vecChannelsOut[csid] 非空时才会把 MEDIUM 继续压缩成 SMALL/MINIMUM，
+    // 第一条消息它原样发出，mediamtx 收到 csid=16 的 type1 头就直接断开：
+    // "received type 1 chunk without previous chunk"。
+    packet->m_headerType = RTMP_PACKET_SIZE_LARGE;
     if (mContext != nullptr && mStatusCallback != nullptr)
         mVideoCallback(mContext, packet);
 }
