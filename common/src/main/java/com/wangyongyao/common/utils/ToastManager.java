@@ -32,10 +32,11 @@ public class ToastManager {
     };
 
     private ToastManager(Context context) {
-        // 获取应用上下文，防止内存泄漏
-        mContext = context;
+        // 获取应用上下文，防止单例持有 Activity 造成内存泄漏
+        Context appContext = context.getApplicationContext();
+        mContext = appContext;
         // 初始化 Toast 对象
-        this.toast = new Toast(context);
+        this.toast = new Toast(appContext);
     }
 
     public static synchronized ToastManager getInstance(Context context) {
