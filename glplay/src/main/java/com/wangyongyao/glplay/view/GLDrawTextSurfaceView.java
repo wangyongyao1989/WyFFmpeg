@@ -112,6 +112,10 @@ public class GLDrawTextSurfaceView extends SurfaceView implements SurfaceHolder.
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+        // 先停摄像头停止喂帧，再销毁 native 渲染器；只销毁渲染器的话
+        // Camera2Helper2 仍持有 CameraDevice，离开页面后相机服务一直被占用
+        stopCameraPreview();
+        camera2Helper = null;
         if (mJniCall != null) {
             mJniCall.glDrawTextSurfaceDestroy();
         }

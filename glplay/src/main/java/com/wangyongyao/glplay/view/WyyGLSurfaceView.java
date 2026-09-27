@@ -42,6 +42,13 @@ public class WyyGLSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
     private MyGLRendererThread mMyGLRendererThread;
     private Surface mSurface;
+    /**
+     * 渲染线程的 Looper 一旦 quit 就永远收不到消息，再发只会得到
+     * "sending message to a Handler on a dead thread" 的 IllegalStateException 栈，
+     * 既污染 logcat 又掩盖真正的错误。destroyRender() 与 surfaceDestroyed() 都会触发
+     * shutdown，用这个标记保证只投递一次。
+     */
+    private volatile boolean mRenderThreadQuit;
 
 
     public WyyGLSurfaceView(Context context, OpenGLPlayCallJni jniCall) {
@@ -87,7 +94,10 @@ public class WyyGLSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         Log.e(TAG, "surfaceCreated");
-        mMyGLRendererThread.getHandler().sendSurfaceCreated();
+        RenderHandler handler = mMyGLRendererThread.awaitHandler();
+        if (handler != null) {
+            handler.sendSurfaceCreated();
+        }
     }
 
     @Override
@@ -96,7 +106,10 @@ public class WyyGLSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         Log.e(TAG, "onSurfaceChanged width:" + width + ",height" + height
                 + "===surface:" + mSurface.toString());
 //        Log.e(TAG, "surfaceChanged: "+Thread.currentThread().getName());
-        mMyGLRendererThread.getHandler().sendSurfaceChanged(format, width, height);
+        RenderHandler handler = mMyGLRendererThread.awaitHandler();
+        if (handler != null) {
+            handler.sendSurfaceChanged(format, width, height);
+        }
 
         mWidth = width;
         mHeight = height;
@@ -105,7 +118,19 @@ public class WyyGLSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-        mMyGLRendererThread.getHandler().sendShutdown();
+        sendShutdownOnce();
+    }
+
+    /** 只在渲染线程还活着时投递 shutdown，重复调用无副作用 */
+    private void sendShutdownOnce() {
+        if (mRenderThreadQuit) {
+            return;
+        }
+        mRenderThreadQuit = true;
+        RenderHandler handler = mMyGLRendererThread.awaitHandler();
+        if (handler != null) {
+            handler.sendShutdown();
+        }
     }
 
 
@@ -132,7 +157,14 @@ public class WyyGLSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         if (mJniCall != null) {
             mJniCall.glSurfaceViewDraw(yuvData, width, height, 90);
         }
-        mMyGLRendererThread.getHandler().sendDoFrame(1000);
+        if (mRenderThreadQuit) {
+            // 相机回调线程可能比 surfaceDestroyed 晚一步，此时渲染线程已退出
+            return;
+        }
+        RenderHandler handler = mMyGLRendererThread.getHandler();
+        if (handler != null) {
+            handler.sendDoFrame(1000);
+        }
     }
 
     @Override
@@ -154,7 +186,11 @@ public class WyyGLSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     }
 
     public void destroyRender() {
-        mJniCall.glSurfaceViewDestroy();
+        // 必须在渲染线程上销毁：EGL 上下文属于 MyGLRendererThread，
+        // 直接在 UI 线程调 native glSurfaceViewDestroy 时 eglMakeCurrent 会因
+        // "context current on another thread" 失败，GL 程序/纹理对象无法删除，
+        // 单例里残留上一个上下文的野 m_program，二次进入 CUSTOM GL 就是全黑。
+        sendShutdownOnce();
         stopCameraPreview();
     }
 
@@ -163,6 +199,8 @@ public class WyyGLSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
         private volatile RenderHandler mRenderHandler;
         private WeakReference<WyyGLSurfaceView> mGLSurfaceViewWeakRef;
+        /** init() 里 start() 之后 handler 还没建好，UI 线程的 surfaceCreated 可能先到 */
+        private final Object mHandlerLock = new Object();
 
         MyGLRendererThread(WeakReference<WyyGLSurfaceView> glSurfaceViewWeakRef) {
             super();
@@ -173,8 +211,12 @@ public class WyyGLSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
         @Override
         public void run() {
+            setName("glSurfaceViewRender");
             Looper.prepare();
-            mRenderHandler = new RenderHandler(this);
+            synchronized (mHandlerLock) {
+                mRenderHandler = new RenderHandler(this);
+                mHandlerLock.notifyAll();
+            }
 
             Looper.loop();
 
@@ -182,6 +224,23 @@ public class WyyGLSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
         public RenderHandler getHandler() {
             return mRenderHandler;
+        }
+
+        /**
+         * 等待渲染线程把 handler 建出来，避免页面刚进入时 surfaceCreated/surfaceChanged
+         * 读到 null 直接 NPE；线程已经死了则返回 null，由调用方跳过投递。
+         */
+        public RenderHandler awaitHandler() {
+            synchronized (mHandlerLock) {
+                try {
+                    while (mRenderHandler == null && isAlive()) {
+                        mHandlerLock.wait(100);
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                return mRenderHandler;
+            }
         }
 
 

@@ -122,12 +122,20 @@ private:
     uint32_t m_params = 0;
     float m_rotation = 0;
 
-    bool isDirty;
+    bool isDirty = false;
 
     OpenGLShader *openGlShader = nullptr;
 
     EGLDisplay display = nullptr;
     EGLSurface winsurface = nullptr;
+    /**
+     * init() 创建的 EGL 上下文与窗口必须存下来：release() 才能成对销毁。
+     * 原先 context 是 init() 里的局部变量，退出页面时既不删除 GL 对象也不销毁上下文，
+     * 再次进入时 m_program 仍是上一个已销毁上下文的野 id，useProgram() 的
+     * "if (!m_program && ...)" 判断因此跳过重建 —— 真机二次进入 CUSTOM GL 全黑。
+     */
+    EGLContext eglContext = EGL_NO_CONTEXT;
+    ANativeWindow *m_window = nullptr;
 
 
 };

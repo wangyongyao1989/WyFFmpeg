@@ -136,8 +136,22 @@ public class GLFBOPostProcessingView extends SurfaceView implements SurfaceHolde
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+        releaseGl();
+    }
+
+    /**
+     * 先停摄像头停止喂帧，再销毁 native 渲染器。
+     * MainActivity 用 hide/show 切换 Fragment，surfaceDestroyed 并不可靠，
+     * 需由 Fragment 在 onHiddenChanged(true) / 重建视图前显式调用，
+     * 否则退出页面后相机仍在出帧、渲染器对着已失效的 EGL surface 绘制，glError 0x502 刷屏。
+     */
+    public void releaseGl() {
+        if (camera2Helper != null) {
+            camera2Helper.release();
+            camera2Helper = null;
+        }
         if (mJniCall != null) {
-//            mJniCall.glBOPostProcessingDestroy();
+            mJniCall.glFBOPostProcessingDestroy();
         }
     }
 

@@ -30,6 +30,10 @@ bool GLFBOPostProcessing::setupGraphics(int w, int h) {
 
     //创建FBO程序及FBO纹理
     createFBOProgram();
+    // glBindTexture 作用于"当前活动纹理单元"，creatPicTexture 结束后活动单元停在水印单元，
+    // 若不先切到 kScreenTextureUnit，fboTexture 会把水印纹理的绑定覆盖掉，
+    // 水印 pass 就采样到 fboTexture 自身（反馈环）。
+    glActiveTexture((GLenum) (GL_TEXTURE0 + kScreenTextureUnit));
     creatFBOTexture();
 
     return true;
@@ -37,6 +41,10 @@ bool GLFBOPostProcessing::setupGraphics(int w, int h) {
 
 void GLFBOPostProcessing::renderFrame() {
 
+    if (m_WindowSurface == nullptr) {
+        // surface 已销毁（或尚未创建），丢弃本帧，避免在无 EGL context 下绘制刷 glError
+        return;
+    }
     if (m_filter != m_prevFilter) {
         m_prevFilter = m_filter;
         //切换后期处理的着色器，实现滤镜切换。
@@ -89,7 +97,8 @@ void GLFBOPostProcessing::renderFrame() {
     glClear(GL_COLOR_BUFFER_BIT);
     screenShader->use();
     useFBOProgram();
-    //使用颜色附着纹理作为四边形平面的纹理
+    //FBO 颜色附件纹理固定放在 kScreenTextureUnit，与 screenTexture sampler 一致
+    glActiveTexture((GLenum) (GL_TEXTURE0 + kScreenTextureUnit));
     glBindTexture(GL_TEXTURE_2D, fboTexture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     checkGlError("glDrawArrays");
@@ -134,14 +143,10 @@ GLFBOPostProcessing::~GLFBOPostProcessing() {
     if (m_pDataY) {
         m_pDataY = nullptr;
     }
-    if (m_pDataU) {
-        delete m_pDataU;
-        m_pDataU = nullptr;
-    }
-    if (m_pDataV) {
-        delete m_pDataV;
-        m_pDataV = nullptr;
-    }
+    // m_pDataU/m_pDataV 是 m_pDataY 分配块内部的偏移指针，不能单独 delete，
+    // 否则破坏堆（原实现为 UB）；随 m_pDataY 一起失效，仅需置空。
+    m_pDataU = nullptr;
+    m_pDataV = nullptr;
 
     screenShader = nullptr;
 
@@ -230,11 +235,15 @@ void GLFBOPostProcessing::createFBOProgram() {
                                                       "aPos");
     m_screen_textureCoordLoc = (GLuint) glGetAttribLocation(screenProgram,
                                                             "aTexCoords");
-    m_textureScreenLoc = (GLuint) glGetAttribLocation(screenProgram,
-                                                      "screenTexture");
+    // 注意：screenTexture 是片段着色器的 sampler2D uniform，必须用
+    // glGetUniformLocation 获取；原实现误用 glGetAttribLocation，
+    // 恒返回 -1（存成 GLuint 后为 4294967295），导致 sampler 单元从未被正确设置。
+    m_textureScreenLoc = glGetUniformLocation(screenProgram,
+                                               "screenTexture");
 
     screenShader->use();
-    screenShader->setInt("screenTexture", 0);
+    // sampler 固定指向纹理单元 4（见 renderFrame 中 fboTexture 的绑定）
+    screenShader->setInt("screenTexture", kScreenTextureUnit);
 }
 
 void GLFBOPostProcessing::delete_program(GLuint &program) {
@@ -260,6 +269,51 @@ void GLFBOPostProcessing::OnSurfaceCreated() {
         return;
     }
     m_WindowSurface->makeCurrent();
+}
+
+void GLFBOPostProcessing::OnSurfaceDestroyed() {
+    LOGI("GLFBOPostProcessing::OnSurfaceDestroyed - Cleaning up OpenGL resources");
+    if (m_WindowSurface == nullptr && m_EglCore == nullptr && m_ANWindow == nullptr) {
+        // Fragment 的按钮回调与 surfaceDestroyed 会各调一次 release：第二次进来时 EGL 上下文
+        // 已经销毁，再执行下面的 glDelete* 会打出 "call to OpenGL ES API with no current context"，
+        // 干扰崩溃排查，这里直接幂等返回。
+        LOGI("GLFBOPostProcessing::OnSurfaceDestroyed - already cleaned up, skip");
+        return;
+    }
+    if (m_WindowSurface != nullptr) {
+        m_WindowSurface->makeCurrent();
+    }
+
+    glDeleteRenderbuffers(1, &rbo);
+    glDeleteFramebuffers(1, &framebuffer);
+    rbo = 0;
+    framebuffer = 0;
+    if (fboTexture) {
+        glDeleteTextures(1, &fboTexture);
+        fboTexture = 0;
+    }
+    deletePicTextures();
+    deleteYUVTextures();
+    delete_program(m_pic_program);
+    delete_program(m_yuv_program);
+    delete_program(screenProgram);
+
+    if (m_WindowSurface) {
+        // 先 release 再 delete：WindowSurface 无析构函数，直接 delete 会漏掉
+        // eglDestroySurface 和 createWindowSurface 里的那次 ANativeWindow_acquire
+        m_WindowSurface->release();
+        delete m_WindowSurface;
+        m_WindowSurface = nullptr;
+    }
+    if (m_EglCore) {
+        delete m_EglCore;
+        m_EglCore = nullptr;
+    }
+    if (m_ANWindow) {
+        ANativeWindow_release(m_ANWindow);
+        m_ANWindow = nullptr;
+    }
+    isDirty = false;
 }
 
 
@@ -295,7 +349,7 @@ void GLFBOPostProcessing::handleMessage(LooperMessage *msg) {
             renderFrame();
             break;
         case MSG_PS_SurfaceDestroyed:
-//            OnSurfaceDestroyed();
+            OnSurfaceDestroyed();
             break;
         default:
             break;
@@ -554,7 +608,9 @@ GLFBOPostProcessing::createPicProgram() {
             m_pic_program, "position");
     m_pic_textureCoordLoc = (GLuint) glGetAttribLocation(
             m_pic_program, "texcoord");
-    m_texturePicLoc = (GLuint) glGetUniformLocation(
+    // s_texturePic 是 sampler uniform：用 glGetUniformLocation，且不转成 GLuint
+    // （转成 GLuint 后 -1 会变成 4294967295，静默掩盖取不到位置的问题）
+    m_texturePicLoc = glGetUniformLocation(
             m_pic_program, "s_texturePic");
     return m_pic_program;
 }
@@ -566,7 +622,8 @@ void GLFBOPostProcessing::usePicProgram() {
                           GL_FALSE, 0, EGLFboPSTextVerticek1);
     glEnableVertexAttribArray(m_pic_vertexPos);
 
-    glUniform1i(m_texturePicLoc, 3);
+    // s_texturePic 固定指向 kPicTextureUnit（见 bindPicTexture）
+    glUniform1i(m_texturePicLoc, kPicTextureUnit);
     glVertexAttribPointer(m_pic_textureCoordLoc, 3,
                           GL_FLOAT, GL_FALSE, 0,
                           EGLFboPSTextTextureCoord);
@@ -581,7 +638,8 @@ void GLFBOPostProcessing::useFBOProgram() {
                           PostProcessingQuadVertices1);
     glEnableVertexAttribArray(m_screen_vertexPos);
 
-    glUniform1i(m_textureScreenLoc, 3);
+    // screenTexture 固定指向 kScreenTextureUnit（见 renderFrame 中的绑定）
+    glUniform1i(m_textureScreenLoc, kScreenTextureUnit);
     glVertexAttribPointer(m_screen_textureCoordLoc, 3,
                           GL_FLOAT, GL_FALSE, 0,
                           PostProcessingQuadTextCoord);
@@ -589,20 +647,21 @@ void GLFBOPostProcessing::useFBOProgram() {
 }
 
 void GLFBOPostProcessing::deletePicTextures() {
-    if (m_texturePicLoc) {
-        glActiveTexture(GL_TEXTURE0);
+    if (m_picTextureName) {
+        glActiveTexture((GLenum) (GL_TEXTURE0 + kPicTextureUnit));
         glBindTexture(GL_TEXTURE_2D, 0);
-        glDeleteTextures(1, &m_texturePicLoc);
-        m_texturePicLoc = 0;
+        glDeleteTextures(1, &m_picTextureName);
+        m_picTextureName = 0;
     }
 
 }
 
 void GLFBOPostProcessing::bindPicTexture() {
-    if (m_texturePicLoc) {
-        // bind Texture
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+    if (m_picTextureName) {
+        // 水印纹理固定放在单元 3（usePicProgram 里 sampler 也指向 3），
+        // 不能占用单元 0 —— 那里是 YUV-FBO pass 的纹理
+        glActiveTexture((GLenum) (GL_TEXTURE0 + kPicTextureUnit));
+        glBindTexture(GL_TEXTURE_2D, m_picTextureName);
     }
 }
 
@@ -617,8 +676,12 @@ void GLFBOPostProcessing::creatPicTexture() {
         } else if (picChannels == 4) {
             format = GL_RGBA;
         }
-        glGenTextures(1, &m_texturePicLoc);
-        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+        // 先切到水印专用单元，再 glGenTextures+glBindTexture：
+        // glBindTexture 绑定的是"当前活动单元"，若沿用上游遗留的活动单元（创建时是 V 所在的 2），
+        // 会把 YUV 的绑定覆盖掉，且 sampler 与纹理不在同一单元。
+        glActiveTexture((GLenum) (GL_TEXTURE0 + kPicTextureUnit));
+        glGenTextures(1, &m_picTextureName);
+        glBindTexture(GL_TEXTURE_2D, m_picTextureName);
         glTexImage2D(GL_TEXTURE_2D, 0, format, picWidth,
                      picHeight, 0, format, GL_UNSIGNED_BYTE,
                      picData);
@@ -630,12 +693,13 @@ void GLFBOPostProcessing::creatPicTexture() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
                         GL_LINEAR);
         stbi_image_free(picData);
+        picData = nullptr;    // 防止析构/二次 surfaceChanged 时重复 free
     } else {
         LOGE("creatPicTexture picData  =(null)");
-        stbi_image_free(picData);
+        picData = nullptr;
     }
 
-    if (!m_texturePicLoc) {
+    if (!m_picTextureName) {
         LOGE("creatPicTexture Error Create PIC texture");
     }
 

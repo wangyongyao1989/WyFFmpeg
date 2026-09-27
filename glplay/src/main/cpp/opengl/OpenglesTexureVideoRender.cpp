@@ -11,6 +11,19 @@ OpenglesTexureVideoRender::init(ANativeWindow *window, AAssetManager *assetManag
     LOGI("OpenglesTexureVideoRender init==%d, %d", width, width);
     m_backingWidth = width;
     m_backingHeight = height;
+
+    // 本函数由 GLSurfaceView.onSurfaceChanged 在 GL 线程上调用，此时 EGL 上下文是新建的
+    // （每次进入页面都会 new 一个 GLSurfaceView）。textureVideoRender 是进程内单例，
+    // 成员里残留的 m_program / 纹理 id 属于上一个已销毁的上下文，是野值：
+    // updateTextures() 的 "if (!m_textureIdY && ...)" 与 useProgram() 的
+    // "if (!m_program && ...)" 都会因此跳过重建，真机表现为"GL摄像机/滤镜 二次进入全黑"。
+    // 这里显式清零，强制在新上下文里重新创建。
+    m_textureIdY = 0;
+    m_textureIdU = 0;
+    m_textureIdV = 0;
+    m_program = 0;
+    isProgramChanged = true;
+    isDirty = true;
 }
 
 void OpenglesTexureVideoRender::render() {

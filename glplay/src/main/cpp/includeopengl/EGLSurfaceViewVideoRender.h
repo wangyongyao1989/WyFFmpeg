@@ -152,7 +152,7 @@ private:
     uint32_t m_params = 0;
     float m_rotation = 0;
 
-    bool isDirty;
+    bool isDirty = false;
     bool m_isReleasing = false;
 
     OpenGLShader *openGlShader = nullptr;
@@ -170,9 +170,9 @@ private:
     TextureMovieEncoder2 *m_TextureMovieEncoder2 = nullptr;
     WindowSurface *m_InputWindowSurface = nullptr;
 
-    size_t offX;
-    size_t offY;
-    size_t off_right;
-    size_t off_bottom;
+    size_t offX = 0;
+    size_t offY = 0;
+    size_t off_right = 0;
+    size_t off_bottom = 0;
 
 };

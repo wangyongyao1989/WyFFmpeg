@@ -62,6 +62,11 @@ public class OpenGLCameraFboFragment extends BaseFragment {
 
 
         mBinding.btnCameraFboPre.setOnClickListener(view -> {
+            // 重建视图前先释放旧相机的喂帧与渲染器，避免多个相机实例同时出帧
+            if (mGlView != null) {
+                mGlView.releaseGl();
+                mGlView = null;
+            }
             mBinding.glFboShow.removeAllViews();
             mGlView = new GLFBOPostProcessingView(getActivity()
                     , mFFPlayCallJni);
@@ -103,6 +108,39 @@ public class OpenGLCameraFboFragment extends BaseFragment {
             }
             break;
         }
+    }
+
+    /**
+     * MainActivity 以 hide/show 方式切换 Fragment，surfaceDestroyed 不会触发；
+     * 隐藏时必须主动释放相机与渲染器，否则退出页面后相机继续出帧，
+     * native 渲染器对着已失效的 EGL surface 持续绘制（glError 0x502 刷屏 + 相机泄漏）。
+     */
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (hidden) {
+            if (mGlView != null) {
+                mGlView.releaseGl();
+                mGlView = null;
+            }
+            mBinding.glFboShow.removeAllViews();
+        } else if (mGlView == null) {
+            int w = mBinding.glFboShow.getWidth();
+            int h = mBinding.glFboShow.getHeight();
+            if (w > 0 && h > 0) {
+                mGlView = new GLFBOPostProcessingView(getActivity(), mFFPlayCallJni);
+                mBinding.glFboShow.addView(mGlView);
+            }
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (mGlView != null) {
+            mGlView.releaseGl();
+            mGlView = null;
+        }
+        super.onDestroyView();
     }
 
     private void onDestroyGLView() {

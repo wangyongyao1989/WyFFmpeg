@@ -135,6 +135,17 @@ public:
 
 
 private:
+    /**
+     * 纹理单元分配表（同一 pass 内 sampler 与 glBindTexture 必须落在同一单元）：
+     *   0 / 1 / 2 —— YUV 三通道（YUV pass 的 s_textureY/U/V）
+     *   3         —— 水印图片（s_texturePic）
+     *   4         —— FBO 后期处理结果（screenTexture）
+     * 原先三者都依赖"上一次 glActiveTexture 停在哪个单元"，pass 之间互相覆盖绑定，
+     * 造成 GL_INVALID_OPERATION(0x502) 与水印丢失。
+     */
+    static const GLint kPicTextureUnit = 3;
+    static const GLint kScreenTextureUnit = 4;
+
     int screenW, screenH;
     unsigned int framebuffer;
     unsigned int rbo;
@@ -154,6 +165,8 @@ private:
 
     void OnSurfaceCreated();
 
+    void OnSurfaceDestroyed();
+
     void handleMessage(LooperMessage *msg);
 
     void renderFrame();
@@ -168,7 +181,7 @@ private:
     __unused  size_t m_length = 0;
     size_t m_width = 0;
     size_t m_height = 0;
-    bool isDirty;
+    bool isDirty = false;
 
     GLuint m_textureIdY = 0;
     GLuint m_textureIdU = 0;
@@ -204,7 +217,13 @@ private:
     GLuint m_pic_program = 0;
     GLuint m_pic_vertexPos = 0;
     GLuint m_pic_textureCoordLoc = 0;
-    GLuint m_texturePicLoc = 0;
+    // sampler uniform 的位置必须用 glGetUniformLocation 取，且类型用 GLint
+    // （取不到时是 -1；若存成 GLuint 会变成 4294967295，传给 glUniform1i 只是静默失效）
+    GLint m_texturePicLoc = -1;
+    /** 图片纹理对象名。原先复用 m_texturePicLoc（uniform location），
+     *  creatPicTexture 的 glGenTextures 会把 uniform 位置覆盖成纹理名，
+     *  导致 glUniform1i(s_texturePic, <纹理名>) 采样到错误的纹理单元 */
+    GLuint m_picTextureName = 0;
 
     void usePicProgram();
 
@@ -218,7 +237,7 @@ private:
     size_t m_prevFilter = 0;
     GLuint m_screen_vertexPos = 0;
     GLuint m_screen_textureCoordLoc = 0;
-    GLuint m_textureScreenLoc = 0;
+    GLint m_textureScreenLoc = -1;
     OpenGLShader *screenShader;
     GLuint screenProgram;
     void createFBOProgram();

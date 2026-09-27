@@ -206,7 +206,16 @@ private:
     GLint m_textureYLoc = 0;
     GLint m_textureULoc = 0;
     GLint m_textureVLoc = 0;
-    GLuint m_texturePicLoc = 0;
+    /** s_texturePic 的 sampler uniform 位置（GLint，取不到时是 -1） */
+    GLint m_texturePicLoc = -1;
+    /**
+     * 水印图片纹理对象名。原先与 m_texturePicLoc 复用同一个变量：
+     * creatPicTexture 的 glGenTextures 会把 uniform 位置覆盖成纹理名，
+     * 于是 glUniform1i(<纹理名>, 3) 设到了错误的 uniform 上，水印采样不到纹理。
+     */
+    GLuint m_picTextureName = 0;
+    /** 水印纹理固定使用的纹理单元（YUV 占 0/1/2，文字字形占 0） */
+    static const GLint kPicTextureUnit = 3;
 
     size_t m_width = 0;
     size_t m_height = 0;
@@ -215,7 +224,7 @@ private:
     uint32_t m_params = 0;
     float m_rotation = 0;
 
-    bool isDirty;
+    bool isDirty = false;
 
     OpenGLShader *yuvGLShader = nullptr;
     OpenGLShader *picGLShader = nullptr;
@@ -235,14 +244,19 @@ private:
     TextureMovieEncoder2 *m_TextureMovieEncoder2 = nullptr;
     WindowSurface *m_InputWindowSurface = nullptr;
 
-    size_t offX;
-    size_t offY;
-    size_t off_right;
-    size_t off_bottom;
+    size_t offX = 0;
+    size_t offY = 0;
+    size_t off_right = 0;
+    size_t off_bottom = 0;
 
-    int picChannels;
-    int picWidth, picHeight;
-    unsigned char *picData;
+    int picChannels = 0;
+    int picWidth = 0, picHeight = 0;
+    /**
+     * 必须显式初始化：setPicTextPath / creatPicTexture 都会 free 它，
+     * 未初始化时是对野指针调用 free —— 真机上第二次进入"绘制水印"直接 SIGSEGV
+     * （#00 ifree <- #01 je_free <- #02 stbi_image_free <- #03 setPicTextPath）
+     */
+    unsigned char *picData = nullptr;
 
     map<GLchar, Character> Characters;
     GLuint VAO = GL_NONE;

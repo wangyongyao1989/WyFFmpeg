@@ -12,6 +12,10 @@
  */
 void EGLSurfaceViewVideoRender::surfaceCreated(ANativeWindow *window, AAssetManager *assetManager) {
     LOGD("EGLSurfaceViewVideoRender::surfaceCreated [window=%p]", window);
+    // release() 会把 m_isReleasing 置 true 来丢弃后续帧；本类是进程内常驻单例，
+    // 再次进入页面必须在重建 surface 前复位，否则 render()/updateFrame() 永远直接 return，
+    // 真机表现为"SELF GL 退出再进入画面全黑"。
+    m_isReleasing = false;
     m_ANWindow = window;
     postMessage(MSG_SurfaceCreated, false);
 }
@@ -37,6 +41,12 @@ void EGLSurfaceViewVideoRender::render() {
  */
 void EGLSurfaceViewVideoRender::release() {
     LOGI("EGLSurfaceViewVideoRender::release - Triggering cleanup");
+    if (m_isReleasing) {
+        // Fragment 的按钮回调和 surfaceDestroyed 会各调一次 release。第二次若再 postMessage，
+        // ensureThread() 会为了处理这条重复的销毁消息白白重建一个渲染线程再立刻退出。
+        quit();
+        return;
+    }
     m_isReleasing = true;
     postMessage(MSG_SurfaceDestroyed, true); // 使用 flush 确保销毁消息最先处理
     quit();
@@ -310,14 +320,10 @@ EGLSurfaceViewVideoRender::~EGLSurfaceViewVideoRender() {
     if (m_pDataY) {
         m_pDataY = nullptr;
     }
-    if (m_pDataU) {
-        delete m_pDataU;
-        m_pDataU = nullptr;
-    }
-    if (m_pDataV) {
-        delete m_pDataV;
-        m_pDataV = nullptr;
-    }
+    // 注意：m_pDataU/m_pDataV 是指向 m_pDataY 内部偏移处的指针，不是独立分配的对象，
+    // 对其调用 delete 是未定义行为（原代码如此），这里只做置空，内存随 m_pDataY 一起回收。
+    m_pDataU = nullptr;
+    m_pDataV = nullptr;
 
     if (openGlShader) {
         delete openGlShader;
@@ -501,17 +507,44 @@ void EGLSurfaceViewVideoRender::OnSurfaceDestroyed() {
     m_vertexShader = 0;
     m_pixelShader = 0;
 
+    // 录制未停就退出页面：编码器与输入 surface 必须在此收尾，否则 MediaCodec 一直被占用，
+    // 再次进入时 m_TextureMovieEncoder2 仍非空会向失效的 surface blit。
+    if (m_TextureMovieEncoder2 != nullptr || m_VideoEncoderCore != nullptr) {
+        stopEncoder();
+    }
+
     deleteTextures();
     delete_program(m_program);
+
+    // 帧缓冲与尺寸必须一起复位：下一次会话的 updateFrame() 只有在
+    // "m_pDataY 为空 或 尺寸变化" 时才会把 isProgramChanged 置 true。
+    // 若这里不清零，二次进入时 useProgram() 会跳过 glVertexAttribPointer/
+    // glEnableVertexAttribArray/glUniform1i 的设置 —— 而 EGL 上下文是新建的，
+    // 这些状态默认全是关闭的，真机表现为"SELF GL 退出再进入画面全黑"。
+    m_pDataY = nullptr;
+    m_pDataU = nullptr;
+    m_pDataV = nullptr;
+    m_width = 0;
+    m_height = 0;
+    isProgramChanged = true;
+    isDirty = false;
+
+    // WindowSurface 没有析构函数，直接 delete 会漏掉 eglDestroySurface 与 ANativeWindow_release；
+    // 顺序：先 release surface（还需用到 EglCore），再销毁 EglCore，最后归还 fromSurface 的引用。
+    if (m_WindowSurface) {
+        m_WindowSurface->release();
+        delete m_WindowSurface;
+        m_WindowSurface = nullptr;
+    }
 
     if (m_EglCore) {
         delete m_EglCore;
         m_EglCore = nullptr;
     }
 
-    if (m_WindowSurface) {
-        delete m_WindowSurface;
-        m_WindowSurface = nullptr;
+    if (m_ANWindow) {
+        ANativeWindow_release(m_ANWindow);
+        m_ANWindow = nullptr;
     }
 }
 
@@ -535,18 +568,21 @@ void EGLSurfaceViewVideoRender::startEncoder(const char *recordPath) {
 
 void EGLSurfaceViewVideoRender::stopEncoder() {
     LOGD("EGLSurfaceViewVideoRender::stopEncoder()");
+    // 原代码只把指针置空不 delete，每次停止录制都会泄漏编码器与 Looper 线程。
+    // 顺序：先停并销毁 TextureMovieEncoder2（其析构会调用 m_VideoEncoderCore->release() 并 quit 自身线程），
+    // 再销毁输入 WindowSurface，最后销毁 VideoEncoderCore 本体。
     if (m_TextureMovieEncoder2 != nullptr) {
         m_TextureMovieEncoder2->stopRecording();
-    }
-    if (m_VideoEncoderCore != nullptr) {
-        m_VideoEncoderCore = nullptr;
+        delete m_TextureMovieEncoder2;
+        m_TextureMovieEncoder2 = nullptr;
     }
     if (m_InputWindowSurface != nullptr) {
         m_InputWindowSurface->release();
+        delete m_InputWindowSurface;
         m_InputWindowSurface = nullptr;
     }
-
-    if (m_TextureMovieEncoder2 != nullptr) {
-        m_TextureMovieEncoder2 = nullptr;
+    if (m_VideoEncoderCore != nullptr) {
+        delete m_VideoEncoderCore;
+        m_VideoEncoderCore = nullptr;
     }
 }

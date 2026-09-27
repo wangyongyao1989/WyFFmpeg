@@ -581,6 +581,16 @@ cpp_fbo_ps_surface_created(JNIEnv *env, jobject thiz,
     }
 }
 
+extern "C"
+JNIEXPORT void JNICALL
+cpp_fbo_ps_surface_destroy(JNIEnv *env, jobject thiz) {
+    if (postProcessing != nullptr) {
+        // 通过 Looper 消息在渲染线程里销毁 EGL/GL 资源，修复离开 FBO 页面后
+        // 渲染器泄漏、glError 0x502 刷屏的问题
+        postProcessing->release();
+    }
+}
+
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -1011,6 +1021,7 @@ static const JNINativeMethod methods[] = {
         {"native_fbo_ps_surface_created",               "(Landroid/view/Surface;"
                                                         "Landroid/content/res"
                                                         "/AssetManager;)V",      (void *) cpp_fbo_ps_surface_created},
+        {"native_fbo_ps_surface_destroy",               "()V",                   (void *) cpp_fbo_ps_surface_destroy},
         {"native_fbo_post_processing_render_frame",     "()V",                   (void *) cpp_fbo_post_processing_render_frame},
         {"native_fbo_ps_surface_draw",                  "([BIII)V",              (void *) cpp_fbo_ps_surface_draw},
         {"native_fbo_post_processing_set_parameters",   "(I)V",                  (void *) cpp_fbo_post_processing_setParameters},

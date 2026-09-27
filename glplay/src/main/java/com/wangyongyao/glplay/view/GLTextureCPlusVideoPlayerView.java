@@ -64,7 +64,7 @@ public class GLTextureCPlusVideoPlayerView extends GLSurfaceView implements GLSu
 
 
     public void onDrawFrame(GL10 gl) {
-        Log.e(TAG, "onDrawFrame: "+Thread.currentThread().getName());
+        // 不要在这里打日志：onDrawFrame 按相机帧率回调，每帧一条 Log.e 会冲光 logcat
         if (mJniCall != null) {
             mJniCall.glTextureVideoPlayRender();
         }

@@ -3,6 +3,7 @@
 //
 
 #include "../includeopengl/VideoEncoderCore.h"
+#include <unistd.h>// usleep
 
 
 VideoEncoderCore::VideoEncoderCore(size_t width, size_t height, size_t bitRate,
@@ -76,10 +77,22 @@ VideoEncoderCore::~VideoEncoderCore() {
 
 void VideoEncoderCore::drainEncoder(bool endOfStream) {
 //    LOGE("drainEncoder thread:%ld", pthread_self());
+    // 原代码在 endOfStream 时只 signalEndOfInputStream 后就 return，从不排空编码器输出，
+    // 导致录制结尾的若干帧（含最后一批 NAL）丢失。现在发出 EOS 信号后继续进入排空循环，
+    // 直到取到带 END_OF_STREAM 标记的输出缓冲区再退出。
+    int spinCount = 0;
+    static const int MAX_SPIN = 3000;// 约 3 秒（1ms/次），防止编码器异常时无限自旋
+
+    // codec 已释放（停止录制与线程退出存在时序差）时直接返回，
+    // 否则下面的 AMediaCodec_* 会解引用空指针。
+    if (m_AMediaCodec == nullptr) {
+        LOGE("drainEncoder: codec already released, skip (endOfStream=%d)", endOfStream);
+        return;
+    }
+
     if (endOfStream) {
         media_status_t stream = AMediaCodec_signalEndOfInputStream(m_AMediaCodec);
-        LOGE("sending EOS to encoder:%d",stream);
-        return;
+        LOGE("sending EOS to encoder:%d", stream);
     }
 
     while (true) {
@@ -93,7 +106,11 @@ void VideoEncoderCore::drainEncoder(bool endOfStream) {
             if (!endOfStream) {
                 break;
             } else {
-                LOGI("video no output available, spinning to await EOS");
+                if (++spinCount > MAX_SPIN) {
+                    LOGE("drainEncoder wait EOS timeout, stop draining");
+                    break;
+                }
+                usleep(1000);
             }
         } else if (status == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED) {
             // not expected for an encoder
@@ -179,7 +196,7 @@ void VideoEncoderCore::release() {
     }
 
     if (m_MediaMuxer_fp != nullptr) {
-        delete m_MediaMuxer_fp;
+        fclose(m_MediaMuxer_fp);// 原代码对 FILE* 调用 delete，属于未定义行为，改为正常 fclose
         m_MediaMuxer_fp = nullptr;
     }
 }

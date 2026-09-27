@@ -188,10 +188,11 @@ bool GLDrawTextVideoRender::updateYUVTextures() {
 }
 
 void GLDrawTextVideoRender::bindPicTexture() {
-    if (m_texturePicLoc) {
-        // bind Texture
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+    if (m_picTextureName) {
+        // 水印纹理固定放在 kPicTextureUnit，与 usePicProgram 里的 sampler 取值一致；
+        // 原先绑在单元 0，会把 YUV 的 Y 纹理绑定覆盖掉，而 sampler 被告知是单元 3
+        glActiveTexture((GLenum) (GL_TEXTURE0 + kPicTextureUnit));
+        glBindTexture(GL_TEXTURE_2D, m_picTextureName);
     }
 }
 
@@ -205,7 +206,9 @@ GLDrawTextVideoRender::createPicProgram() {
     }
     m_pic_vertexPos = (GLuint) glGetAttribLocation(m_pic_program, "position");
     m_pic_textureCoordLoc = (GLuint) glGetAttribLocation(m_pic_program, "texcoord");
-    m_texturePicLoc = (GLuint) glGetUniformLocation(m_pic_program, "s_texturePic");
+    // 用 glGetUniformLocation 取 sampler 位置，且不转成 GLuint
+    // （转成 GLuint 后 -1 变成 4294967295，取不到位置的问题会被静默掩盖）
+    m_texturePicLoc = glGetUniformLocation(m_pic_program, "s_texturePic");
     return m_pic_program;
 }
 
@@ -267,7 +270,7 @@ void GLDrawTextVideoRender::usePicProgram() {
     glVertexAttribPointer(m_pic_vertexPos, 3, GL_FLOAT, GL_FALSE, 0, EGLTextVerticek1);
     glEnableVertexAttribArray(m_pic_vertexPos);
 
-    glUniform1i(m_texturePicLoc, 3);
+    glUniform1i(m_texturePicLoc, kPicTextureUnit);
     glVertexAttribPointer(m_pic_textureCoordLoc, 3, GL_FLOAT, GL_FALSE, 0, EGLTextTextureCoord);
     glEnableVertexAttribArray(m_pic_textureCoordLoc);
 }
@@ -292,6 +295,10 @@ GLDrawTextVideoRender::setTextSharderPath(const char *vertexPath, const char *fr
 bool
 GLDrawTextVideoRender::setPicTextPath(const char *picPath) {
     LOGI("setPicTextPath picPath:%s", picPath);
+    if (picData != nullptr) {// 重复设置时先释放上一次加载的图像，避免泄漏
+        stbi_image_free(picData);
+        picData = nullptr;
+    }
     picData = stbi_load(picPath, &picWidth, &picHeight, &picChannels, 0);
     return 0;
 }
@@ -317,14 +324,10 @@ GLDrawTextVideoRender::~GLDrawTextVideoRender() {
     if (m_pDataY) {
         m_pDataY = nullptr;
     }
-    if (m_pDataU) {
-        delete m_pDataU;
-        m_pDataU = nullptr;
-    }
-    if (m_pDataV) {
-        delete m_pDataV;
-        m_pDataV = nullptr;
-    }
+    // 注意：m_pDataU/m_pDataV 是指向 m_pDataY 内部偏移处的指针，不是独立分配的对象，
+    // 对其调用 delete 是未定义行为（原代码如此），这里只做置空，内存随 m_pDataY 一起回收。
+    m_pDataU = nullptr;
+    m_pDataV = nullptr;
 
     if (yuvGLShader) {
         delete yuvGLShader;
@@ -413,11 +416,11 @@ void GLDrawTextVideoRender::deleteYUVTextures() {
 }
 
 void GLDrawTextVideoRender::deletePicTextures() {
-    if (m_texturePicLoc) {
-        glActiveTexture(GL_TEXTURE0);
+    if (m_picTextureName) {
+        glActiveTexture((GLenum) (GL_TEXTURE0 + kPicTextureUnit));
         glBindTexture(GL_TEXTURE_2D, 0);
-        glDeleteTextures(1, &m_texturePicLoc);
-        m_texturePicLoc = 0;
+        glDeleteTextures(1, &m_picTextureName);
+        m_picTextureName = 0;
     }
 }
 
@@ -560,11 +563,36 @@ void GLDrawTextVideoRender::OnSurfaceDestroyed() {
         m_pDataV = nullptr;
     }
 
-    if (yuvGLShader) {
-        delete yuvGLShader;
-        yuvGLShader = nullptr;
+    // 录制中直接退出页面时必须在这里收尾：否则 MediaCodec 与编码器输入 surface 一直被占用，
+    // 且再次进入时 m_TextureMovieEncoder2 仍非空，OnDrawFrame 会向已失效的 surface blit。
+    // 本函数运行在渲染线程上（EGL 上下文仍是 current），比 Java 侧 stopRecord 更安全。
+    if (m_TextureMovieEncoder2 != nullptr || m_VideoEncoderCore != nullptr) {
+        stopEncoder();
     }
 
+    // 以下 GL 对象必须在删除 EGL 上下文之前释放并把成员清零：
+    // 上下文销毁后这些 id 全部失效，但成员变量仍是非 0 的旧值，
+    // 二次进入时 createPicProgram/usePicProgram 等会拿着野 id 继续用。
+    deleteYUVTextures();
+    deletePicTextures();
+    delete_program(m_yuv_program);
+    delete_program(m_pic_program);
+    delete_program(m_text_program);
+    if (VAO) {
+        glDeleteVertexArrays(1, &VAO);
+        VAO = GL_NONE;
+    }
+    if (VBO) {
+        glDeleteBuffers(1, &VBO);
+        VBO = GL_NONE;
+    }
+    // 字形纹理同样随上下文失效；LoadFacesByASCII 用 insert 写入，
+    // 不清空的话二次进入 insert 静默失败，文字水印会采样到野纹理。
+    Characters.clear();
+
+    // 不能在这里 delete yuvGLShader：native 侧 gLDrawTextVideoRender 是常驻单例，
+    // surface 销毁后再次进入本页会复用同一个对象，setupGraphics 还要用 yuvGLShader 建程序，
+    // 删掉后就是空指针解引用（着色器对象由析构函数统一释放）。
     if (display) {
         display = nullptr;
     }
@@ -573,14 +601,23 @@ void GLDrawTextVideoRender::OnSurfaceDestroyed() {
         winsurface = nullptr;
     }
 
+    // WindowSurface/EglSurfaceBase 没有析构函数，直接 delete 会漏掉 eglDestroySurface
+    // 和 ANativeWindow_release；先 release 再 delete，最后才销毁 EglCore。
+    if (m_WindowSurface) {
+        m_WindowSurface->release();
+        delete m_WindowSurface;
+        m_WindowSurface = nullptr;
+    }
+
     if (m_EglCore) {
         delete m_EglCore;
         m_EglCore = nullptr;
     }
 
-    if (m_WindowSurface) {
-        delete m_WindowSurface;
-        m_WindowSurface = nullptr;
+    // surfaceCreated 里 ANativeWindow_fromSurface 持有一个引用，需要在此归还
+    if (m_ANWindow) {
+        ANativeWindow_release(m_ANWindow);
+        m_ANWindow = nullptr;
     }
 
     quit();
@@ -608,19 +645,22 @@ void GLDrawTextVideoRender::startEncoder(const char *recordPath) {
 
 void GLDrawTextVideoRender::stopEncoder() {
     LOGD("GLDrawTextVideoRender::stopEncoder()");
+    // 原代码只把指针置空不 delete，每次停止录制都会泄漏编码器与 Looper 线程。
+    // 顺序：先停并销毁 TextureMovieEncoder2（其析构会调用 m_VideoEncoderCore->release() 并 quit 自身线程），
+    // 再销毁输入 WindowSurface，最后销毁 VideoEncoderCore 本体。
     if (m_TextureMovieEncoder2 != nullptr) {
         m_TextureMovieEncoder2->stopRecording();
-    }
-    if (m_VideoEncoderCore != nullptr) {
-        m_VideoEncoderCore = nullptr;
+        delete m_TextureMovieEncoder2;
+        m_TextureMovieEncoder2 = nullptr;
     }
     if (m_InputWindowSurface != nullptr) {
         m_InputWindowSurface->release();
+        delete m_InputWindowSurface;
         m_InputWindowSurface = nullptr;
     }
-
-    if (m_TextureMovieEncoder2 != nullptr) {
-        m_TextureMovieEncoder2 = nullptr;
+    if (m_VideoEncoderCore != nullptr) {
+        delete m_VideoEncoderCore;
+        m_VideoEncoderCore = nullptr;
     }
 }
 
@@ -636,8 +676,10 @@ void GLDrawTextVideoRender::creatPicTexture() {
         } else if (picChannels == 4) {
             format = GL_RGBA;
         }
-        glGenTextures(1, &m_texturePicLoc);
-        glBindTexture(GL_TEXTURE_2D, m_texturePicLoc);
+        // 先切到水印单元再创建：glBindTexture 作用于当前活动单元
+        glActiveTexture((GLenum) (GL_TEXTURE0 + kPicTextureUnit));
+        glGenTextures(1, &m_picTextureName);
+        glBindTexture(GL_TEXTURE_2D, m_picTextureName);
         glTexImage2D(GL_TEXTURE_2D, 0, format, picWidth, picHeight, 0, format, GL_UNSIGNED_BYTE,
                      picData);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -646,12 +688,12 @@ void GLDrawTextVideoRender::creatPicTexture() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         stbi_image_free(picData);
+        picData = nullptr;// 释放后置空，防止再次进入本函数时重复 free
     } else {
         LOGE("creatPicTexture picData  =(null)");
-        stbi_image_free(picData);
     }
 
-    if (!m_texturePicLoc) {
+    if (!m_picTextureName) {
         LOGE("creatPicTexture Error Create PIC texture");
     }
 
@@ -804,7 +846,9 @@ void GLDrawTextVideoRender::LoadFacesByASCII(const char *path) {
                 glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
                 static_cast<GLuint>(face->glyph->advance.x)
         };
-        Characters.insert(std::pair<GLchar, Character>(c, character));
+        // 用 operator[] 覆盖写入：map::insert 对已存在的 key 会静默失败，
+        // 上下文重建后（二次进入本页）字形纹理 id 已换新，insert 不生效就会采样到野纹理。
+        Characters[c] = character;
     }
     glBindTexture(GL_TEXTURE_2D, 0);
     checkGlError("glBindTexture(GL_TEXTURE_2D, 0);");

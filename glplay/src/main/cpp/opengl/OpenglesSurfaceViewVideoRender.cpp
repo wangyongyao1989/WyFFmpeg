@@ -41,6 +41,7 @@ OpenglesSurfaceViewVideoRender::init(ANativeWindow *window, AAssetManager *asset
     //创建surface
     ANativeWindow_acquire(window);
     ANativeWindow_setBuffersGeometry(window, 0, 0, AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM);
+    m_window = window;
     winsurface = eglCreateWindowSurface(display, config, window, 0);
     if (winsurface == EGL_NO_SURFACE) {
         LOGE("eglCreateWindowSurface failed!");
@@ -56,11 +57,15 @@ OpenglesSurfaceViewVideoRender::init(ANativeWindow *window, AAssetManager *asset
         LOGE("eglCreateContext failed!");
         return;
     }
+    // 保存下来供 release() 成对销毁
+    eglContext = context;
     if (EGL_TRUE != eglMakeCurrent(display, winsurface, winsurface, context)) {
         LOGE("eglMakeCurrent failed!");
         return;
     }
 
+    // 新上下文里所有 GL 状态都是默认值，必须让 useProgram() 重新绑定顶点属性与 sampler
+    isProgramChanged = true;
     useProgram();
     createTextures();
 
@@ -80,6 +85,34 @@ void OpenglesSurfaceViewVideoRender::render() {
 }
 
 void OpenglesSurfaceViewVideoRender::release() {
+    // 本函数在渲染线程上被调用（WyyGLSurfaceView.shutdown -> glSurfaceViewDestroy），
+    // 此时 init() 建立的上下文仍是 current，可以安全删除 GL 对象。
+    if (display != EGL_NO_DISPLAY) {
+        if (eglMakeCurrent(display, winsurface, winsurface, eglContext) != EGL_TRUE) {
+            // 上下文被别的线程持有 = 调用线程不对。此时不能删 GL 对象，更不能销毁
+            // surface/context（会让真正的渲染线程失去上下文），交给渲染线程的销毁流程处理。
+            LOGE("release: eglMakeCurrent failed (wrong thread?), skip EGL/GL cleanup");
+        } else {
+            deleteTextures();
+            delete_program(m_program);
+            eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+            if (winsurface != EGL_NO_SURFACE) {
+                eglDestroySurface(display, winsurface);
+                winsurface = EGL_NO_SURFACE;
+            }
+            if (eglContext != EGL_NO_CONTEXT) {
+                eglDestroyContext(display, eglContext);
+                eglContext = EGL_NO_CONTEXT;
+            }
+            display = EGL_NO_DISPLAY;
+            if (m_window) {
+                // init() 里 ANativeWindow_acquire 过一次，必须在此归还
+                ANativeWindow_release(m_window);
+                m_window = nullptr;
+            }
+        }
+    }
+
     m_vertexShader = 0;
     m_pixelShader = 0;
     if (m_pDataY) {
@@ -91,19 +124,13 @@ void OpenglesSurfaceViewVideoRender::release() {
     if (m_pDataV) {
         m_pDataV = nullptr;
     }
+    isProgramChanged = true;
+    isDirty = false;
 
-    if (openGlShader) {
-        delete openGlShader;
-        openGlShader = nullptr;
-    }
-
-    if (display) {
-        display = nullptr;
-    }
-
-    if (winsurface) {
-        winsurface = nullptr;
-    }
+    // 不能在这里 delete openGlShader：native 侧 surfaceViewRender 是进程内单例，
+    // 退出页面只走 release()，再次进入会重新调用 cpp_surfaceview_video_creat →
+    // setSharderPath() 解引用已释放的 openGlShader（真机二次进入必崩）。
+    // 着色器对象由析构函数统一释放。
 
 }
 
@@ -246,10 +273,11 @@ bool OpenglesSurfaceViewVideoRender::createTextures() {
 
 bool OpenglesSurfaceViewVideoRender::updateTextures() {
     if (!m_textureIdY && !m_textureIdU && !m_textureIdV /*&& !createYUVTextures()*/) return false;
-//    LOGI("OpenglesSurfaceViewVideoRender updateTextures");
-    LOGE("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
-         m_textureIdY,
-         m_textureIdU, m_textureIdV, isDirty);
+    // 原先这里是每帧一条 LOGE：CUSTOM GL 以预览帧率刷屏，会把 logcat 环形缓冲区冲光，
+    // 使同一时间窗内的崩溃/相机日志被挤掉，排查问题时看不到关键堆栈。改为默认不打日志。
+//    LOGI("updateTextures m_textureIdY:%d,m_textureIdU:%d,m_textureIdV:%d,===isDirty:%d",
+//         m_textureIdY,
+//         m_textureIdU, m_textureIdV, isDirty);
 
     if (isDirty) {
         glActiveTexture(GL_TEXTURE0);
@@ -355,14 +383,10 @@ OpenglesSurfaceViewVideoRender::~OpenglesSurfaceViewVideoRender() {
     if (m_pDataY) {
         m_pDataY = nullptr;
     }
-    if (m_pDataU) {
-        delete m_pDataU;
-        m_pDataU = nullptr;
-    }
-    if (m_pDataV) {
-        delete m_pDataV;
-        m_pDataV = nullptr;
-    }
+    // m_pDataU/m_pDataV 是 m_pDataY 分配块内部的偏移指针，单独 delete 会破坏堆（UB）；
+    // 随 m_pDataY 一起回收，这里只置空。
+    m_pDataU = nullptr;
+    m_pDataV = nullptr;
 
     if (openGlShader) {
         delete openGlShader;

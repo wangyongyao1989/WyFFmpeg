@@ -118,7 +118,7 @@ private:
     uint32_t m_params = 0;
     float m_rotation = 0;
 
-    bool isDirty;
+    bool isDirty = false;
 
     OpenGLShader *openGlShader;
 };

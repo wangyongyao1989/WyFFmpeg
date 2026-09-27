@@ -40,7 +40,11 @@ public class OpenGLCameraFragment extends BaseFragment {
     private int type;
     private WyyGLSurfaceView mWyyGLSurfaceView;
     private WyyGLSurfaceViewNew mWyyGLSurfaceViewNew;
-    private boolean isRecording;
+    // 两个录制按钮各自一个状态位。以前共用一个 isRecording：
+    // 正在录 SelfGL 时去点"录制 水印"，会因为 isRecording 已为 true 而走 stopRecord() 分支，
+    // 对一个从没开始录制的视图调停止，同时 SelfGL 还在录、它的按钮文案却再也对不上状态。
+    private boolean isRecordingSelfGL;
+    private boolean isRecordingWaterMark;
     private GLDrawTextSurfaceView mDrawTextSurfaceView;
 
 
@@ -136,9 +140,9 @@ public class OpenGLCameraFragment extends BaseFragment {
 
         mBinding.btnSurfaceNewRecord.setOnClickListener(v -> {
             if (mWyyGLSurfaceViewNew != null) {
-                if (isRecording) {
+                if (isRecordingSelfGL) {
                     mWyyGLSurfaceViewNew.stopRecord();
-                    isRecording = false;
+                    isRecordingSelfGL = false;
                     mBinding.btnSurfaceNewRecord.setText("录制 SelfGL");
                 } else {
                     @SuppressLint("SimpleDateFormat") SimpleDateFormat formatter
@@ -146,9 +150,9 @@ public class OpenGLCameraFragment extends BaseFragment {
                     Date curDate = new Date(System.currentTimeMillis());//获取当前时间
                     String str = formatter.format(curDate);
                     String videoDir = DirectoryPath.createVideoDir(getActivity());
-                    String videoName = videoDir + File.pathSeparator + str + ".mp4";
+                    String videoName = new File(videoDir, str + ".mp4").getAbsolutePath();
                     mWyyGLSurfaceViewNew.startRecord(videoName);
-                    isRecording = true;
+                    isRecordingSelfGL = true;
                     mBinding.btnSurfaceNewRecord.setText("停止 SelfGL");
                 }
             } else {
@@ -168,9 +172,9 @@ public class OpenGLCameraFragment extends BaseFragment {
 
         mBinding.btnDrawTextRecord.setOnClickListener(v -> {
             if (mDrawTextSurfaceView != null) {
-                if (isRecording) {
+                if (isRecordingWaterMark) {
                     mDrawTextSurfaceView.stopRecord();
-                    isRecording = false;
+                    isRecordingWaterMark = false;
                     mBinding.btnDrawTextRecord.setText("录制 水印");
                 } else {
                     @SuppressLint("SimpleDateFormat") SimpleDateFormat formatter
@@ -178,9 +182,9 @@ public class OpenGLCameraFragment extends BaseFragment {
                     Date curDate = new Date(System.currentTimeMillis());//获取当前时间
                     String str = formatter.format(curDate);
                     String videoDir = DirectoryPath.createVideoDir(getActivity());
-                    String videoName = videoDir + File.pathSeparator + str + ".mp4";
+                    String videoName = new File(videoDir, str + ".mp4").getAbsolutePath();
                     mDrawTextSurfaceView.startRecord(videoName);
-                    isRecording = true;
+                    isRecordingWaterMark = true;
                     mBinding.btnDrawTextRecord.setText("停止 水印");
                 }
             } else {
@@ -256,6 +260,25 @@ public class OpenGLCameraFragment extends BaseFragment {
     }
 
     private void onDestroyGLView() {
+        // 摄像头预览也要一并释放：原先切到其它模式时 mCameraPreView 没被销毁，
+        // CameraDevice 会一直被占用（真机 dumpsys media.camera 可见 CONNECT 无 DISCONNECT）
+        if (mCameraPreView != null) {
+            mCameraPreView.onDestroy();
+            mCameraPreView = null;
+        }
+        if (mDrawTextSurfaceView != null) {
+            // 先停录像再销毁渲染器：录制中直接切模式（例如"录制 水印"进行中点 CUSTOM GL）
+            // 会让 MediaCodec 编码器对着一个已经销毁的 GL 上下文继续取帧
+            if (isRecordingWaterMark) {
+                mDrawTextSurfaceView.stopRecord();
+                isRecordingWaterMark = false;
+                if (mBinding != null) {
+                    mBinding.btnDrawTextRecord.setText("录制 水印");
+                }
+            }
+            mDrawTextSurfaceView.destroyRender();
+            mDrawTextSurfaceView = null;
+        }
         if (mGLTextureVideoPlayerView != null) {
             mGLTextureVideoPlayerView.destroyRender();
             mGLTextureVideoPlayerView = null;
@@ -269,24 +292,36 @@ public class OpenGLCameraFragment extends BaseFragment {
             mWyyGLSurfaceView = null;
         }
         if (mWyyGLSurfaceViewNew != null) {
+            if (isRecordingSelfGL) {
+                mWyyGLSurfaceViewNew.stopRecord();
+                isRecordingSelfGL = false;
+                if (mBinding != null) {
+                    mBinding.btnSurfaceNewRecord.setText("录制 SelfGL");
+                }
+            }
             mWyyGLSurfaceViewNew.destroyRender();
             mWyyGLSurfaceViewNew = null;
         }
     }
 
+    /**
+     * MainActivity 用 hide()/show() 切换 Fragment，离开页面时 onDestroy/onDestroyView
+     * 都不会触发，必须在 onHiddenChanged 里释放摄像头与 GL 渲染器。
+     */
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (hidden && mBinding != null) {
+            // onDestroyGLView() 里已经把"录制中先停录"的逻辑做了，这里直接复用它，
+            // 不再单独判 isRecording（原来两个录制按钮共用一个标志位，状态经常对不上）
+            onDestroyGLView();
+            mBinding.glShow.removeAllViews();
+        }
+    }
 
     @Override
     public void onDestroy() {
-        if (mCameraPreView != null) {
-            mCameraPreView.onDestroy();
-        }
-        if (mGLTextureVideoPlayerView != null) {
-            mGLTextureVideoPlayerView.destroyRender();
-        }
-        if (mGLTextureFilterPlayerView != null) {
-            mGLTextureFilterPlayerView.destroyRender();
-            mGLTextureFilterPlayerView = null;
-        }
+        onDestroyGLView();
         super.onDestroy();
     }
 

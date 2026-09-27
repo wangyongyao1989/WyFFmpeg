@@ -10,11 +10,16 @@ TextureMovieEncoder2::TextureMovieEncoder2(VideoEncoderCore *videoEncoderCore) {
 }
 
 TextureMovieEncoder2::~TextureMovieEncoder2() {
+    // 必须先 quit() 再释放 codec。quit() 会 join 编码器线程，保证队列里已经投递的
+    // MSG_STOP_RECORDING / MSG_FRAME_AVAILABLE 在 codec 还存活时执行完。
+    // 原顺序是先 release()（把 m_AMediaCodec 置空）再 quit()，编码器线程随后在
+    // drainEncoder 里对空 codec 调 AMediaCodec_dequeueOutputBuffer，
+    // 真机点击"停止录制"必崩：SIGSEGV SEGV_MAPERR fault addr 0x0。
+    quit();
     if (m_VideoEncoderCore != nullptr) {
         m_VideoEncoderCore->release();
         m_VideoEncoderCore = nullptr;
     }
-    quit();
 }
 
 
